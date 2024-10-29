@@ -6,7 +6,7 @@ Deno.test(function shouldCreate() {
   assertInstanceOf(instance, SaveFile);
 });
 
-Deno.test(function shouldInitilizeEmpty() {
+Deno.test(function shouldInitializeEmpty() {
   const instance = new SaveFile();
   assertInstanceOf(instance.header, SaveHeader);
   instance.slots.forEach(slot => {
