@@ -12,7 +12,7 @@ export class SaveFile {
 
   static get requiredSize(): number {
     return SaveHeader.requiredSize + this.saveSlots * SaveSlot.requiredSize +
-     this.saveSlots * SaveSlot.requiredSize;
+      this.saveSlots * SaveSlot.requiredSize;
   }
 
   constructor(file?: Deno.FsFile) {
