@@ -1,5 +1,5 @@
 import { assertInstanceOf, assertThrows } from "@std/assert";
-import { assertSpyCalls, returnsNext, spy, stub } from "@std/testing/mock";
+import { assertSpyCalls, returnsNext, stub } from "@std/testing/mock";
 import { SaveFile } from "./savefile.ts";
 import { SaveHeader } from "./saveheader.ts";
 import { SaveSlot } from "./saveslot.ts";

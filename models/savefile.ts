@@ -6,6 +6,15 @@ export class SaveFile {
   slots: [SaveSlot, SaveSlot, SaveSlot];
   backups: [SaveSlot, SaveSlot, SaveSlot];
 
+  private static get saveSlots(): number {
+    return 3;
+  }
+
+  static get requiredSize(): number {
+    return SaveHeader.requiredSize + this.saveSlots * SaveSlot.requiredSize +
+     this.saveSlots * SaveSlot.requiredSize;
+  }
+
   constructor(file?: Deno.FsFile) {
     this.header = new SaveHeader();
     this.slots = [new SaveSlot(), new SaveSlot(), new SaveSlot()];
@@ -16,19 +25,35 @@ export class SaveFile {
   }
 
   read(file: Deno.FsFile): SaveFile {
-    // TODO refactor these magic numbers
-    const expectedFileSize = 0x0020 + 6 * 0x1450;
-    const bytes = new Uint8Array(expectedFileSize);
+    const bytes = new Uint8Array(SaveFile.requiredSize);
     const readBytes = file.readSync(bytes);
-    if (expectedFileSize !== readBytes) {
+    if (SaveFile.requiredSize !== readBytes) {
       throw Error(
-        `Incorrect file size, cannot read save file. Expected ${expectedFileSize} bytes, got ${readBytes}.`,
+        `Incorrect file size, cannot read save file. Expected ${SaveFile.requiredSize} bytes, got ${readBytes}.`,
       );
     }
-    this.header = new SaveHeader(bytes.slice(0x00, 0x20));
-    this.slots[0] = new SaveSlot(bytes.slice(0x20, 0x20 + 0x1450));
-    // TODO init other slots
-    // TODO init backups
+
+    let currentOffset = 0x00;
+
+    this.header = new SaveHeader(
+      bytes.slice(currentOffset, SaveHeader.requiredSize),
+    );
+    currentOffset += SaveHeader.requiredSize;
+
+    for (let i = 0; i < SaveFile.saveSlots; i++) {
+      this.slots[i] = new SaveSlot(
+        bytes.slice(currentOffset, currentOffset + SaveSlot.requiredSize),
+      );
+      currentOffset += SaveSlot.requiredSize;
+    }
+
+    for (let i = 0; i < SaveFile.saveSlots; i++) {
+      this.backups[i] = new SaveSlot(
+        bytes.slice(currentOffset, currentOffset + SaveSlot.requiredSize),
+      );
+      currentOffset += SaveSlot.requiredSize;
+    }
+
     return this;
   }
 }

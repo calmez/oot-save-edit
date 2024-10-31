@@ -6,10 +6,14 @@ export enum SoundOption {
 }
 
 export class SaveHeader {
-  constructor(private bytes: Uint8Array = new Uint8Array(0x20)) {
-    if (bytes.length != 0x20) {
+  static get requiredSize(): number {
+    return 0x20;
+  }
+
+  constructor(private bytes: Uint8Array = new Uint8Array(SaveHeader.requiredSize)) {
+    if (bytes.length != SaveHeader.requiredSize) {
       throw Error(
-        `Save header needs to be of length ${0x20}, got ${bytes.length}`,
+        `Save header needs to be of length ${SaveHeader.requiredSize}, got ${bytes.length}`,
       );
     }
   }

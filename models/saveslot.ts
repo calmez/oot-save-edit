@@ -5,10 +5,14 @@ export enum Age {
 }
 
 export class SaveSlot {
+  public static get requiredSize(): number {
+    return 0x1450;
+  }
+
   constructor(private bytes: Uint8Array = new Uint8Array(0x1450)) {
-    if (bytes.length != 0x1450) {
+    if (bytes.length != SaveSlot.requiredSize) {
       throw Error(
-        `Save header needs to be of length ${0x1450}, got ${bytes.length}`,
+        `Save header needs to be of length ${SaveSlot.requiredSize}, got ${bytes.length}`,
       );
     }
   }
@@ -37,9 +41,8 @@ export class SaveSlot {
   get rupees(): number {
     var rupees: number = 0;
     rupees = this.bytes[0x34];
-    rupees << 8;
-    rupees = this.bytes[0x35];
-    rupees << 8;
+    rupees <<= 8;
+    rupees += this.bytes[0x35];
 
     return rupees;
   }
