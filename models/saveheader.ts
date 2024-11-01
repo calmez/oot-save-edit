@@ -11,6 +11,7 @@ export enum ZTargetOption {
   Invalid,
 }
 
+// TODO needs verification
 export enum LanguageOption {
   English = 0x00,
   German = 0x01,
@@ -32,7 +33,7 @@ export class SaveHeader {
   }
 
   static get debugPadding(): Uint8Array {
-    let data = new Uint8Array(5);
+    const data = new Uint8Array(5);
     data.fill(0xAB);
     return data;
   }
@@ -51,20 +52,46 @@ export class SaveHeader {
     return this.bytes[0x00];
   }
 
+  set soundOption(option: SoundOption) {
+    this.bytes.set([option], 0x00);
+  }
+
   get zTargetOption(): ZTargetOption {
     return this.bytes[0x01];
+  }
+
+  set zTargetOption(option: ZTargetOption) {
+    this.bytes.set([option], 0x01);
   }
 
   get languageOption(): LanguageOption {
     return this.bytes[0x02];
   }
 
+  set languageOption(option: LanguageOption) {
+    this.bytes.set([option], 0x02);
+  }
+
   private get checkPattern(): Uint8Array {
     return this.bytes.slice(0x03, 0x03 + 9);
   }
 
+  private set checkPattern(patternData: Uint8Array) {
+    if (patternData.length != 9) {
+      throw Error(`Padding data needs to be 9 bytes, got ${patternData.length}.`);
+    }
+    this.bytes.set(patternData, 0x03);
+  }
+
   private get padding(): Uint8Array {
     return this.bytes.slice(0x0C, 0x0C + 5);
+  }
+
+  private set padding(paddingData: Uint8Array) {
+    if (paddingData.length != 5) {
+      throw Error(`Padding data needs to be 5 bytes, got ${paddingData.length}.`);
+    }
+    this.bytes.set(paddingData, 0x0C);
   }
 
   private get isPatternValid(): boolean {
@@ -85,5 +112,11 @@ export class SaveHeader {
 
   get isValid(): boolean {
     return this.isPatternValid && this.isPaddingValid;
+  }
+
+  makeValid(isDebug: boolean = false): this {
+    this.checkPattern = SaveHeader.validCheckPattern;
+    this.padding = !isDebug ? SaveHeader.defaultPadding : SaveHeader.debugPadding;
+    return this;
   }
 }

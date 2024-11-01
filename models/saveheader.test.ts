@@ -30,6 +30,17 @@ Deno.test({
 });
 
 Deno.test({
+  name: "should set the SoundOption",
+  fn() {
+    const expectedSoundOption = SoundOption.Mono;
+    const testData = new Uint8Array(SaveHeader.requiredSize);
+    const instance = new SaveHeader(testData);
+    instance.soundOption = expectedSoundOption;
+    assertEquals(instance.soundOption, expectedSoundOption);
+  }
+});
+
+Deno.test({
   name: "should provide the stored ZTargetOption",
   fn() {
     const testData = new Uint8Array(SaveHeader.requiredSize);
@@ -41,6 +52,17 @@ Deno.test({
 });
 
 Deno.test({
+  name: "should set the ZTargetOption",
+  fn() {
+    const expectedZTargetOption = ZTargetOption.Hold;
+    const testData = new Uint8Array(SaveHeader.requiredSize);
+    const instance = new SaveHeader(testData);
+    instance.zTargetOption = expectedZTargetOption;
+    assertEquals(instance.zTargetOption, expectedZTargetOption);
+  }
+});
+
+Deno.test({
   name: "should provide the stored LanguageOption",
   fn() {
     const testData = new Uint8Array(SaveHeader.requiredSize);
@@ -49,6 +71,17 @@ Deno.test({
     const instance = new SaveHeader(testData);
     assertEquals(instance.languageOption, expectedLanguageOption);
   },
+});
+
+Deno.test({
+  name: "should set the LanguageOption",
+  fn() {
+    const expectedLanguageOption = LanguageOption.German;
+    const testData = new Uint8Array(SaveHeader.requiredSize);
+    const instance = new SaveHeader(testData);
+    instance.languageOption = expectedLanguageOption;
+    assertEquals(instance.languageOption, expectedLanguageOption);
+  }
 });
 
 Deno.test({
@@ -69,4 +102,14 @@ Deno.test({
     const instance = new SaveHeader(validData);
     assertEquals(instance.isValid, true);
   },
+});
+
+Deno.test({
+  name: "should correct validity",
+  fn() {
+    const invalidData = new Uint8Array(SaveHeader.requiredSize);
+    const instance = new SaveHeader(invalidData);
+    instance.makeValid();
+    assertEquals(instance.isValid, true);
+  }
 });
