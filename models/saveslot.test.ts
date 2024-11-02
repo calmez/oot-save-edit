@@ -30,6 +30,17 @@ Deno.test({
 });
 
 Deno.test({
+  name: "should set the Age",
+  fn() {
+    const testData = new Uint8Array(SaveSlot.requiredSize);
+    const expectedAge = Age.Adult;
+    const instance = new SaveSlot(testData);
+    instance.age = expectedAge;
+    assertEquals(instance.age, expectedAge);
+  },
+});
+
+Deno.test({
   name: "should provide the rupees",
   fn() {
     const testData = new Uint8Array(SaveSlot.requiredSize);
@@ -38,6 +49,17 @@ Deno.test({
     testData[0x35] = (expectedRupees % 0xFF) -
       Math.floor(expectedRupees / 0xFF);
     const instance = new SaveSlot(testData);
+    assertEquals(instance.rupees, expectedRupees);
+  },
+});
+
+Deno.test({
+  name: "should set the rupees",
+  fn() {
+    const testData = new Uint8Array(SaveSlot.requiredSize);
+    const expectedRupees = 500;
+    const instance = new SaveSlot(testData);
+    instance.rupees = expectedRupees;
     assertEquals(instance.rupees, expectedRupees);
   },
 });

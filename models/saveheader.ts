@@ -1,3 +1,5 @@
+import { toUint8Array } from "../utils/conversions.ts";
+
 export enum SoundOption {
   Stereo = 0x00,
   Mono,
@@ -53,7 +55,7 @@ export class SaveHeader {
   }
 
   set soundOption(option: SoundOption) {
-    this.bytes.set([option], 0x00);
+    this.bytes.set(toUint8Array(option), 0x00);
   }
 
   get zTargetOption(): ZTargetOption {
@@ -61,7 +63,7 @@ export class SaveHeader {
   }
 
   set zTargetOption(option: ZTargetOption) {
-    this.bytes.set([option], 0x01);
+    this.bytes.set(toUint8Array(option), 0x01);
   }
 
   get languageOption(): LanguageOption {
@@ -69,7 +71,7 @@ export class SaveHeader {
   }
 
   set languageOption(option: LanguageOption) {
-    this.bytes.set([option], 0x02);
+    this.bytes.set(toUint8Array(option), 0x02);
   }
 
   private get checkPattern(): Uint8Array {

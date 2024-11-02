@@ -1,3 +1,5 @@
+import { toUint8Array } from "../utils/conversions.ts";
+
 export enum Age {
   Child = 0x00,
   Adult = 0x01,
@@ -18,15 +20,15 @@ export class SaveSlot {
   }
 
   get age(): Age {
+    // TODO implement proper conversion
     var age: number = 0;
     age = this.bytes[0x04];
-    age << 8;
-    age = this.bytes[0x05];
-    age << 8;
-    age = this.bytes[0x06];
-    age << 8;
-    age = this.bytes[0x07];
-    age << 8;
+    age <<= 8;
+    age += this.bytes[0x05];
+    age <<= 8;
+    age += this.bytes[0x06];
+    age <<= 8;
+    age += this.bytes[0x07];
 
     switch (age) {
       case 0:
@@ -38,12 +40,20 @@ export class SaveSlot {
     }
   }
 
+  set age(value: Age) {
+    this.bytes.set(toUint8Array(value, 4), 0x04);
+  }
+
   get rupees(): number {
-    var rupees: number = 0;
+    let rupees: number = 0;
     rupees = this.bytes[0x34];
     rupees <<= 8;
     rupees += this.bytes[0x35];
 
     return rupees;
+  }
+
+  set rupees(value: number) {
+    this.bytes.set(toUint8Array(value, 2), 0x34);
   }
 }
