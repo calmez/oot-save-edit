@@ -78,7 +78,9 @@ export class SaveHeader {
 
   private set checkPattern(patternData: Uint8Array) {
     if (patternData.length != 9) {
-      throw Error(`Padding data needs to be 9 bytes, got ${patternData.length}.`);
+      throw Error(
+        `Padding data needs to be 9 bytes, got ${patternData.length}.`,
+      );
     }
     this.bytes.set(patternData, 0x03);
   }
@@ -89,7 +91,9 @@ export class SaveHeader {
 
   private set padding(paddingData: Uint8Array) {
     if (paddingData.length != 5) {
-      throw Error(`Padding data needs to be 5 bytes, got ${paddingData.length}.`);
+      throw Error(
+        `Padding data needs to be 5 bytes, got ${paddingData.length}.`,
+      );
     }
     this.bytes.set(paddingData, 0x0C);
   }
@@ -116,7 +120,9 @@ export class SaveHeader {
 
   makeValid(isDebug: boolean = false): this {
     this.checkPattern = SaveHeader.validCheckPattern;
-    this.padding = !isDebug ? SaveHeader.defaultPadding : SaveHeader.debugPadding;
+    this.padding = !isDebug
+      ? SaveHeader.defaultPadding
+      : SaveHeader.debugPadding;
     return this;
   }
 }

@@ -1,6 +1,6 @@
 import { assertEquals, assertInstanceOf, assertThrows } from "@std/assert";
 import { SaveHeader } from "./saveheader.ts";
-import { LanguageOption, SoundOption, ZTargetOption } from "./SaveHeader.ts";
+import { LanguageOption, SoundOption, ZTargetOption } from "./saveheader.ts";
 
 Deno.test({
   name: "should create",
@@ -37,7 +37,7 @@ Deno.test({
     const instance = new SaveHeader(testData);
     instance.soundOption = expectedSoundOption;
     assertEquals(instance.soundOption, expectedSoundOption);
-  }
+  },
 });
 
 Deno.test({
@@ -59,7 +59,7 @@ Deno.test({
     const instance = new SaveHeader(testData);
     instance.zTargetOption = expectedZTargetOption;
     assertEquals(instance.zTargetOption, expectedZTargetOption);
-  }
+  },
 });
 
 Deno.test({
@@ -81,7 +81,7 @@ Deno.test({
     const instance = new SaveHeader(testData);
     instance.languageOption = expectedLanguageOption;
     assertEquals(instance.languageOption, expectedLanguageOption);
-  }
+  },
 });
 
 Deno.test({
@@ -111,5 +111,5 @@ Deno.test({
     const instance = new SaveHeader(invalidData);
     instance.makeValid();
     assertEquals(instance.isValid, true);
-  }
+  },
 });
