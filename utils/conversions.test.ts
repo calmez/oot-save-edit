@@ -1,5 +1,5 @@
 import { assertEquals, assertThrows } from "@std/assert";
-import { toUint8Array } from "./conversions.ts";
+import { toNumber, toUint8Array } from "./conversions.ts";
 
 Deno.test({
   name: "should convert a 1 byte number",
@@ -60,3 +60,39 @@ Deno.test({
     assertThrows(() => toUint8Array(testNumber, 2));
   }
 });
+
+Deno.test({
+  name: "should convert a 1 byte array",
+  fn() {
+    const expectedNumber = 42;
+    const testArray = new Uint8Array([expectedNumber]);
+    assertEquals(toNumber(testArray), expectedNumber);
+  }
+})
+
+Deno.test({
+  name: "should convert a 2 byte array",
+  fn() {
+    const expectedNumber = 0xDEAD;
+    const testArray = new Uint8Array([0xDE, 0xAD]);
+    assertEquals(toNumber(testArray), expectedNumber);
+  }
+})
+
+Deno.test({
+  name: "should convert a 3 byte array",
+  fn() {
+    const expectedNumber = 0xDEAD01;
+    const testArray = new Uint8Array([0xDE, 0xAD, 0x01]);
+    assertEquals(toNumber(testArray), expectedNumber);
+  }
+})
+
+Deno.test({
+  name: "should convert a 4 byte array",
+  fn() {
+    const expectedNumber = 0xDEADBEEF;
+    const testArray = new Uint8Array([0xDE, 0xAD, 0xBE, 0xEF]);
+    assertEquals(toNumber(testArray), expectedNumber);
+  }
+})

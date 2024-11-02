@@ -42,3 +42,11 @@ function determineMaxNumber(bytes: number) {
   }
   return max >>> 0;
 }
+
+export function toNumber(value: Uint8Array): number {
+  let numberValue = 0;
+  for (let i = 0; i < value.length; i++) {
+    numberValue += Math.pow(0xFF + 1, i) * value[value.length - 1 - i];
+  }
+  return numberValue;
+}
