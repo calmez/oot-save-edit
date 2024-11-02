@@ -44,3 +44,19 @@ Deno.test({
     assertThrows(() => toUint8Array(testNumber));
   }
 });
+
+Deno.test({
+  name: "should fill with leading zeroed bytes when fixed length is given",
+  fn() {
+    const testNumber = 0xDEAD;
+    assertEquals(toUint8Array(testNumber, 3), new Uint8Array([0x00, 0xDE, 0xAD]));
+  }
+});
+
+Deno.test({
+  name: "should error when number is too big for fixed length in bytes",
+  fn() {
+    const testNumber = 0xBEEF0;
+    assertThrows(() => toUint8Array(testNumber, 2));
+  }
+});
