@@ -2,7 +2,19 @@ const BITS_PER_BYTE = 8;
 const MAX_BYTES_PER_NUMBER = 4;  // supporting up to long, but not long long
 const MAX_NUMBER = determineMaxNumber(MAX_BYTES_PER_NUMBER);
 
-export function toUint8Array(value: number, fixLengthBytes?: number): Uint8Array {
+export function toUint8Array(input: number | boolean, fixLengthBytes?: number): Uint8Array {
+  let value: number;
+  switch (typeof input) {
+    case 'number':
+      value = input;
+      break;
+    case 'boolean':
+      value = input ? 1 : 0;
+      break;
+    default:
+      throw new Error(`Unsupported input type ${typeof input}.`);
+  }
+
   if (value > MAX_NUMBER) {
     throw Error(`Only 4 bytes per number are supported. The biggest number is ${MAX_NUMBER}, ${value} was given.`);
   }
