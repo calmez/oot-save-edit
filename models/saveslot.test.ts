@@ -27,7 +27,7 @@ Deno.test({
     testData.set(toUint8Array(expectedEntranceIndex, 4), 0x0000);
     const instance = new SaveSlot(testData);
     assertEquals(instance.entranceIndex, expectedEntranceIndex);
-  }
+  },
 });
 
 Deno.test({
@@ -38,7 +38,7 @@ Deno.test({
     const instance = new SaveSlot(testData);
     instance.entranceIndex = expectedEntranceIndex;
     assertEquals(instance.entranceIndex, expectedEntranceIndex);
-  }
+  },
 });
 
 Deno.test({

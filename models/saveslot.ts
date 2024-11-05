@@ -98,7 +98,7 @@ export class SaveSlot {
   }
 
   private get checkPattern(): Uint8Array {
-    return this.bytes.slice(0x001C, 0x001C + 6)
+    return this.bytes.slice(0x001C, 0x001C + 6);
   }
 
   private set checkPattern(value: Uint8Array) {
@@ -126,7 +126,9 @@ export class SaveSlot {
 
   set playerName(value: string) {
     if (value.length > 8) {
-      new Error(`Player name only supports up to 8 characters, ${value.length} given`);
+      new Error(
+        `Player name only supports up to 8 characters, ${value.length} given`,
+      );
     }
     const data = new Uint8Array(8);
     data.fill(0xDF);
@@ -144,7 +146,9 @@ export class SaveSlot {
       case 1:
         return true;
       default:
-        throw Error(`ddOnly flag contains corrupt value ${value}. Can only be 0 or 1.`);
+        throw Error(
+          `ddOnly flag contains corrupt value ${value}. Can only be 0 or 1.`,
+        );
     }
   }
 
@@ -200,7 +204,9 @@ export class SaveSlot {
       case 1:
         return true;
       default:
-        throw Error(`biggoronsSwordFlag1 flag contains corrupt value ${value}. Can only be 0 or 1.`);
+        throw Error(
+          `biggoronsSwordFlag1 flag contains corrupt value ${value}. Can only be 0 or 1.`,
+        );
     }
   }
 
@@ -224,7 +230,9 @@ export class SaveSlot {
       case 1:
         return true;
       default:
-        throw Error(`biggoronsSwordFlag1 flag contains corrupt value ${value}. Can only be 0 or 1.`);
+        throw Error(
+          `biggoronsSwordFlag1 flag contains corrupt value ${value}. Can only be 0 or 1.`,
+        );
     }
   }
 
@@ -240,7 +248,9 @@ export class SaveSlot {
       case 1:
         return true;
       default:
-        throw Error(`biggoronsSwordFlag1 flag contains corrupt value ${value}. Can only be 0 or 1.`);
+        throw Error(
+          `biggoronsSwordFlag1 flag contains corrupt value ${value}. Can only be 0 or 1.`,
+        );
     }
   }
 
@@ -256,7 +266,9 @@ export class SaveSlot {
       case 1:
         return true;
       default:
-        throw Error(`biggoronsSwordFlag1 flag contains corrupt value ${value}. Can only be 0 or 1.`);
+        throw Error(
+          `biggoronsSwordFlag1 flag contains corrupt value ${value}. Can only be 0 or 1.`,
+        );
     }
   }
 
