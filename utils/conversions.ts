@@ -1,14 +1,17 @@
 const BITS_PER_BYTE = 8;
-const MAX_BYTES_PER_NUMBER = 4;  // supporting up to long, but not long long
+const MAX_BYTES_PER_NUMBER = 4; // supporting up to long, but not long long
 const MAX_NUMBER = determineMaxNumber(MAX_BYTES_PER_NUMBER);
 
-export function toUint8Array(input: number | boolean, fixLengthBytes?: number): Uint8Array {
+export function toUint8Array(
+  input: number | boolean,
+  fixLengthBytes?: number,
+): Uint8Array {
   let value: number;
   switch (typeof input) {
-    case 'number':
+    case "number":
       value = input;
       break;
-    case 'boolean':
+    case "boolean":
       value = input ? 1 : 0;
       break;
     default:
@@ -16,14 +19,20 @@ export function toUint8Array(input: number | boolean, fixLengthBytes?: number): 
   }
 
   if (value > MAX_NUMBER) {
-    throw Error(`Only 4 bytes per number are supported. The biggest number is ${MAX_NUMBER}, ${value} was given.`);
+    throw Error(
+      `Only 4 bytes per number are supported. The biggest number is ${MAX_NUMBER}, ${value} was given.`,
+    );
   }
 
   const upperBound = determineUpperBound(value);
   const paddingDiff = fixLengthBytes ? fixLengthBytes - upperBound : 0;
 
   if (paddingDiff < 0) {
-    throw Error(`Cannot fix byte length. Given number too big. For given length of ${fixLengthBytes} bytes the biggest number is ${determineMaxNumber(fixLengthBytes ?? MAX_BYTES_PER_NUMBER)}, ${value} was given.`);
+    throw Error(
+      `Cannot fix byte length. Given number too big. For given length of ${fixLengthBytes} bytes the biggest number is ${
+        determineMaxNumber(fixLengthBytes ?? MAX_BYTES_PER_NUMBER)
+      }, ${value} was given.`,
+    );
   }
 
   const data = new Uint8Array(fixLengthBytes ? fixLengthBytes : upperBound);
@@ -37,7 +46,8 @@ export function toUint8Array(input: number | boolean, fixLengthBytes?: number): 
 function determineUpperBound(value: number) {
   let upperBound = MAX_BYTES_PER_NUMBER;
   for (let i = 1; i < MAX_BYTES_PER_NUMBER; i++) {
-    const bitValue = value >>> (MAX_BYTES_PER_NUMBER * BITS_PER_BYTE - (i * BITS_PER_BYTE));
+    const bitValue = value >>>
+      (MAX_BYTES_PER_NUMBER * BITS_PER_BYTE - (i * BITS_PER_BYTE));
     if (bitValue > 0) {
       break;
     }

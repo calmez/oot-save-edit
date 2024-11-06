@@ -21,7 +21,9 @@ async function runTheThing() {
   console.debug(`Link has age '${Age[slot.age]}'`);
   console.debug(`Link has ${slot.rupees} rupees`);
   console.debug(`Link is actually called ${slot.playerName}`);
-  console.debug(`Link's health is ${slot.currentHealth / 16} / ${slot.maxHealth / 16}`);
+  console.debug(
+    `Link's health is ${slot.currentHealth / 16} / ${slot.maxHealth / 16}`,
+  );
 }
 
 if (import.meta.main) {
