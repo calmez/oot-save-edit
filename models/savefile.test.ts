@@ -36,7 +36,7 @@ Deno.test({
       "readSync",
       returnsNext([expectedFileSize]),
     );
-    const instance = new SaveFile(testFile);
+    new SaveFile(testFile);
     assertSpyCalls(readSyncStub, 1);
   },
 });
@@ -46,7 +46,7 @@ Deno.test({
   fn() {
     const wrongFileSize = 42;
     const testFile = {} as Deno.FsFile;
-    const readSyncStub = stub(
+    stub(
       testFile,
       "readSync",
       returnsNext([wrongFileSize]),
