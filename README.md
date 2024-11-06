@@ -1,5 +1,7 @@
 # OoT Save Edit
 
+![Build Status](https://github.com/calmez/oot-save-edit/actions/workflows/main.yml/badge.svg)
+
 This project was started out of desperation when having accidentally deleting my
 save file on an N64 play-through very late in the game. Researching my options I
 found excellent sources that explained the binary format of the save file.
