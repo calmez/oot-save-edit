@@ -23,7 +23,7 @@ export function toUint8Array(input: number | boolean, fixLengthBytes?: number): 
   const paddingDiff = fixLengthBytes ? fixLengthBytes - upperBound : 0;
 
   if (paddingDiff < 0) {
-    throw Error(`Cannot fix byte length. Given number too big. For given length of ${fixLengthBytes} bytes the biggest number is ${determineMaxNumber(fixLengthBytes)}, ${value} was given.`);  // TODO more detail in output
+    throw Error(`Cannot fix byte length. Given number too big. For given length of ${fixLengthBytes} bytes the biggest number is ${determineMaxNumber(fixLengthBytes ?? MAX_BYTES_PER_NUMBER)}, ${value} was given.`);
   }
 
   const data = new Uint8Array(fixLengthBytes ? fixLengthBytes : upperBound);
