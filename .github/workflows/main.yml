@@ -1,0 +1,25 @@
+name: 'Tests'
+
+on:
+  push:
+    branches: ['main']
+  pull_request:
+    branches: ['main', 'develop']
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: install
+        run: deno install
+      - name: linting
+        run: deno lint
+      - name: formatting
+        run: deno fmt --check
+      - name: Run tests
+        run: deno test
