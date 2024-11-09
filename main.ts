@@ -1,5 +1,5 @@
 import { SaveFile } from "./models/savefile.ts";
-import { SoundOption } from "./models/saveheader.ts";
+import { SoundOption, LanguageOption } from "./models/saveheader.ts";
 import { Age } from "./models/saveslot.ts";
 
 async function runTheThing() {
@@ -12,17 +12,21 @@ async function runTheThing() {
 
   const file = await Deno.open(Deno.args[0]);
   const save = new SaveFile(file);
+  file.close();
 
-  console.debug(`Successfully read the file`);
+  console.debug(`Successfully read the file: ${Deno.args[0]}`);
   console.debug(
-    `Save has sound option '${SoundOption[save.header.soundOption]}'`,
+    `Save has sound option ${SoundOption[save.header.soundOption]}`,
+  );
+  console.debug(
+    `Save has language option ${LanguageOption[save.header.languageOption]}`,
   );
   const slot = save.slots[0];
-  console.debug(`Link has age '${Age[slot.age]}'`);
+  console.debug(`Link has age ${Age[slot.age]}`);
   console.debug(`Link has ${slot.rupees} rupees`);
-  console.debug(`Link is actually called ${slot.playerName}`);
+  console.debug(`Link is actually called "${slot.playerName}"`);
   console.debug(
-    `Link's health is ${slot.currentHealth / 16} / ${slot.maxHealth / 16}`,
+    `Link's health is ${slot.currentHealth / 16}/${slot.maxHealth / 16}`,
   );
 }
 

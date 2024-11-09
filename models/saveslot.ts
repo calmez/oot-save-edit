@@ -1,4 +1,5 @@
 import { toNumber, toUint8Array } from "../utils/conversions.ts";
+import { OotText } from "../utils/text.ts";
 
 export enum Age {
   Child = 0x00,
@@ -120,8 +121,7 @@ export class SaveSlot {
 
   get playerName(): string {
     const data = this.bytes.slice(0x0024, 0x0024 + 8);
-    const decoder = new TextDecoder();
-    return decoder.decode(data);
+    return new OotText().decode(data);
   }
 
   set playerName(value: string) {
@@ -130,11 +130,7 @@ export class SaveSlot {
         `Player name only supports up to 8 characters, ${value.length} given`,
       );
     }
-    const data = new Uint8Array(8);
-    data.fill(0xDF);
-    // TODO this is not the correct encoding
-    const encoder = new TextEncoder();
-    data.set(encoder.encode(value));
+    const data = new OotText().encode(value);
     this.bytes.set(data, 0x0024);
   }
 
