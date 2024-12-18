@@ -31,6 +31,13 @@ export enum Boots {
   Hover = 0x46,
 }
 
+export interface FaroresWindWarp {
+  x: number;
+  y: number;
+  z: number;
+  yRotation: number;
+}
+
 export class SaveSlot {
   public static get requiredSize(): number {
     return 0x1450;
@@ -284,6 +291,7 @@ export class SaveSlot {
     return this.bytes.slice(0x0068, 0x0068 + 7);
   }
 
+  // TODO button equipments should return specific data structures
   private set currentButtonEquips(value: Uint8Array) {
     if (value.length != 7) {
       throw Error(
@@ -333,6 +341,7 @@ export class SaveSlot {
     this.currentButtonEquips = buttonEquips;
   }
 
+  // TODO should reference data structures for equipment
   private get currentlyEquippedEquipment(): Uint8Array {
     return this.bytes.slice(0x0070, 0x0070 + 2);
   }
@@ -344,6 +353,162 @@ export class SaveSlot {
       );
     }
     this.bytes.set(value, 0x0070);
+  }
+
+  // TODO inventory at 0x0074, byte[24]
+  // TODO item amounts at 0x008C, byte[0xF]
+
+  get magicBeans(): number {
+    return toNumber(this.bytes.slice(0x009B, 0x009B + 1));
+  }
+
+  set magicBeans(value: number) {
+    this.bytes.set(toUint8Array(value, 1), 0x009B);
+  }
+  
+  // TODO obtained equipment at 0x009C, uint16
+  // TODO obtained upgrades at 0x00A0, uint32
+  // TODO quest status items at 0x00A4, uint32
+  // TODO dungeon items at 0x00A8, byte[0x14]
+  // TODO small key amount at 0x00BC, byte[0x14]
+
+  get doubleDefenseHearts(): number {
+    return toNumber(this.bytes.slice(0x00BC, 0x00BC + 1));
+  }
+
+  set doubleDefenseHearts(value: number) {
+    this.bytes.set(toUint8Array(value, 1), 0x00BC);
+  }
+  
+  get goldSkulltullas(): number {
+    return toNumber(this.bytes.slice(0x00D0, 0x00D0 + 2));
+  }
+
+  set goldSkullTullas(value: number) {
+    this.bytes.set(toUint8Array(value, 2), 0x00D0);
+  }
+
+  // TODO permanent scene flags at 0x00D4
+
+  private get faroresWindWarpX(): number {
+    return toNumber(this.bytes.slice(0x0E64, 0x0E64 + 4));
+  }
+
+  private set faroresWindWarpX(value: number) {
+    this.bytes.set(toUint8Array(value, 4), 0x0E64);
+  }
+
+  private get faroresWindWarpY(): number {
+    return toNumber(this.bytes.slice(0x0E68, 0x0E68 + 4));
+  }
+
+  private set faroresWindWarpY(value: number) {
+    this.bytes.set(toUint8Array(value, 4), 0x0E68);
+  }
+
+  private get faroresWindWarpZ(): number {
+    return toNumber(this.bytes.slice(0x0E6B, 0x0E6B + 4));
+  }
+
+  private set faroresWindWarpZ(value: number) {
+    this.bytes.set(toUint8Array(value, 4), 0x0E6B);
+  }
+
+  private get faroresWindWarpYRotation(): number {
+    return toNumber(this.bytes.slice(0x0E72, 0x0E72 + 4));
+  }
+
+  private set faroresWindWarpYRotation(value: number) {
+    this.bytes.set(toUint8Array(value, 4), 0x0E72);
+  }
+
+  get faroresWindWarp(): FaroresWindWarp {
+    return {
+      x: this.faroresWindWarpX,
+      y: this.faroresWindWarpY,
+      z: this.faroresWindWarpZ,
+      yRotation: this.faroresWindWarpYRotation,
+    };
+  }
+
+  set faroresWindWarp(value: FaroresWindWarp) {
+    this.faroresWindWarpX = value.x;
+    this.faroresWindWarpY = value.y;
+    this.faroresWindWarpZ = value.z;
+    this.faroresWindWarpYRotation = value.yRotation;
+  }
+
+  get entranceIndexTransport(): number {
+    return toNumber(this.bytes.slice(0x0E7A, 0x0E7A + 2));
+  }
+
+  set entranceIndexTransport(value: number) {
+    this.bytes.set(toUint8Array(value, 2), 0x0E7A);
+  }
+
+  // TODO check size of data structure
+  get mapNumber(): number {
+    return toNumber(this.bytes.slice(0x0E7F, 0x0E7F + 1));
+  }
+
+  set mapNumber(value: number) {
+    this.bytes.set(toUint8Array(value, 1), 0x0E7F);
+  }
+
+  // TODO check size of data structure
+  get warpPointSet(): boolean {
+    const value = toNumber(this.bytes.slice(0x0E83, 0x0E83 + 2));
+    switch (value) {
+      case 0:
+        return false;
+      case 1:
+        return true;
+      default:
+        throw Error(
+          `warpPointSet flag contains corrupt value ${value}. Can only be 0 or 1.`,
+        );
+    }
+  }
+
+  set warpPointSet(value: boolean) {
+    this.bytes.set(toUint8Array(value, 1), 0x0E83);
+  }
+
+  get bigPoePoints(): number {
+    return toNumber(this.bytes.slice(0x0EBC, 0x0EBC + 4));
+  }
+
+  set bigPoePoints(value: number) {
+    this.bytes.set(toUint8Array(0x0EBC, 4), 0x0EBC);
+  }
+
+  // TODO set eventFlags at 0x0ED4, uint16_t[14]
+  // TODO item get flags at 0x0EF0, uint16_t[4]
+  // TODO unknown flags at 0x0EF8, uint16_t[30]
+
+  get checksum(): number {
+    return toNumber(this.bytes.slice(0x1352, 0x1352 + 2));
+  }
+
+  set checksum(value: number) {
+    this.bytes.set(toUint8Array(value, 2), 0x1352);
+  }
+
+  calculateChecksum(): number {
+    let sum = 0;
+    for (let i = 0; i < 0x09A9; i++) {
+      const index = i * 2;
+      sum += toNumber(this.bytes.slice(index, index + 2));
+      sum %= 0xFFFF;
+    }
+    return sum;
+  }
+
+  updateChecksum() {
+    const calculated = this.calculateChecksum();
+    if (calculated !== this.checksum) {
+      this.checksum = calculated;
+    }
   }
 
   private get isPatternValid(): boolean {

@@ -1,7 +1,8 @@
 import { assertInstanceOf } from "@std/assert/instance-of";
 import { Age, SaveSlot } from "./saveslot.ts";
-import { assertEquals, assertThrows } from "@std/assert";
+import { assertEquals, assertNotEquals, assertThrows } from "@std/assert";
 import { toUint8Array } from "../utils/conversions.ts";
+import { OotText } from "../utils/text.ts";
 
 Deno.test({
   name: "should create",
@@ -155,9 +156,8 @@ Deno.test({
   name: "should provide the player name",
   fn() {
     const testData = new Uint8Array(SaveSlot.requiredSize);
-    const encoder = new TextEncoder();
     const expectedName = "LINKTEST";
-    testData.set(encoder.encode(expectedName), 0x0024);
+    testData.set(new OotText().encode(expectedName), 0x0024);
     const instance = new SaveSlot(testData);
     assertEquals(instance.playerName, expectedName);
   },
@@ -523,6 +523,30 @@ Deno.test({
     const instance = new SaveSlot(testData);
     instance.cRightButtonEquip = expectedEquipment;
     assertEquals(instance.cRightButtonEquip, expectedEquipment);
+  },
+});
+
+Deno.test({
+  name: "should calculate the checksum",
+  fn() {
+    const testData = new Uint8Array(SaveSlot.requiredSize);
+    const expectedSum = 42;
+    testData.set(toUint8Array(0x00FF, 2), 0x0004);
+    testData.set(toUint8Array(0xFF00, 2), 0x0006);
+    testData.set(toUint8Array(expectedSum, 2), 0x001A);
+    const instance = new SaveSlot(testData);
+    assertEquals(instance.calculateChecksum(), expectedSum);
+  },
+});
+
+Deno.test({
+  name: "should update the checksum",
+  fn() {
+    const testData = new Uint8Array(SaveSlot.requiredSize);
+    const instance = new SaveSlot(testData);
+    const emptyChecksum = instance.checksum;
+    instance.rupees = 42;
+    assertNotEquals(instance.calculateChecksum(), emptyChecksum);
   },
 });
 
