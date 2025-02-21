@@ -373,18 +373,18 @@ export class SaveSlot {
   // TODO small key amount at 0x00BC, byte[0x14]
 
   get doubleDefenseHearts(): number {
-    return toNumber(this.bytes.slice(0x00BC, 0x00BC + 1));
+    return toNumber(this.bytes.slice(0x00CF, 0x00CF + 1));
   }
 
   set doubleDefenseHearts(value: number) {
-    this.bytes.set(toUint8Array(value, 1), 0x00BC);
+    this.bytes.set(toUint8Array(value, 1), 0x00CF);
   }
   
-  get goldSkulltullas(): number {
+  get goldSkulltulaTokens(): number {
     return toNumber(this.bytes.slice(0x00D0, 0x00D0 + 2));
   }
 
-  set goldSkullTullas(value: number) {
+  set goldSkulltulaTokens(value: number) {
     this.bytes.set(toUint8Array(value, 2), 0x00D0);
   }
 
@@ -415,11 +415,11 @@ export class SaveSlot {
   }
 
   private get faroresWindWarpYRotation(): number {
-    return toNumber(this.bytes.slice(0x0E72, 0x0E72 + 4));
+    return toNumber(this.bytes.slice(0x0E72, 0x0E72 + 2));
   }
 
   private set faroresWindWarpYRotation(value: number) {
-    this.bytes.set(toUint8Array(value, 4), 0x0E72);
+    this.bytes.set(toUint8Array(value, 2), 0x0E72);
   }
 
   get faroresWindWarp(): FaroresWindWarp {

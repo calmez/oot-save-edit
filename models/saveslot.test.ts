@@ -527,6 +527,72 @@ Deno.test({
 });
 
 Deno.test({
+  name: "should provide magic beans",
+  fn() {
+    const testData = new Uint8Array(SaveSlot.requiredSize);
+    const expectedBeans = 42;
+    testData.set(toUint8Array(expectedBeans, 1), 0x009B);
+    const instance = new SaveSlot(testData);
+    assertEquals(instance.magicBeans, expectedBeans);
+  },
+});
+
+Deno.test({
+  name: "should set magic beans",
+  fn() {
+    const testData = new Uint8Array(SaveSlot.requiredSize);
+    const expectedBeans = 44;
+    const instance = new SaveSlot(testData);
+    instance.magicBeans = expectedBeans;
+    assertEquals(instance.magicBeans, expectedBeans);
+  },
+});
+
+Deno.test({
+  name: "should provide double defense hearts",
+  fn() {
+    const testData = new Uint8Array(SaveSlot.requiredSize);
+    const expectedHearts = 13;
+    testData.set(toUint8Array(expectedHearts, 1), 0x00CF);
+    const instance = new SaveSlot(testData);
+    assertEquals(instance.doubleDefenseHearts, expectedHearts);
+  }
+});
+
+Deno.test({
+  name: "should set double defense hearts",
+  fn() {
+    const testData = new Uint8Array(SaveSlot.requiredSize);
+    const expectedHearts = 23;
+    const instance = new SaveSlot(testData);
+    instance.doubleDefenseHearts = expectedHearts;
+    assertEquals(instance.doubleDefenseHearts, expectedHearts);
+  }
+});
+
+Deno.test({
+  name: "should provide gold skulltula tokens",
+  fn() {
+    const testData = new Uint8Array(SaveSlot.requiredSize);
+    const expectedTokens = 50;
+    testData.set(toUint8Array(expectedTokens, 2), 0x00D0);
+    const instance = new SaveSlot(testData);
+    assertEquals(instance.goldSkulltulaTokens, expectedTokens);
+  }
+});
+
+Deno.test({
+  name: "should set gold skulltula tokens",
+  fn() {
+    const testData = new Uint8Array(SaveSlot.requiredSize);
+    const expectedTokens = 50;
+    const instance = new SaveSlot(testData);
+    instance.goldSkulltulaTokens = expectedTokens;
+    assertEquals(instance.goldSkulltulaTokens, expectedTokens);
+  }
+});
+
+Deno.test({
   name: "should calculate the checksum",
   fn() {
     const testData = new Uint8Array(SaveSlot.requiredSize);
