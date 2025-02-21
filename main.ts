@@ -1,5 +1,5 @@
 import { SaveFile } from "./models/savefile.ts";
-import { SoundOption, LanguageOption } from "./models/saveheader.ts";
+import { LanguageOption, SoundOption } from "./models/saveheader.ts";
 import { Age } from "./models/saveslot.ts";
 
 async function runTheThing() {

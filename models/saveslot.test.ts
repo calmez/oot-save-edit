@@ -556,7 +556,7 @@ Deno.test({
     testData.set(toUint8Array(expectedHearts, 1), 0x00CF);
     const instance = new SaveSlot(testData);
     assertEquals(instance.doubleDefenseHearts, expectedHearts);
-  }
+  },
 });
 
 Deno.test({
@@ -567,7 +567,7 @@ Deno.test({
     const instance = new SaveSlot(testData);
     instance.doubleDefenseHearts = expectedHearts;
     assertEquals(instance.doubleDefenseHearts, expectedHearts);
-  }
+  },
 });
 
 Deno.test({
@@ -578,7 +578,7 @@ Deno.test({
     testData.set(toUint8Array(expectedTokens, 2), 0x00D0);
     const instance = new SaveSlot(testData);
     assertEquals(instance.goldSkulltulaTokens, expectedTokens);
-  }
+  },
 });
 
 Deno.test({
@@ -589,7 +589,7 @@ Deno.test({
     const instance = new SaveSlot(testData);
     instance.goldSkulltulaTokens = expectedTokens;
     assertEquals(instance.goldSkulltulaTokens, expectedTokens);
-  }
+  },
 });
 
 Deno.test({

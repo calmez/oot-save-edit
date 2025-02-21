@@ -365,7 +365,7 @@ export class SaveSlot {
   set magicBeans(value: number) {
     this.bytes.set(toUint8Array(value, 1), 0x009B);
   }
-  
+
   // TODO obtained equipment at 0x009C, uint16
   // TODO obtained upgrades at 0x00A0, uint32
   // TODO quest status items at 0x00A4, uint32
@@ -379,7 +379,7 @@ export class SaveSlot {
   set doubleDefenseHearts(value: number) {
     this.bytes.set(toUint8Array(value, 1), 0x00CF);
   }
-  
+
   get goldSkulltulaTokens(): number {
     return toNumber(this.bytes.slice(0x00D0, 0x00D0 + 2));
   }

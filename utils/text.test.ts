@@ -7,7 +7,7 @@ Deno.test({
   fn() {
     const instance = new OotText();
     assertInstanceOf(instance, OotText);
-  }
+  },
 });
 
 Deno.test({
@@ -15,22 +15,34 @@ Deno.test({
   fn() {
     const instance = new OotText();
     const expectedEncoding = new Uint8Array([
-      55, 40, 54, 55,
-      62, 62, 62, 62,
+      55,
+      40,
+      54,
+      55,
+      62,
+      62,
+      62,
+      62,
     ]);
     assertEquals(instance.encode("test"), expectedEncoding);
-  }
+  },
 });
 
 Deno.test({
   name: "should decode",
   fn() {
     const testData = new Uint8Array([
-      29, 40, 28, 55,
-      62, 62, 62, 62,
+      29,
+      40,
+      28,
+      55,
+      62,
+      62,
+      62,
+      62,
     ]);
     const expectedDecoding = "TeSt";
     const instance = new OotText();
     assertEquals(instance.decode(testData), expectedDecoding);
-  }
+  },
 });
