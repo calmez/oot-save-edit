@@ -1,5 +1,5 @@
 import { assertInstanceOf } from "@std/assert/instance-of";
-import { Age, SaveSlot } from "./saveslot.ts";
+import { Age, InventoryItems, Items, SaveSlot } from "./saveslot.ts";
 import { assertEquals, assertNotEquals, assertThrows } from "@std/assert";
 import { toUint8Array } from "../utils/conversions.ts";
 import { OotText } from "../utils/text.ts";
@@ -523,6 +523,52 @@ Deno.test({
     const instance = new SaveSlot(testData);
     instance.cRightButtonEquip = expectedEquipment;
     assertEquals(instance.cRightButtonEquip, expectedEquipment);
+  },
+});
+
+Deno.test({
+  name: "should provide the inventory",
+  fn() {
+    const testData = new Uint8Array(SaveSlot.requiredSize);
+    const expectedItem = Items.Bomb;
+    const testInventory = new Uint8Array(24);
+    testInventory.set(toUint8Array(expectedItem, 1), 0);
+    testData.set(testInventory, 0x0074);
+    const instance = new SaveSlot(testData);
+    assertEquals(instance.inventory[0], expectedItem);
+  },
+});
+
+Deno.test({
+  name: "should set the inventory",
+  fn() {
+    const testData = new Uint8Array(SaveSlot.requiredSize);
+    const expectedInventory = new Array<InventoryItems>(24).fill(InventoryItems.Empty);
+    const instance = new SaveSlot(testData);
+    instance.inventory = expectedInventory;
+    assertEquals(instance.inventory, expectedInventory);
+  },
+});
+
+Deno.test({
+  name: "should provide the inventory amounts",
+  fn() {
+    const testData = new Uint8Array(SaveSlot.requiredSize);
+    const expectedAmounts = new Array<number>(0xF).fill(42);
+    testData.set(expectedAmounts, 0x008C);
+    const instance = new SaveSlot(testData);
+    assertEquals(instance.inventoryAmounts, expectedAmounts);
+  },
+});
+
+Deno.test({
+  name: "should set the inventory amounts",
+  fn() {
+    const testData = new Uint8Array(SaveSlot.requiredSize);
+    const expectedAmounts = new Array<number>(0xF).fill(42);
+    const instance = new SaveSlot(testData);
+    instance.inventoryAmounts = expectedAmounts;
+    assertEquals(instance.inventoryAmounts, expectedAmounts);
   },
 });
 
