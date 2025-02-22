@@ -552,6 +552,10 @@ export class SaveSlot {
   }
 
   // TODO should reference data structures for equipment
+  // & 0x000F = Swords
+  // & 0x00F0 = Shields
+  // & 0x0F00 = Tunics
+  // & 0xF000 = Boots
   private get currentlyEquippedEquipment(): Uint8Array {
     return this.bytes.slice(0x0070, 0x0070 + 2);
   }
@@ -601,11 +605,113 @@ export class SaveSlot {
     this.bytes.set(toUint8Array(value, 1), 0x009B);
   }
 
-  // TODO obtained equipment at 0x009C, uint16
-  // TODO obtained upgrades at 0x00A0, uint32
-  // TODO quest status items at 0x00A4, uint32
-  // TODO dungeon items at 0x00A8, byte[0x14]
-  // TODO small key amount at 0x00BC, byte[0x14]
+  // TODO should reference data structures for equipment
+  // & 0x000F = Swords
+  // & 0x00F0 = Shields
+  // & 0x0F00 = Tunics
+  // & 0xF000 = Boots
+  private get obtainedEquipment(): Uint8Array {
+    return this.bytes.slice(0x009C, 0x009C + 2);
+  }
+
+  private set obtainedEquipment(value: Uint8Array) {
+    if (value.length != 2) {
+      throw Error(
+        `obtained equipment data needs to be 2 bytes, got ${value.length}.`,
+      );
+    }
+    this.bytes.set(value, 0x009C);
+  }
+
+  // TODO should reference data structures for equipment
+  // & 0x0070_0000 = Deku Nut capacity
+  // & 0x000E_0000 = Deku Stick capacity
+  // & 0x0001_C000 = Bullet Bag
+  // & 0x0000_3000 = Wallet
+  // & 0x0000_0E00 = Dive Meter
+  // & 0x0000_01C0 = Strength Upgrades
+  // & 0x0000_0038 = Bomb Bag
+  // & 0x0000_0007 = Quiver
+  private get obtainedUpgrades(): Uint8Array {
+    return this.bytes.slice(0x00A0, 0x00A0 + 4);
+  }
+
+  private set obtainedUpgrades(value: Uint8Array) {
+    if (value.length != 4) {
+      throw Error(
+        `obtained equipment data needs to be 4 bytes, got ${value.length}.`,
+      );
+    }
+    this.bytes.set(value, 0x00A0);
+  }
+
+  // TODO should reference data structures for equipment
+  // & 0x0080_0000 = Gold Skulltula Token (Set the first time one is collected)
+  // & 0x0040_0000 = Gerudo card
+  // & 0x0020_0000 = Stone of Agony
+  // & 0x0010_0000 = Zora Sapphire
+  // & 0x0008_0000 = Goron Ruby
+  // & 0x0004_0000 = Kokiri Emerald
+  // & 0x0002_0000 = Song of Storms
+  // & 0x0001_0000 = Song of Time
+  // & 0x0000_8000 = Sun's Song
+  // & 0x0000_4000 = Saria's Song
+  // & 0x0000_2000 = Epona's Song
+  // & 0x0000_1000 = Zelda's Lullaby
+  // & 0x0000_0800 = Prelude of Light
+  // & 0x0000_0400 = Nocturne of Shadow
+  // & 0x0000_0200 = Requiem of Spirit
+  // & 0x0000_0100 = Serenade of Water
+  // & 0x0000_0080 = Bolero of Fire
+  // & 0x0000_0040 = Minuet of Forest
+  // & 0x0000_0020 = Light Medallion
+  // & 0x0000_0010 = Shadow Medallion
+  // & 0x0000_0008 = Spirit Medallion
+  // & 0x0000_0004 = Water Medallion
+  // & 0x0000_0002 = Fire Medallion
+  // & 0x0000_0001 = Forest Medallion
+  private get questStatusItems(): Uint8Array {
+    return this.bytes.slice(0x00A4, 0x00A4 + 4);
+  }
+
+  private set questStatusItems(value: Uint8Array) {
+    if (value.length != 4) {
+      throw Error(
+        `obtained equipment data needs to be 4 bytes, got ${value.length}.`,
+      );
+    }
+    this.bytes.set(value, 0x00A4);
+  }
+
+  // Indexed by the Scene Index. Each byte contains the following:
+  // & 0x01 = Boss Key
+  // & 0x02 = Compass
+  // & 0x04 = Dungeon Map
+  get dungeonItems(): Uint8Array {
+    return this.bytes.slice(0x00A8, 0x00A8 + 0x14);
+  }
+
+  set dungeonItems(value: Uint8Array) {
+    if (value.length != 0x14) {
+      throw Error(
+        `dungeon items data needs to be ${0x14} bytes, got ${value.length}.`,
+      );
+    }
+    this.bytes.set(value, 0x00A8);
+  } 
+
+  get smallKeyAmount(): Uint8Array {
+    return this.bytes.slice(0x00BC, 0x00BC + 0x14);
+  }
+
+  set smallKeyAmount(value: Uint8Array) {
+    if (value.length != 0x14) {
+      throw Error(
+        `small key amount data needs to be ${0x14} bytes, got ${value.length}.`,
+      );
+    }
+    this.bytes.set(value, 0x00BC);
+  }
 
   get doubleDefenseHearts(): number {
     return toNumber(this.bytes.slice(0x00CF, 0x00CF + 1));

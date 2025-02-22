@@ -595,6 +595,50 @@ Deno.test({
 });
 
 Deno.test({
+  name: "should provide dungeon items",
+  fn() {
+    const testData = new Uint8Array(SaveSlot.requiredSize);
+    const expectedItems = new Uint8Array(0x14).fill(0x23);
+    testData.set(expectedItems, 0x00A8);
+    const instance = new SaveSlot(testData);
+    assertEquals(instance.dungeonItems, expectedItems);
+  }
+});
+
+Deno.test({
+  name: "should set dungeon items",
+  fn() {
+    const testData = new Uint8Array(SaveSlot.requiredSize);
+    const expectedItems = new Uint8Array(0x14).fill(0x23);
+    const instance = new SaveSlot(testData);
+    instance.dungeonItems = expectedItems;
+    assertEquals(instance.dungeonItems, expectedItems);
+  }
+});
+
+Deno.test({
+  name: "should provide small key amount",
+  fn() {
+    const testData = new Uint8Array(SaveSlot.requiredSize);
+    const expectedKeys = new Uint8Array(0x14).fill(0x23);
+    testData.set(expectedKeys, 0x00BC);
+    const instance = new SaveSlot(testData);
+    assertEquals(instance.smallKeyAmount, expectedKeys);
+  }
+});
+
+Deno.test({
+  name: "should set small key amount",
+  fn() {
+    const testData = new Uint8Array(SaveSlot.requiredSize);
+    const expectedKeys = new Uint8Array(0x14).fill(0x23);
+    const instance = new SaveSlot(testData);
+    instance.smallKeyAmount = expectedKeys;
+    assertEquals(instance.smallKeyAmount, expectedKeys);
+  }
+});
+
+Deno.test({
   name: "should provide double defense hearts",
   fn() {
     const testData = new Uint8Array(SaveSlot.requiredSize);
