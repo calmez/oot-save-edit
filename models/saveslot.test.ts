@@ -543,7 +543,9 @@ Deno.test({
   name: "should set the inventory",
   fn() {
     const testData = new Uint8Array(SaveSlot.requiredSize);
-    const expectedInventory = new Array<InventoryItems>(24).fill(InventoryItems.Empty);
+    const expectedInventory = new Array<InventoryItems>(24).fill(
+      InventoryItems.Empty,
+    );
     const instance = new SaveSlot(testData);
     instance.inventory = expectedInventory;
     assertEquals(instance.inventory, expectedInventory);
@@ -602,7 +604,7 @@ Deno.test({
     testData.set(expectedItems, 0x00A8);
     const instance = new SaveSlot(testData);
     assertEquals(instance.dungeonItems, expectedItems);
-  }
+  },
 });
 
 Deno.test({
@@ -613,7 +615,7 @@ Deno.test({
     const instance = new SaveSlot(testData);
     instance.dungeonItems = expectedItems;
     assertEquals(instance.dungeonItems, expectedItems);
-  }
+  },
 });
 
 Deno.test({
@@ -624,7 +626,7 @@ Deno.test({
     testData.set(expectedKeys, 0x00BC);
     const instance = new SaveSlot(testData);
     assertEquals(instance.smallKeyAmount, expectedKeys);
-  }
+  },
 });
 
 Deno.test({
@@ -635,7 +637,7 @@ Deno.test({
     const instance = new SaveSlot(testData);
     instance.smallKeyAmount = expectedKeys;
     assertEquals(instance.smallKeyAmount, expectedKeys);
-  }
+  },
 });
 
 Deno.test({
