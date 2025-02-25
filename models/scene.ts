@@ -1,3 +1,4 @@
+import { assert } from "@std/assert";
 import { Age } from "./saveslot.ts";
 
 export enum Time {
@@ -2394,16 +2395,30 @@ export enum Scene {
 }
 
 export function ValidEntrancesForRoom(room: Room): Entrance[] {
-  // TODO implement
-  throw new Error("Not implemented");
+  const entrancesLookup: Map<Room, Entrance[]> = new Map([
+    // TODO complete with sorted list by room
+    [Room.DekuTree, [Entrance.FromKokiriForest, Entrance.FromDekuTreeBoss]],
+    [Room.RoyalFamilysTomb, [Entrance.FromGraveyard, Entrance.SunSongCutscene]],
+  ]);
+  const entrances = entrancesLookup.get(room);
+  if (entrances === undefined) {
+    throw new Error("Invalid room");
+  }
+  return entrances;
 }
 
 export function RoomWithEntranceFor(
   room: Room,
   entrance: Entrance,
 ): RoomWithEntrance {
-  // TODO implement
-  throw new Error("Not implemented");
+  assert(
+    ValidEntrancesForRoom(room).includes(entrance),
+    `Invalid entrance '${Entrance[entrance]}' for room '${Room[room]}'`,
+  );
+  const roomWithEntrance = RoomWithEntrance[
+    `${Room[room]}_${Entrance[entrance]}` as keyof typeof RoomWithEntrance
+  ];
+  return roomWithEntrance;
 }
 
 export function SceneFrom(
@@ -2411,7 +2426,7 @@ export function SceneFrom(
   entrance: Entrance,
   age: Age,
   time: Time,
-  cutsceneOffset: number = 1,
+  cutsceneOffset: number = 0,
 ): Scene {
   const roomWithEntrance = RoomWithEntranceFor(room, entrance);
   // TODO validate cutsceneOffset for room
