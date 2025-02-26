@@ -413,7 +413,7 @@ export enum RoomWithEntrance {
   CutsceneMap_Default = 0x00A0,
   BackAlley_RightEntranceFromMarket = 0x00AD,
   Market_FromMarketEntrance = 0x00B1,
-  DepthTest_Default = 0x00B6, // TODO needs exception in SceneFrom
+  DepthTest_Default = 0x00B6,
   Bazaar_FromKakarikoVillage = 0x00B7,
   LinksHouse_BedEntranceFromSavewarp = 0x00BB,
   KokiriShop_FromKokiriForest = 0x00C1,
@@ -434,8 +434,8 @@ export enum RoomWithEntrance {
   GerudoFortress_FromGerudoValley = 0x0129,
   HauntedWasteland_FromGerudoFortress = 0x0130,
   TowerCollapseInterior_BottomOfBossRoomFromTowerCollapseExteriorLower = 0x0134,
-  HyruleCastle_FromMarketEntrance = 0x0138, // TODO needs exception in SceneFrom
-  GanonsCastle_FromMarketEntrance = 0x013A, // TODO needs exception in SceneFrom
+  HyruleCastle_FromMarketEntrance = 0x0138,
+  GanonsCastle_FromMarketEntrance = 0x013A,
   DeathMountainTrail_FromKakarikoVillage = 0x013D,
   DeathMountainCrater_FromDeathMountainTrail = 0x0147,
   GoronCity_FromDeathMountainTrail = 0x014D,
@@ -497,17 +497,17 @@ export enum RoomWithEntrance {
   GerudoFortress_FromThievesHideout1 = 0x0231,
   GerudoFortress_FromThievesHideout2 = 0x0235,
   GerudoFortress_FromThievesHideout3 = 0x0239,
-  HyruleCastle_FromCastleCourtyard = 0x023D, // TODO needs exception in SceneFrom
-  GanonsCastle_FromInsideGanonsCastle = 0x023F, // TODO needs exception in SceneFrom
-  HyruleCastle_FromCastleCourtyard2 = 0x0241, // TODO needs exception in SceneFrom
+  HyruleCastle_FromCastleCourtyard = 0x023D,
+  GanonsCastle_FromInsideGanonsCastle = 0x023F,
+  HyruleCastle_FromCastleCourtyard2 = 0x0241,
   DeathMountainTrail_FromDodongosCavern = 0x0242,
   DeathMountainCrater_FromGoronCity = 0x0246,
   DeathMountainCrater_FromFireTemple = 0x024A,
   ForestTemple_OutsideBossDoorFromForestTempleBossSecretMap0 = 0x024E,
   DekuTree_FromDekuTreeBoss = 0x0252,
   TowerCollapseInterior_BurningRocksFromTowerCollapseExteriorLower = 0x0256,
-  Market_FromCastle = 0x025A, // TODO needs exception in SceneFrom
-  Market_FromGanonsCastle = 0x025C, // TODO needs exception in SceneFrom
+  Market_FromCastle = 0x025A,
+  Market_FromGanonsCastle = 0x025C,
   Market_FromTempleOfTime = 0x025E,
   Market_FromBackAlleyRight = 0x0262,
   KokiriForest_FromKokiriShop = 0x0266,
@@ -544,10 +544,10 @@ export enum RoomWithEntrance {
   LonLonRanch_NearSouthGate = 0x02E2,
   LonLonRanch_NearWestGate = 0x02E6,
   ShootingGallery_FromKakarikoVillage2 = 0x02EA,
-  SacredForestMeadow_FromLostWoods2 = 0x02EE, // TODO needs exception in SceneFrom
-  CutsceneMap_CutsceneEntrance = 0x02EF, // TODO needs exception in SceneFrom
+  SacredForestMeadow_FromLostWoods2 = 0x02EE,
+  CutsceneMap_CutsceneEntrance = 0x02EF,
   ShootingGallery_FromKakarikoVillage3 = 0x02F0,
-  ShootingGallery_FromKakarikoVillage4 = 0x02F4, // TODO needs exception in SceneFrom
+  ShootingGallery_FromKakarikoVillage4 = 0x02F4,
   SpiritTemple_BossRoomEntranceFromSpiritTempleBoss = 0x02F5,
   Stables_FromLonLonRanch = 0x02F9,
   KakarikoVillageHouse_BosssHouseFromKakarikoVillage = 0x02FD,
@@ -566,9 +566,9 @@ export enum RoomWithEntrance {
   TowerCollapseExterior_FromTowerCollapseInteriorBurningRocksLower = 0x0334,
   KokiriForest_SpawnOnLinksHouse = 0x0338,
   KokiriForest_FromHouseOfTwins = 0x033C,
-  HyruleCastle_FromGreatFairysFountainSpells = 0x0340, // TODO needs exception in SceneFrom
-  GanonsCastle_FromGreatFairysFountainUpgrades = 0x0342, // TODO needs exception in SceneFrom
-  HyruleCastle_FromGreatFairysFountainSpells2 = 0x0344, // TODO needs exception in SceneFrom
+  HyruleCastle_FromGreatFairysFountainSpells = 0x0340,
+  GanonsCastle_FromGreatFairysFountainUpgrades = 0x0342,
+  HyruleCastle_FromGreatFairysFountainSpells2 = 0x0344,
   KakarikoVillage_FromCowHeartpieceHouseDoor = 0x0345,
   KakarikoVillage_FromKakarikoVillageHouseBosssHouse = 0x0349,
   KakarikoVillage_FromGrannysPotionShop = 0x034D,
@@ -645,8 +645,8 @@ export enum RoomWithEntrance {
   OutsideTempleOfTime_FromTempleOfTime = 0x0472,
   HyruleField_FromLonLonRanchFrontGateJump = 0x0476,
   DeathMountainTrail_GoronRubyCutscene = 0x047A,
-  HyruleCastle_GuardCaptureOutside = 0x047E, // TODO needs exception in SceneFrom
-  GanonsCastle_CrashesBadMap = 0x0480, // TODO needs exception in SceneFrom
+  HyruleCastle_GuardCaptureOutside = 0x047E,
+  GanonsCastle_CrashesBadMap = 0x0480,
   DeathMountainCrater_FromGreatFairysFountainUpgrades = 0x0482,
   ThievesHideout_FromGerudoFortress = 0x0486,
   ThievesHideout_FromGerudoFortress2 = 0x048A,
@@ -677,9 +677,9 @@ export enum RoomWithEntrance {
   KakarikoVillage_FromHouseOfSkulltula = 0x04EE,
   GreatFairysFountainUpgrades_LeavingPutsYouAtKakarikoVillage = 0x04F2,
   DeathMountainCrater_BoleroEntrance = 0x04F6,
-  HyruleCastle_FromCastleCourtyardCaughtByGuard = 0x04FA, // TODO needs exception in SceneFrom
-  GanonsCastle_FromCastleCourtyardCaughtByGuard = 0x04FC, // TODO needs exception in SceneFrom
-  HyruleCastle_FromCastleCourtyardCaughtByGuard2 = 0x04FE, // TODO needs exception in SceneFrom
+  HyruleCastle_FromCastleCourtyardCaughtByGuard = 0x04FA,
+  GanonsCastle_FromCastleCourtyardCaughtByGuard = 0x04FC,
+  HyruleCastle_FromCastleCourtyardCaughtByGuard2 = 0x04FE,
   KakarikoVillage_FromKakarikoPotionShopBackEntrance = 0x04FF,
   Unknown_WindmillAfterSongOfStorms = 0x0503,
   BombchuBowlingAlley_FromMarket = 0x0507,
@@ -938,7 +938,7 @@ export enum Scene {
   Market_FromMarketEntrance_Adult_Day = 0x00B3,
   Market_FromMarketEntrance_Adult_Night = 0x00B4,
   Market_FromMarketEntrance_Cutscene1 = 0x00B5,
-  DepthTest_Default = 0x00B6,
+  DepthTest_Default_Child_Day = 0x00B6,
   Bazaar_FromKakarikoVillage_Child_Day = 0x00B7,
   Bazaar_FromKakarikoVillage_Child_Night = 0x00B8,
   Bazaar_FromKakarikoVillage_Adult_Day = 0x00B9,
@@ -1386,8 +1386,8 @@ export enum Scene {
     0x0259,
   Market_FromCastle_Child_Day = 0x025A,
   Market_FromCastle_Child_Night = 0x025B,
-  Market_FromGanonsCastle_Adult_Day = 0x025C, // TODO needs exception in SceneFrom
-  Market_FromGanonsCastle_Adult_Night = 0x025D, // TODO needs exception in SceneFrom
+  Market_FromGanonsCastle_Adult_Day = 0x025C,
+  Market_FromGanonsCastle_Adult_Night = 0x025D,
   Market_FromTempleOfTime_Child_Day = 0x025E,
   Market_FromTempleOfTime_Child_Night = 0x025F,
   Market_FromTempleOfTime_Adult_Day = 0x0260,
@@ -2852,7 +2852,6 @@ export function ValidEntrancesForRoom(room: Room): Entrance[] {
       Entrance.FromIceCavern,
       Entrance.SECornerFacingFallenTree,
     ]],
-    // TODO add more rooms
   ]);
   const entrances = entrancesLookup.get(room);
   if (entrances === undefined) {
@@ -2875,6 +2874,50 @@ export function RoomWithEntranceFor(
   return roomWithEntrance;
 }
 
+function Validate(
+  roomWithEntrance: RoomWithEntrance,
+  age: Age,
+  time: Time,
+  cutsceneOffset: number,
+): void {
+  switch (roomWithEntrance) {
+    case RoomWithEntrance.DepthTest_Default:
+    case RoomWithEntrance.HyruleCastle_FromCastleCourtyard2:
+    case RoomWithEntrance.SacredForestMeadow_FromLostWoods2:
+    case RoomWithEntrance.CutsceneMap_CutsceneEntrance:
+    case RoomWithEntrance.ShootingGallery_FromKakarikoVillage4:
+    case RoomWithEntrance.HyruleCastle_FromGreatFairysFountainSpells2:
+    case RoomWithEntrance.HyruleCastle_FromCastleCourtyardCaughtByGuard2:
+      assert(age === Age.Child, "Invalid age for room");
+      assert(time === Time.Day, "Invalid time for room");
+      break;
+    case RoomWithEntrance.HyruleCastle_FromMarketEntrance:
+    case RoomWithEntrance.HyruleCastle_FromCastleCourtyard:
+    case RoomWithEntrance.Market_FromCastle:
+    case RoomWithEntrance.HyruleCastle_FromGreatFairysFountainSpells:
+    case RoomWithEntrance.HyruleCastle_GuardCaptureOutside:
+    case RoomWithEntrance.HyruleCastle_FromCastleCourtyardCaughtByGuard:
+      assert(age === Age.Child, "Invalid age for room");
+      break;
+    case RoomWithEntrance.GanonsCastle_FromMarketEntrance:
+    case RoomWithEntrance.GanonsCastle_FromInsideGanonsCastle:
+    case RoomWithEntrance.Market_FromGanonsCastle:
+    case RoomWithEntrance.GanonsCastle_FromGreatFairysFountainUpgrades:
+    case RoomWithEntrance.GanonsCastle_CrashesBadMap:
+    case RoomWithEntrance.GanonsCastle_FromCastleCourtyardCaughtByGuard:
+      assert(age === Age.Adult, "Invalid age for room");
+      break;
+    // TODO validate cutsceneOffset for room
+    case RoomWithEntrance.RoyalFamilysTomb_FromGraveyard:
+      assert(cutsceneOffset <= 2, "Invalid cutscene offset for room");
+      break;
+    default:
+      assert(cutsceneOffset === 0, "Invalid cutscene offset for room");
+      break;
+  }
+  return;
+}
+
 export function SceneFrom(
   room: Room,
   entrance: Entrance,
@@ -2883,7 +2926,7 @@ export function SceneFrom(
   cutsceneOffset: number = 0,
 ): Scene {
   const roomWithEntrance = RoomWithEntranceFor(room, entrance);
-  // TODO validate cutsceneOffset for room
+  Validate(roomWithEntrance, age, time, cutsceneOffset);
   let scene = roomWithEntrance as unknown as Scene;
   if (cutsceneOffset > 0) {
     scene += cutsceneOffset + 3;

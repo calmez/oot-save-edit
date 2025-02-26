@@ -134,3 +134,279 @@ Deno.test({
     assertEquals(scene, expectedScene);
   },
 });
+
+Deno.test({
+  name: "should throw an error for invalid age in DepthTest room",
+  fn() {
+    const room = Room.DepthTest;
+    const entrance = Entrance.Default;
+    const age = Age.Adult;
+    const time = Time.Day;
+    assertThrows(() => SceneFrom(room, entrance, age, time));
+  }
+});
+
+Deno.test({
+  name: "should throw an error for invalid time in DepthTest room",
+  fn() {
+    const room = Room.DepthTest;
+    const entrance = Entrance.Default;
+    const age = Age.Child;
+    const time = Time.Night;
+    assertThrows(() => SceneFrom(room, entrance, age, time));
+  }
+});
+
+Deno.test({
+  name: "should throw an error for invalid age in DepthTest room",
+  fn() {
+    const room = Room.DepthTest;
+    const entrance = Entrance.Default;
+    const age = Age.Adult;
+    const time = Time.Day;
+    const cutsceneOffset = 1;
+    assertThrows(() => SceneFrom(room, entrance, age, time, cutsceneOffset));
+  }
+});
+
+Deno.test({
+  name: "should throw an error for invalid age in HyruleCastle entering FromMarketEntrance",
+  fn() {
+    const room = Room.HyruleCastle;
+    const entrance = Entrance.FromMarketEntrance;
+    const age = Age.Adult;
+    const time = Time.Day;
+    assertThrows(() => SceneFrom(room, entrance, age, time));
+  }
+});
+
+Deno.test({
+  name: "should throw an error for invalid age in GanonsCastle entering FromMarketEntrance",
+  fn() {
+    const room = Room.GanonsCastle;
+    const entrance = Entrance.FromMarketEntrance;
+    const age = Age.Child;
+    const time = Time.Day;
+    assertThrows(() => SceneFrom(room, entrance, age, time));
+  }
+});
+
+Deno.test({
+  name: "should throw an error for invalid age in HyruleCastle entering FromCastleCourtyard",
+  fn() {
+    const room = Room.HyruleCastle;
+    const entrance = Entrance.FromCastleCourtyard;
+    const age = Age.Adult;
+    const time = Time.Day;
+    assertThrows(() => SceneFrom(room, entrance, age, time));
+  }
+});
+
+Deno.test({
+  name: "should throw an error for invalid age in GanonsCastle entering FromInsideGanonsCastle",
+  fn() {
+    const room = Room.GanonsCastle;
+    const entrance = Entrance.FromInsideGanonsCastle;
+    const age = Age.Child;
+    const time = Time.Day;
+    assertThrows(() => SceneFrom(room, entrance, age, time));
+  }
+});
+
+Deno.test({
+  name: "should throw an error for invalid age in HyruleCastle entering FromCastleCourtyard2",
+  fn() {
+    const room = Room.HyruleCastle;
+    const entrance = Entrance.FromCastleCourtyard2;
+    const age = Age.Adult;
+    const time = Time.Day;
+    assertThrows(() => SceneFrom(room, entrance, age, time));
+  }
+});
+
+Deno.test({
+  name: "should throw an error for invalid time in HyruleCastle entering FromCastleCourtyard2",
+  fn() {
+    const room = Room.HyruleCastle;
+    const entrance = Entrance.FromCastleCourtyard2;
+    const age = Age.Child;
+    const time = Time.Night;
+    assertThrows(() => SceneFrom(room, entrance, age, time));
+  }
+});
+
+Deno.test({
+  name: "should throw an error for invalid age in Market entering FromCastle",
+  fn() {
+    const room = Room.Market;
+    const entrance = Entrance.FromCastle;
+    const age = Age.Adult;
+    const time = Time.Day;
+    assertThrows(() => SceneFrom(room, entrance, age, time));
+  }
+});
+
+Deno.test({
+  name: "should throw an error for invalid age in Market entering FromGanonsCastle",
+  fn() {
+    const room = Room.Market;
+    const entrance = Entrance.FromGanonsCastle;
+    const age = Age.Child;
+    const time = Time.Day;
+    assertThrows(() => SceneFrom(room, entrance, age, time));
+  }
+});
+
+Deno.test({
+  name: "should throw an error for invalid age in SacredForestMeadow entering FromLostWoods2",
+  fn() {
+    const room = Room.SacredForestMeadow;
+    const entrance = Entrance.FromLostWoods2;
+    const age = Age.Adult;
+    const time = Time.Day;
+    assertThrows(() => SceneFrom(room, entrance, age, time));
+  }
+});
+
+Deno.test({
+  name: "should throw an error for invalid time in SacredForestMeadow entering FromLostWoods2",
+  fn() {
+    const room = Room.SacredForestMeadow;
+    const entrance = Entrance.FromLostWoods2;
+    const age = Age.Child;
+    const time = Time.Night;
+    assertThrows(() => SceneFrom(room, entrance, age, time));
+  }
+});
+
+Deno.test({
+  name: "should throw an error for invalid age in CutsceneMap entering CutsceneEntrance",
+  fn() {
+    const room = Room.CutsceneMap;
+    const entrance = Entrance.CutsceneEntrance;
+    const age = Age.Adult;
+    const time = Time.Day;
+    assertThrows(() => SceneFrom(room, entrance, age, time));
+  }
+});
+
+Deno.test({
+  name: "should throw an error for invalid time in CutsceneMap entering CutsceneEntrance",
+  fn() {
+    const room = Room.CutsceneMap;
+    const entrance = Entrance.CutsceneEntrance;
+    const age = Age.Child;
+    const time = Time.Night;
+    assertThrows(() => SceneFrom(room, entrance, age, time));
+  }
+});
+
+Deno.test({
+  name: "should throw an error for invalid age in ShootingGallery entering FromKakarikoVillage4",
+  fn() {
+    const room = Room.ShootingGallery;
+    const entrance = Entrance.FromKakarikoVillage4;
+    const age = Age.Adult;
+    const time = Time.Day;
+    assertThrows(() => SceneFrom(room, entrance, age, time));
+  }
+});
+
+Deno.test({
+  name: "should throw an error for invalid time in ShootingGallery entering FromKakarikoVillage4",
+  fn() {
+    const room = Room.ShootingGallery;
+    const entrance = Entrance.FromKakarikoVillage4;
+    const age = Age.Child;
+    const time = Time.Night;
+    assertThrows(() => SceneFrom(room, entrance, age, time));
+  }
+});
+
+Deno.test({
+  name: "should throw an error for invalid age in HyruleCastle entering FromGreatFairysFountainSpells",
+  fn() {
+    const room = Room.HyruleCastle;
+    const entrance = Entrance.FromGreatFairysFountainSpells;
+    const age = Age.Adult;
+    const time = Time.Day;
+    assertThrows(() => SceneFrom(room, entrance, age, time));
+  }
+});
+
+Deno.test({
+  name: "should throw an error for invalid age in GanonsCastle entering FromGreatFairysFountainUpgrades",
+  fn() {
+    const room = Room.GanonsCastle;
+    const entrance = Entrance.FromGreatFairysFountainUpgrades;
+    const age = Age.Child;
+    const time = Time.Day;
+    assertThrows(() => SceneFrom(room, entrance, age, time));
+  }
+});
+
+Deno.test({
+  name: "should throw an error for invalid age in HyruleCastle entering FromGreatFairysFountainSpells2",
+  fn() {
+    const room = Room.HyruleCastle;
+    const entrance = Entrance.FromGreatFairysFountainSpells2;
+    const age = Age.Adult;
+    const time = Time.Day;
+    assertThrows(() => SceneFrom(room, entrance, age, time));
+  }
+});
+
+Deno.test({
+  name: "should throw an error for invalid time in HyruleCastle entering FromGreatFairysFountainSpells2",
+  fn() {
+    const room = Room.HyruleCastle;
+    const entrance = Entrance.FromGreatFairysFountainSpells2;
+    const age = Age.Child;
+    const time = Time.Night;
+    assertThrows(() => SceneFrom(room, entrance, age, time));
+  }
+});
+
+Deno.test({
+  name: "should throw an error for invalid age in HyruleCastle entering FromCastleCourtyardCaughtByGuard",
+  fn() {
+    const room = Room.HyruleCastle;
+    const entrance = Entrance.FromCastleCourtyardCaughtByGuard;
+    const age = Age.Adult;
+    const time = Time.Day;
+    assertThrows(() => SceneFrom(room, entrance, age, time));
+  }
+});
+
+Deno.test({
+  name: "should throw an error for invalid age in GanonsCastle entering FromCastleCourtyardCaughtByGuard",
+  fn() {
+    const room = Room.GanonsCastle;
+    const entrance = Entrance.FromCastleCourtyardCaughtByGuard;
+    const age = Age.Child;
+    const time = Time.Day;
+    assertThrows(() => SceneFrom(room, entrance, age, time));
+  }
+});
+
+Deno.test({
+  name: "should throw an error for invalid age in HyruleCastle entering FromCastleCourtyardCaughtByGuard2",
+  fn() {
+    const room = Room.HyruleCastle;
+    const entrance = Entrance.FromCastleCourtyardCaughtByGuard2;
+    const age = Age.Adult;
+    const time = Time.Day;
+    assertThrows(() => SceneFrom(room, entrance, age, time));
+  }
+});
+
+Deno.test({
+  name: "should throw an error for invalid time in HyruleCastle entering FromCastleCourtyardCaughtByGuard2",
+  fn() {
+    const room = Room.HyruleCastle;
+    const entrance = Entrance.FromCastleCourtyardCaughtByGuard2;
+    const age = Age.Child;
+    const time = Time.Night;
+    assertThrows(() => SceneFrom(room, entrance, age, time));
+  }
+});
