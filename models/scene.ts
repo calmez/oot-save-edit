@@ -2911,6 +2911,66 @@ function Validate(
     case RoomWithEntrance.RoyalFamilysTomb_FromGraveyard:
       assert(cutsceneOffset <= 2, "Invalid cutscene offset for room");
       break;
+    case RoomWithEntrance.TempleOfTime_FromOutsideTempleOfTime:
+      assert(cutsceneOffset <= 12, "Invalid cutscene offset for room");
+      break;
+    case RoomWithEntrance.ChamberOfSages_Default:
+      assert(cutsceneOffset <= 3, "Invalid cutscene offset for room");
+      break;
+    case RoomWithEntrance.SpiritTemple_FromDesertColossus:
+      assert(cutsceneOffset <= 2, "Invalid cutscene offset for room");
+      break;
+    case RoomWithEntrance.IceCavern_FromZorasFountain:
+      assert(cutsceneOffset <= 1, "Invalid cutscene offset for room");
+      break;
+    case RoomWithEntrance.SpiritTempleBoss_FromSpiritTemple:
+      assert(cutsceneOffset <= 3, "Invalid cutscene offset for room");
+      break;
+    case RoomWithEntrance.CutsceneMap_Default:
+      assert(cutsceneOffset <= 9, "Invalid cutscene offset for room");
+      break;
+    case RoomWithEntrance.Market_FromMarketEntrance:
+      assert(cutsceneOffset <= 1, "Invalid cutscene offset for room");
+      break;
+    case RoomWithEntrance.LinksHouse_BedEntranceFromSavewarp:
+      assert(cutsceneOffset <= 2, "Invalid cutscene offset for room");
+      break;
+    case RoomWithEntrance.HyruleField_FromAfterZeldaEscapeImpaEscort:
+      assert(cutsceneOffset <= 10, "Invalid cutscene offset for room");
+      break;
+    case RoomWithEntrance.KakarikoVillage_FromHyruleField:
+      assert(cutsceneOffset <= 5, "Invalid cutscene offset for room");
+      break;
+    case RoomWithEntrance.KakarikoGraveyard_FromKakarikoVillage:
+      assert(cutsceneOffset <= 2, "Invalid cutscene offset for room");
+      break;
+    case RoomWithEntrance.KokiriForest_CutsceneEntrance:
+      assert(cutsceneOffset <= 10, "Invalid cutscene offset for room");
+      break;
+    case RoomWithEntrance.SacredForestMeadow_FromLostWoods:
+      assert(cutsceneOffset <= 2, "Invalid cutscene offset for room");
+      break;
+    case RoomWithEntrance.LakeHylia_FromHyruleField:
+      assert(cutsceneOffset <= 2, "Invalid cutscene offset for room");
+      break;
+    case RoomWithEntrance.ZorasDomain_FromZoraRiver:
+      assert(cutsceneOffset <= 2, "Invalid cutscene offset for room");
+      break;
+    case RoomWithEntrance.ZorasFountain_SapphireCutsceneEntrance:
+      assert(cutsceneOffset <= 5, "Invalid cutscene offset for room");
+      break;
+    case RoomWithEntrance.GerudoValley_FromHyruleField:
+      assert(cutsceneOffset <= 3, "Invalid cutscene offset for room");
+      break;
+    case RoomWithEntrance.LostWoods_FromKokiriForest:
+      assert(cutsceneOffset <= 1, "Invalid cutscene offset for room");
+      break;
+    case RoomWithEntrance.DesertColossus_FromHauntedWasteland:
+      assert(cutsceneOffset <= 2, "Invalid cutscene offset for room");
+      break;
+    case RoomWithEntrance.GerudoFortress_FromGerudoValley:
+      assert(cutsceneOffset <= 3, "Invalid cutscene offset for room");
+      break;
     default:
       assert(cutsceneOffset === 0, "Invalid cutscene offset for room");
       break;
