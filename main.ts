@@ -1,6 +1,7 @@
 import { SaveFile } from "./models/savefile.ts";
 import { LanguageOption, SoundOption } from "./models/saveheader.ts";
 import { Age } from "./models/saveslot.ts";
+import { Scene, Time } from "./models/scene.ts";
 
 async function runTheThing() {
   if (Deno.args.length < 1) {
@@ -28,6 +29,9 @@ async function runTheThing() {
   console.debug(
     `Link's health is ${slot.currentHealth / 16}/${slot.maxHealth / 16}`,
   );
+  console.debug(`Link is in ${Scene[slot.savedSceneIndex]} scene`);
+  console.debug(`The current time is ${Time[slot.nightFlag]}`);
+  console.debug(`The current cutscene number is ${slot.cutSceneNumber}`);
 }
 
 if (import.meta.main) {

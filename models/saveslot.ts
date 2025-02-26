@@ -1,5 +1,6 @@
 import { toNumber, toUint8Array } from "../utils/conversions.ts";
 import { OotText } from "../utils/text.ts";
+import { Scene, Time } from "./scene.ts";
 
 export enum Age {
   Child = 0x00,
@@ -307,11 +308,11 @@ export class SaveSlot {
     this.bytes.set(toUint8Array(value, 2), 0x000C);
   }
 
-  get nightFlag(): number {
+  get nightFlag(): Time {
     return toNumber(this.bytes.slice(0x0010, 0x0010 + 4));
   }
 
-  set nightFlag(value: number) {
+  set nightFlag(value: Time) {
     this.bytes.set(toUint8Array(value, 4), 0x0010);
   }
 
@@ -489,11 +490,11 @@ export class SaveSlot {
     this.bytes.set(toUint8Array(value, 1), 0x003E);
   }
 
-  get savedSceneIndex(): number {
+  get savedSceneIndex(): Scene {
     return toNumber(this.bytes.slice(0x0066, 0x0066 + 2));
   }
 
-  set savedSceneIndex(value: number) {
+  set savedSceneIndex(value: Scene) {
     this.bytes.set(toUint8Array(value, 2), 0x0066);
   }
 
