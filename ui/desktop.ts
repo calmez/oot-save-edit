@@ -3,14 +3,30 @@ import { SaveFile } from "../models/savefile.ts";
 import { Scene, Time } from "../models/scene.ts";
 import { LanguageOption, SoundOption } from "../models/saveheader.ts";
 
-console.log("Hello from desktop!");
-console.log(`In directory: ${Deno.cwd()}`);
-
-const webview = new Webview();
+const webview = new Webview(true);
 webview.title = "oot-save-edit";
 
-async function buildOutput(filename: string): Promise<string> {
-  const file = await Deno.open(filename);
+webview.bind("exit", () => {
+  webview.destroy();
+  Deno.exit();
+});
+
+webview.bind("fileOpen", (filename: string) => {
+  webview.navigate(
+    `data:text/html,${
+      encodeURIComponent(
+        buildOutput(
+          // hack because we get a weird path from the file input
+          // e.g. C:\fakepath\oot.srm
+          `THIS_NEEDS_A_FIXED_PATH_TO_A_FOLDER_AS_A_WORKAROND/${filename.split('\\')[2]}`
+        )
+      )
+    }`,
+  );
+});
+
+function buildOutput(filename: string): string {
+  const file = Deno.openSync(filename);
   const save = new SaveFile(file);
   file.close();
 
@@ -36,7 +52,22 @@ async function buildOutput(filename: string): Promise<string> {
 
 webview.navigate(
   `data:text/html,${
-    encodeURIComponent(await buildOutput("test-data/new-game.srm"))
+    encodeURIComponent(`
+      <html>
+        <body>
+          <h1>Open a file</h1>
+          <input id="file" type="file" accept=".srm" />
+          <button onclick="exit()">Exit</button>
+          <script>
+            const fileInput = document.getElementById("file");
+            fileInput.addEventListener("change", (event) => {
+              fileOpen(fileInput.value);
+            });
+          </script>
+        </body>
+      </html>
+    `)
   }`,
 );
+
 webview.run();

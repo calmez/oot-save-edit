@@ -20,6 +20,23 @@
         "--allow-all"
       ],
       "attachSimplePort": 9229
+    },
+    {
+      "request": "launch",
+      "name": "UI",
+      "type": "node",
+      "program": "${workspaceFolder}/ui/desktop.ts",
+      "args": [],
+      "cwd": "${workspaceFolder}",
+      "env": {},
+      "runtimeExecutable": "deno",
+      "runtimeArgs": [
+        "run",
+        "--unstable",
+        "--inspect-wait",
+        "--allow-all"
+      ],
+      "attachSimplePort": 9229
     }
   ]
 }
