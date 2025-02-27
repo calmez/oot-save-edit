@@ -25,7 +25,7 @@
       "request": "launch",
       "name": "UI",
       "type": "node",
-      "program": "${workspaceFolder}/ui/desktop.ts",
+      "program": "${workspaceFolder}/ui/main.ts",
       "args": [],
       "cwd": "${workspaceFolder}",
       "env": {},
