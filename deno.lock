@@ -1,22 +1,41 @@
 {
   "version": "4",
   "specifiers": {
+    "jsr:@denosaurs/plug@1": "1.0.6",
+    "jsr:@std/assert@0.221": "0.221.0",
     "jsr:@std/assert@1": "1.0.6",
     "jsr:@std/assert@^1.0.6": "1.0.6",
     "jsr:@std/assert@^1.0.7": "1.0.7",
     "jsr:@std/async@^1.0.5": "1.0.8",
     "jsr:@std/async@^1.0.8": "1.0.8",
     "jsr:@std/data-structures@^1.0.4": "1.0.4",
+    "jsr:@std/encoding@0.221": "0.221.0",
+    "jsr:@std/fmt@0.221": "0.221.0",
+    "jsr:@std/fs@0.221": "0.221.0",
     "jsr:@std/fs@^1.0.4": "1.0.5",
     "jsr:@std/fs@^1.0.5": "1.0.5",
     "jsr:@std/internal@^1.0.4": "1.0.5",
     "jsr:@std/internal@^1.0.5": "1.0.5",
+    "jsr:@std/path@0.221": "0.221.0",
     "jsr:@std/path@^1.0.6": "1.0.7",
     "jsr:@std/path@^1.0.7": "1.0.8",
     "jsr:@std/path@^1.0.8": "1.0.8",
-    "jsr:@std/testing@1": "1.0.4"
+    "jsr:@std/testing@1": "1.0.4",
+    "jsr:@webview/webview@*": "0.9.0"
   },
   "jsr": {
+    "@denosaurs/plug@1.0.6": {
+      "integrity": "6cf5b9daba7799837b9ffbe89f3450510f588fafef8115ddab1ff0be9cb7c1a7",
+      "dependencies": [
+        "jsr:@std/encoding",
+        "jsr:@std/fmt",
+        "jsr:@std/fs@0.221",
+        "jsr:@std/path@0.221"
+      ]
+    },
+    "@std/assert@0.221.0": {
+      "integrity": "a5f1aa6e7909dbea271754fd4ab3f4e687aeff4873b4cef9a320af813adb489a"
+    },
     "@std/assert@1.0.6": {
       "integrity": "1904c05806a25d94fe791d6d883b685c9e2dcd60e4f9fc30f4fc5cf010c72207",
       "dependencies": [
@@ -35,6 +54,19 @@
     "@std/data-structures@1.0.4": {
       "integrity": "fa0e20c11eb9ba673417450915c750a0001405a784e2a4e0c3725031681684a0"
     },
+    "@std/encoding@0.221.0": {
+      "integrity": "d1dd76ef0dc5d14088411e6dc1dede53bf8308c95d1537df1214c97137208e45"
+    },
+    "@std/fmt@0.221.0": {
+      "integrity": "379fed69bdd9731110f26b9085aeb740606b20428ce6af31ef6bd45ef8efa62a"
+    },
+    "@std/fs@0.221.0": {
+      "integrity": "028044450299de8ed5a716ade4e6d524399f035513b85913794f4e81f07da286",
+      "dependencies": [
+        "jsr:@std/assert@0.221",
+        "jsr:@std/path@0.221"
+      ]
+    },
     "@std/fs@1.0.5": {
       "integrity": "41806ad6823d0b5f275f9849a2640d87e4ef67c51ee1b8fb02426f55e02fd44e",
       "dependencies": [
@@ -46,6 +78,12 @@
     },
     "@std/internal@1.0.5": {
       "integrity": "54a546004f769c1ac9e025abd15a76b6671ddc9687e2313b67376125650dc7ba"
+    },
+    "@std/path@0.221.0": {
+      "integrity": "0a36f6b17314ef653a3a1649740cc8db51b25a133ecfe838f20b79a56ebe0095",
+      "dependencies": [
+        "jsr:@std/assert@0.221"
+      ]
     },
     "@std/path@1.0.7": {
       "integrity": "76a689e07f0e15dcc6002ec39d0866797e7156629212b28f27179b8a5c3b33a1"
@@ -74,12 +112,33 @@
         "jsr:@std/internal@^1.0.5",
         "jsr:@std/path@^1.0.8"
       ]
+    },
+    "@webview/webview@0.9.0": {
+      "integrity": "a7c4d787aafa43258ff287f71a16679d5ca3d9b65e5d232c60c3985f9ab3e0ce",
+      "dependencies": [
+        "jsr:@denosaurs/plug"
+      ]
     }
+  },
+  "remote": {
+    "https://deno.land/x/webui@2.4.4/deps.ts": "265ee64b6f22e2af50aa32af81fbc3445194a4b230bc3e30b6ffb55b32e80259",
+    "https://deno.land/x/webui@2.4.4/mod.ts": "3f45bc39f6bff7da9282f3343f473d52686ece5748744b01f615c238e9f91fd8",
+    "https://deno.land/x/webui@2.4.4/src/lib.ts": "c514906e484fcf105298f633134587157eb78f8d376e79f3e3860c9c64be5d09",
+    "https://deno.land/x/webui@2.4.4/src/types.ts": "64e42a0e8f142557034eff6e54cb596954823ef9127ffec6fffb856880b21897",
+    "https://deno.land/x/webui@2.4.4/src/utils.ts": "1f486e61ddc0ff07dd1807ccd71b458c10f89a8156d04a870f121bd875246508",
+    "https://deno.land/x/webui@2.4.4/src/webui.ts": "accf92a0b9b7e80d81c9a0d52f9f6d2a2ae30f09feb5dc78cbc3cad2c731cb54",
+    "https://deno.land/x/webui@2.5.3/deps.ts": "4ed539a8a26d1c7002c10cb580895257553f6a91af6a8ac4682cd6aecc980f24",
+    "https://deno.land/x/webui@2.5.3/mod.ts": "15164acd86d67b02c4b3577c0a2d2bfa6b9a5c8c8c2914434862b09a96db4116",
+    "https://deno.land/x/webui@2.5.3/src/lib.ts": "8f7f455c985c60ce59e080f6fbcf9c14dae68561fd37d4402cd7fc3645d238c0",
+    "https://deno.land/x/webui@2.5.3/src/types.ts": "5c1a4529c6f986c0766a7fdc61347ed8e914cbc2867a049ea31f07f4d970ec02",
+    "https://deno.land/x/webui@2.5.3/src/utils.ts": "3faa3f9290de3288f506feb94af14634dd791fd1170a508c610ace033b68aaae",
+    "https://deno.land/x/webui@2.5.3/src/webui.ts": "580783c7df25893e5340fa0be6098619052619b482afc0418b3599dae3a73e99"
   },
   "workspace": {
     "dependencies": [
       "jsr:@std/assert@1",
-      "jsr:@std/testing@1"
+      "jsr:@std/testing@1",
+      "jsr:@webview/webview@*"
     ]
   }
 }
