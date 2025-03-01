@@ -1,8 +1,7 @@
 import { Webview } from "@webview/webview";
-import { dirname, join } from "@std/path";
 
 const worker = new Worker(
-  join(dirname(import.meta.url), "server.ts"),
+  import.meta.resolve("./server.ts"),
   { type: "module" },
 );
 
@@ -11,6 +10,7 @@ webview.title = "oot-save-edit";
 
 webview.bind("exit", () => {
   webview.destroy();
+  worker.terminate();
   Deno.exit();
 });
 

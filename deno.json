@@ -1,7 +1,7 @@
 {
   "tasks": {
     "dev": "deno run --watch main.ts",
-    "build:ui": "deno compile --allow-env --allow-read --allow-ffi --no-prompt --output=./build/desktop ./ui/desktop.ts"
+    "build:ui": "deno compile --allow-env --allow-read --allow-ffi --no-prompt --output=./build/ui --include ./ui/server.ts ./ui/main.ts"
   },
   "imports": {
     "@std/assert": "jsr:@std/assert@1",
