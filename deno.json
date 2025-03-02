@@ -1,7 +1,10 @@
 {
   "tasks": {
-    "dev": "deno run --watch main.ts",
-    "build:ui": "deno compile --allow-env --allow-read --allow-ffi --no-prompt --output=./build/ui --include ./ui/server.ts ./ui/main.ts"
+    "dev": "deno run --inspect-wait --allow-read ./main.ts",
+    "dev:tui": "deno run --inspect-wait --allow-env --allow-read ./ui/terminal.tsx",
+    "dev:gui": "deno run --inspect-wait --allow-env --allow-read --allow-write --allow-net --allow-ffi ./ui/main.ts",
+    "build:tui": "deno compile --allow-env --allow-read --no-prompt --output=./build/tui ./ui/terminal.ts",
+    "build:gui": "deno compile --allow-env --allow-read --allow-write --allow-net --allow-ffi --no-prompt --output=./build/gui --include ./ui/server.ts ./ui/main.ts"
   },
   "imports": {
     "@std/assert": "jsr:@std/assert@1",

@@ -54,6 +54,14 @@
         "--allow-all"
       ],
       "attachSimplePort": 9229
+    },
+    {
+      "request": "attach",
+      "name": "Attach to Process",
+      "type": "node",
+      "cwd": "${workspaceFolder}",
+      "env": {},
+      "port": 9229
     }
   ]
 }
