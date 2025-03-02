@@ -1,5 +1,6 @@
 import React from "react";
 import { Box, render, Text, useFocus } from "ink";
+import Gradient from 'ink-gradient';
 import { SaveFile } from "../models/savefile.ts";
 import { LanguageOption, SoundOption } from "../models/saveheader.ts";
 import { Age } from "../models/saveslot.ts";
@@ -47,12 +48,15 @@ const App = () => {
       width={width}
       height={height}
       flexDirection="column"
-      gap="1"
+      gap={1}
+      padding={1}
       borderStyle="round"
       borderColor="white"
     >
       <Box flexDirection="row" justifyContent="center">
-        <Text>Welcome to OOT Save Edit!</Text>
+        <Gradient name="rainbow">
+          <Text>"Welcome to OOT Save Edit!"</Text>
+        </Gradient>
       </Box>
       {!!filename && filename.length > 0 ? <Save filename={filename} /> : (
         <Text>

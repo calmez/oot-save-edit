@@ -13,6 +13,8 @@
     "@oak/oak": "jsr:@oak/oak@17",
     "@webview/webview": "jsr:@webview/webview",
     "react": "npm:react@18",
-    "ink": "npm:ink@5"
+    "ink": "npm:ink@5",
+    "ink-big-text": "npm:ink-big-text@2",
+    "ink-gradient": "npm:ink-gradient@3"
   }
 }
