@@ -5,6 +5,14 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "request": "attach",
+      "name": "Attach to Process",
+      "type": "node",
+      "cwd": "${workspaceFolder}",
+      "env": {},
+      "port": 9229
+    },
+    {
       "request": "launch",
       "name": "OoT Save Edit",
       "type": "node",
@@ -54,14 +62,6 @@
         "--allow-all"
       ],
       "attachSimplePort": 9229
-    },
-    {
-      "request": "attach",
-      "name": "Attach to Process",
-      "type": "node",
-      "cwd": "${workspaceFolder}",
-      "env": {},
-      "port": 9229
     }
   ]
 }
