@@ -54,9 +54,7 @@ const App = () => {
       <Box flexDirection="row" justifyContent="center">
         <Text>Welcome to OOT Save Edit!</Text>
       </Box>
-      {!!filename && filename.length > 0 ? (
-        <Save filename={filename} />
-      ) : (
+      {!!filename && filename.length > 0 ? <Save filename={filename} /> : (
         <Text>
           No file selected, please provide a filename as first argument.
         </Text>
