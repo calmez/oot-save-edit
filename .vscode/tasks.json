@@ -1,45 +1,45 @@
 {
-	"version": "2.0.0",
-	"tasks": [
-		{
-			"type": "deno",
-			"command": "task",
-			"args": [
-				"dev:tui",
-				"./test-data/new-game.srm"
-			],
-			"problemMatcher": [
-				"$deno"
-			],
-			"label": "run:tui",
-			"detail": "Run TUI"
-		},
-		{
-			"type": "deno",
-			"command": "task",
-			"args": [
-				"dev:gui"
-			],
-			"problemMatcher": [
-				"$deno"
-			],
-			"label": "run:gui",
-			"detail": "Run GUI"
-		},
-		{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "type": "deno",
+      "command": "task",
+      "args": [
+        "dev:tui",
+        "./test-data/new-game.srm"
+      ],
+      "problemMatcher": [
+        "$deno"
+      ],
+      "label": "run:tui",
+      "detail": "Run TUI"
+    },
+    {
+      "type": "deno",
+      "command": "task",
+      "args": [
+        "dev:gui"
+      ],
+      "problemMatcher": [
+        "$deno"
+      ],
+      "label": "run:gui",
+      "detail": "Run GUI"
+    },
+    {
       "label": "attach",
       "type": "shell",
       "command": "${command:workbench.action.debug.start}"
     },
-		{
-			"label": "debug:tui",
-			"type": "shell",
-			"dependsOn": ["run:tui", "attach"]
-		},
-		{
-			"label": "debug:gui",
-			"type": "shell",
-			"dependsOn": ["run:gui", "attach"]
-		}
-	]
+    {
+      "label": "debug:tui",
+      "type": "shell",
+      "dependsOn": ["run:tui", "attach"]
+    },
+    {
+      "label": "debug:gui",
+      "type": "shell",
+      "dependsOn": ["run:gui", "attach"]
+    }
+  ]
 }

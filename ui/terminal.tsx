@@ -1,6 +1,6 @@
 import React from "react";
 import { Box, render, Text, useFocus } from "ink";
-import Gradient from 'ink-gradient';
+import Gradient from "ink-gradient";
 import { SaveFile } from "../models/savefile.ts";
 import { LanguageOption, SoundOption } from "../models/saveheader.ts";
 import { Age } from "../models/saveslot.ts";
