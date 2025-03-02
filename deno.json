@@ -8,6 +8,8 @@
     "@std/path": "jsr:@std/path@1",
     "@std/testing": "jsr:@std/testing@1",
     "@oak/oak": "jsr:@oak/oak@17",
-    "@webview/webview": "jsr:@webview/webview"
+    "@webview/webview": "jsr:@webview/webview",
+    "react": "npm:react@18",
+    "ink": "npm:ink@5"
   }
 }
