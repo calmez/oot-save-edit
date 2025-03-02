@@ -37,7 +37,7 @@ const Save = ({ filename }: SaveProps): React.JSX.Element => {
 };
 
 const App = () => {
-  const { isFocused } = useFocus();
+  const { _isFocused } = useFocus();
   const width = Deno.consoleSize().columns;
   const height = Deno.consoleSize().rows;
   const filename: string = Deno.args[0];
