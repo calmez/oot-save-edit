@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "lib": ["ESNext"],
+    "paths": {
+      "@std/*": ["doc.modulestub.ts"]
+    },
+    "allowImportingTsExtensions": true,
+    "jsx": "react",
+    "baseUrl": ".",
+  },
+  "exclude": ["**/*.test.ts", "ui/**", "main.ts"]
+}

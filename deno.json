@@ -4,7 +4,8 @@
     "dev:tui": "deno run --inspect-wait --allow-env --allow-read ./ui/terminal.tsx",
     "dev:gui": "deno run --inspect-wait --allow-env --allow-read --allow-write --allow-net --allow-ffi ./ui/main.ts",
     "build:tui": "deno compile --allow-env --allow-read --no-prompt --output=./build/tui ./ui/terminal.ts",
-    "build:gui": "deno compile --allow-env --allow-read --allow-write --allow-net --allow-ffi --no-prompt --output=./build/gui --include ./ui/server.ts ./ui/main.ts"
+    "build:gui": "deno compile --allow-env --allow-read --allow-write --allow-net --allow-ffi --no-prompt --output=./build/gui --include ./ui/server.ts ./ui/main.ts",
+    "build:docs": "deno run --allow-read --allow-env --allow-run npm:typedoc --tsconfig tsconfig.doc.json --out docs index.ts"
   },
   "imports": {
     "@std/assert": "jsr:@std/assert@1",
