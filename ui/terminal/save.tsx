@@ -89,7 +89,7 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
           saveFile.slots[0].age = values.slot_0_age;
           setSaveFile(saveFile);
         }}
-        onSubmit={(values: FormData) => {
+        onSubmit={(_values: FormData) => {
           const outfile = Deno.openSync(filename, { write: true });
           saveFile.write(outfile);
           outfile.close();

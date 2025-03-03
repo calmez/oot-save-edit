@@ -27,7 +27,7 @@ export const EnumFieldManager = {
       });
 
     return (
-      <Box borderStyle={"round"} width="100%">
+      <Box borderStyle="round" width="100%">
         <SelectInput
           items={options}
           onHighlight={(option) => props.onChange(option.value)}
