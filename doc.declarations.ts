@@ -4,6 +4,9 @@ namespace Deno {
     readSync(_bytes: Uint8Array): number {
       return 0;
     }
+    writeSync(_bytes: Uint8Array): number {
+      return 0;
+    }
   }
 }
 
