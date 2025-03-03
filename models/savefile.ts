@@ -56,4 +56,25 @@ export class SaveFile {
 
     return this;
   }
+
+  write(file: Deno.FsFile): void {
+    const bytes = new Uint8Array(SaveFile.requiredSize);
+
+    let currentOffset = 0x00;
+
+    bytes.set(this.header.data, currentOffset);
+    currentOffset += SaveHeader.requiredSize;
+
+    for (let i = 0; i < SaveFile.saveSlots; i++) {
+      bytes.set(this.slots[i].data, currentOffset);
+      currentOffset += SaveSlot.requiredSize;
+    }
+
+    for (let i = 0; i < SaveFile.saveSlots; i++) {
+      bytes.set(this.backups[i].data, currentOffset);
+      currentOffset += SaveSlot.requiredSize;
+    }
+
+    file.writeSync(bytes);
+  }
 }

@@ -19,6 +19,15 @@ Deno.test({
 });
 
 Deno.test({
+  name: "should provide its data",
+  fn() {
+    const testData = new Uint8Array(SaveHeader.requiredSize);
+    const instance = new SaveHeader(testData);
+    assertEquals(instance.data, testData);
+  },
+});
+
+Deno.test({
   name: "should provide the stored SoundOption",
   fn() {
     const testData = new Uint8Array(SaveHeader.requiredSize);

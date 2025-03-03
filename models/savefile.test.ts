@@ -1,5 +1,10 @@
 import { assertInstanceOf, assertThrows } from "@std/assert";
-import { assertSpyCalls, returnsNext, stub } from "@std/testing/mock";
+import {
+  assertSpyCallArgs,
+  assertSpyCalls,
+  returnsNext,
+  stub,
+} from "@std/testing/mock";
 import { SaveFile } from "./savefile.ts";
 import { SaveHeader } from "./saveheader.ts";
 import { SaveSlot } from "./saveslot.ts";
@@ -52,5 +57,18 @@ Deno.test({
       returnsNext([wrongFileSize]),
     );
     assertThrows(() => new SaveFile(testFile));
+  },
+});
+
+Deno.test({
+  name: "should write contents to a file",
+  fn() {
+    const testFile = {} as Deno.FsFile;
+    const writeSyncStub = stub(testFile, "writeSync");
+    const instance = new SaveFile();
+    instance.write(testFile);
+    assertSpyCallArgs(writeSyncStub, 0, 0, [
+      new Uint8Array(SaveFile.requiredSize),
+    ]);
   },
 });

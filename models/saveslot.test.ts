@@ -21,6 +21,15 @@ Deno.test({
 });
 
 Deno.test({
+  name: "should provide its data",
+  fn() {
+    const testData = new Uint8Array(SaveSlot.requiredSize);
+    const instance = new SaveSlot(testData);
+    assertEquals(instance.data, testData);
+  }
+});
+
+Deno.test({
   name: "should provide an entrance index",
   fn() {
     const testData = new Uint8Array(SaveSlot.requiredSize);

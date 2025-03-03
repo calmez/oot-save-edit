@@ -96,10 +96,17 @@ const Save = ({ filename }: SaveProps): React.JSX.Element => {
           ],
         }}
         onChange={(values: FormData) => {
-          console.log(`Form updated with values: ${JSON.stringify(values)}`);
+          saveFile.header.languageOption = values.header_languageOption;
+          saveFile.header.zTargetOption = values.header_zTargetOption;
+          saveFile.header.soundOption = values.header_soundOption;
+          saveFile.slots[0].playerName = values.slot_0_playerName;
+          saveFile.slots[0].age = values.slot_0_age;
+          setSaveFile(saveFile);
         }}
         onSubmit={(values: FormData) => {
-          console.log(`Form submitted with values: ${JSON.stringify(values)}`);
+          const outfile = Deno.openSync(filename, { write: true });
+          saveFile.write(outfile);
+          outfile.close();
         }}
       />
     </Box>

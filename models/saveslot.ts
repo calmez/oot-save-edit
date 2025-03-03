@@ -267,6 +267,10 @@ export class SaveSlot {
     }
   }
 
+  get data(): Uint8Array {
+    return this.bytes;
+  }
+
   get entranceIndex(): number {
     return toNumber(this.bytes.slice(0x0000, 0x0000 + 4));
   }

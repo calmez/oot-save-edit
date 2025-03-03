@@ -50,6 +50,10 @@ export class SaveHeader {
     }
   }
 
+  get data(): Uint8Array {
+    return this.bytes;
+  }
+
   get soundOption(): SoundOption {
     return toNumber(this.bytes.slice(0x00, 0x00 + 1));
   }
