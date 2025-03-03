@@ -14,6 +14,14 @@ interface SaveProps {
   filename: string;
 }
 
+interface FormData {
+  header_languageOption: LanguageOption;
+  header_zTargetOption: ZTargetOption;
+  header_soundOption: SoundOption;
+  slot_0_playerName: string;
+  slot_0_age: Age;
+}
+
 const Save = ({ filename }: SaveProps): React.JSX.Element => {
   const file = Deno.openSync(filename);
   const saveFile = new SaveFile(file);
@@ -30,7 +38,7 @@ const Save = ({ filename }: SaveProps): React.JSX.Element => {
               fields: [
                 {
                   type: "select",
-                  name: "header.languageOption",
+                  name: "header_languageOption",
                   label: "Language",
                   options: Object.values(LanguageOption)
                     .filter((value) => typeof value === "number")
@@ -41,7 +49,7 @@ const Save = ({ filename }: SaveProps): React.JSX.Element => {
                 },
                 {
                   type: "select",
-                  name: "header.zTargetOption",
+                  name: "header_zTargetOption",
                   label: "Z-Target",
                   options: Object.values(ZTargetOption)
                     .filter((value) => typeof value === "number")
@@ -52,7 +60,7 @@ const Save = ({ filename }: SaveProps): React.JSX.Element => {
                 },
                 {
                   type: "select",
-                  name: "header.soundOption",
+                  name: "header_soundOption",
                   label: "Sound",
                   options: Object.values(SoundOption)
                     .filter((value) => typeof value === "number")
@@ -68,13 +76,13 @@ const Save = ({ filename }: SaveProps): React.JSX.Element => {
               fields: [
                 {
                   type: "string",
-                  name: "slot.0.playerName",
+                  name: "slot_0_playerName",
                   label: "Player Name",
                   initialValue: saveFile.slots[0].playerName,
                 },
                 {
                   type: "select",
-                  name: "slot.0.age",
+                  name: "slot_0_age",
                   label: "Age",
                   options: Object.values(Age)
                     .filter((value) => typeof value === "number")
@@ -87,10 +95,10 @@ const Save = ({ filename }: SaveProps): React.JSX.Element => {
             },
           ],
         }}
-        onChange={(values: any) => {
+        onChange={(values: FormData) => {
           console.log(`Form updated with values: ${JSON.stringify(values)}`);
         }}
-        onSubmit={(values: any) => {
+        onSubmit={(values: FormData) => {
           console.log(`Form submitted with values: ${JSON.stringify(values)}`);
         }}
       />
