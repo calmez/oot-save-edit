@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useState } from "react";
 import { Box, render, Text, useFocus } from "ink";
 import Gradient from "ink-gradient";
 import { Form } from "ink-form";
+import SelectInput from "ink-select-input";
 import { SaveFile } from "../models/savefile.ts";
 import {
   LanguageOption,
@@ -22,14 +23,53 @@ interface FormData {
   slot_0_age: Age;
 }
 
+const EnumFieldManager = {
+  type: "enum",
+  renderValue: ({ value, field }) => {
+    const options = Object.values(field.enum)
+      .filter((value) => typeof value === "number")
+      .map((key) => {
+        return { label: field.enum[key], value: key };
+      });
+
+    return (
+      <>
+        {options.find((option) => option.value === value)?.label ??
+          value ??
+          "No value"}
+      </>
+    );
+  },
+  renderField: (props) => {
+    const options = Object.values(props.field.enum)
+      .filter((value) => typeof value === "number")
+      .map((key) => {
+        return { label: props.field.enum[key], value: key };
+      });
+
+    return (
+      <Box borderStyle={"round"} width="100%">
+        <SelectInput
+          items={options}
+          onHighlight={(option) => props.onChange(option.value)}
+          initialIndex={options.findIndex(
+            (option) => option.value === props.value
+          )}
+        />
+      </Box>
+    );
+  },
+};
+
 const Save = ({ filename }: SaveProps): React.JSX.Element => {
   const file = Deno.openSync(filename);
-  const saveFile = new SaveFile(file);
+  const [saveFile, setSaveFile] = useState<SaveFile>(new SaveFile(file));
   file.close();
 
   return (
     <Box flexDirection="column">
       <Form
+        customManagers={[EnumFieldManager]}
         form={{
           title: "Edit Save",
           sections: [
@@ -37,37 +77,25 @@ const Save = ({ filename }: SaveProps): React.JSX.Element => {
               title: "General",
               fields: [
                 {
-                  type: "select",
+                  type: "enum",
                   name: "header_languageOption",
                   label: "Language",
-                  options: Object.values(LanguageOption)
-                    .filter((value) => typeof value === "number")
-                    .map((key) => {
-                      return { key: key, value: LanguageOption[key] };
-                    }),
-                  initialValue: LanguageOption[saveFile.header.languageOption],
+                  enum: LanguageOption,
+                  initialValue: saveFile.header.languageOption,
                 },
                 {
-                  type: "select",
+                  type: "enum",
                   name: "header_zTargetOption",
                   label: "Z-Target",
-                  options: Object.values(ZTargetOption)
-                    .filter((value) => typeof value === "number")
-                    .map((key) => {
-                      return { key: key, value: ZTargetOption[key] };
-                    }),
-                  initialValue: ZTargetOption[saveFile.header.zTargetOption],
+                  enum: ZTargetOption,
+                  initialValue: saveFile.header.zTargetOption,
                 },
                 {
-                  type: "select",
+                  type: "enum",
                   name: "header_soundOption",
                   label: "Sound",
-                  options: Object.values(SoundOption)
-                    .filter((value) => typeof value === "number")
-                    .map((key) => {
-                      return { key: key, value: SoundOption[key] };
-                    }),
-                  initialValue: SoundOption[saveFile.header.soundOption],
+                  enum: SoundOption,
+                  initialValue: saveFile.header.soundOption,
                 },
               ],
             },
@@ -79,17 +107,14 @@ const Save = ({ filename }: SaveProps): React.JSX.Element => {
                   name: "slot_0_playerName",
                   label: "Player Name",
                   initialValue: saveFile.slots[0].playerName,
+                  regex: /^[A-Za-z]{1,8}$/,
                 },
                 {
-                  type: "select",
+                  type: "enum",
                   name: "slot_0_age",
                   label: "Age",
-                  options: Object.values(Age)
-                    .filter((value) => typeof value === "number")
-                    .map((key) => {
-                      return { key: key, value: Age[key] };
-                    }),
-                  initialValue: Age[saveFile.slots[0].age],
+                  enum: Age,
+                  initialValue: saveFile.slots[0].age,
                 },
               ],
             },
@@ -134,7 +159,9 @@ const App = () => {
           <Text>"Welcome to OOT Save Edit!"</Text>
         </Gradient>
       </Box>
-      {!!filename && filename.length > 0 ? <Save filename={filename} /> : (
+      {!!filename && filename.length > 0 ? (
+        <Save filename={filename} />
+      ) : (
         <Text>
           No file selected, please provide a filename as first argument.
         </Text>
