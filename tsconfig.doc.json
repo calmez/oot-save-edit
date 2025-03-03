@@ -7,7 +7,7 @@
     },
     "allowImportingTsExtensions": true,
     "jsx": "react",
-    "baseUrl": ".",
+    "baseUrl": "."
   },
   "exclude": ["**/*.test.ts", "ui/**", "main.ts"]
 }
