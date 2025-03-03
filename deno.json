@@ -15,6 +15,7 @@
     "react": "npm:react@18",
     "ink": "npm:ink@5",
     "ink-big-text": "npm:ink-big-text@2",
-    "ink-gradient": "npm:ink-gradient@3"
+    "ink-gradient": "npm:ink-gradient@3",
+    "ink-form": "npm:ink-form@2"
   }
 }
