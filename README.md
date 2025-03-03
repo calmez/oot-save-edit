@@ -2,6 +2,8 @@
 
 ![Build Status](https://github.com/calmez/oot-save-edit/actions/workflows/main.yml/badge.svg)
 
+[Docs](https://calmez.github.io/oot-save-edit/)
+
 ⚠️ This project is still very much work in progress and not fully usable at this
 moment. ⚠️
 
