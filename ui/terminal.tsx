@@ -3,7 +3,11 @@ import { Box, render, Text, useFocus } from "ink";
 import Gradient from "ink-gradient";
 import { Form } from "ink-form";
 import { SaveFile } from "../models/savefile.ts";
-import { LanguageOption, SoundOption, ZTargetOption } from "../models/saveheader.ts";
+import {
+  LanguageOption,
+  SoundOption,
+  ZTargetOption,
+} from "../models/saveheader.ts";
 import { Age } from "../models/saveslot.ts";
 
 interface SaveProps {
