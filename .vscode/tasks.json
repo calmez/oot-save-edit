@@ -6,7 +6,7 @@
       "command": "task",
       "args": [
         "dev:tui",
-        "./test-data/new-game.srm"
+        "./test-data/foo.srm"
       ],
       "problemMatcher": [
         "$deno"

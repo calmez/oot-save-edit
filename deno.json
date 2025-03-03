@@ -1,11 +1,11 @@
 {
   "tasks": {
     "dev": "deno run --inspect-wait --allow-read ./main.ts",
-    "dev:tui": "deno run --inspect-wait --allow-env --allow-read --allow-write ./ui/terminal.tsx",
+    "dev:tui": "deno run --inspect-wait --allow-env --allow-read --allow-write ./ui/terminal/main.tsx",
     "dev:gui": "deno run --inspect-wait --allow-env --allow-read --allow-write --allow-net --allow-ffi ./ui/main.ts",
-    "run:tui": "deno run --allow-env --allow-read --allow-write ./ui/terminal.tsx",
+    "run:tui": "deno run --allow-env --allow-read --allow-write ./ui/terminal/main.tsx",
     "run:gui": "deno run --allow-env --allow-read --allow-write --allow-net --allow-ffi ./ui/main.ts",
-    "build:tui": "deno compile --allow-env --allow-read --allow-write --no-prompt --output=./build/tui ./ui/terminal.ts",
+    "build:tui": "deno compile --allow-env --allow-read --allow-write --no-prompt --output=./build/tui ./ui/terminal/main.tsx",
     "build:gui": "deno compile --allow-env --allow-read --allow-write --allow-net --allow-ffi --no-prompt --output=./build/gui --include ./ui/server.ts ./ui/main.ts",
     "build:docs": "deno run --allow-read --allow-env --allow-run npm:typedoc --tsconfig tsconfig.doc.json --out docs index.ts"
   },
