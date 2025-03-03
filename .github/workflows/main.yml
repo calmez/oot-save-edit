@@ -26,12 +26,11 @@ jobs:
       - name: Build docs
         run: deno task build:docs
       - name: Deploy docs
-        uses: JamesIves/github-pages-deploy-action@3.6.2
+        uses: JamesIves/github-pages-deploy-action@4
         with:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          BRANCH: gh-pages
-          FOLDER: docs
-          CLEAN: true
-          SINGLE_COMMIT: true
-          GIT_CONFIG_NAME: calmez-ghbot
-          GIT_CONFIG_EMAIL: ghbot-noreply@calmez.net
+          ssh-key: ${{ secrets.GITHUB_TOKEN }}
+          folder: docs
+          clean: true
+          single-commit: true
+          git-config-name: calmez-ghbot
+          git-config-email: ghbot-noreply@calmez.net
