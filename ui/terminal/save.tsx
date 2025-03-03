@@ -2,7 +2,11 @@ import React, { useState } from "react";
 import { SaveFile } from "../../models/savefile.ts";
 import { Box } from "ink";
 import { Form } from "ink-form";
-import { LanguageOption, ZTargetOption, SoundOption } from "../../models/saveheader.ts";
+import {
+  LanguageOption,
+  SoundOption,
+  ZTargetOption,
+} from "../../models/saveheader.ts";
 import { Age } from "../../models/saveslot.ts";
 import { EnumFieldManager } from "./enumfieldmanager.tsx";
 

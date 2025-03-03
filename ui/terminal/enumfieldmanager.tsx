@@ -32,7 +32,7 @@ export const EnumFieldManager = {
           items={options}
           onHighlight={(option) => props.onChange(option.value)}
           initialIndex={options.findIndex(
-            (option) => option.value === props.value
+            (option) => option.value === props.value,
           )}
         />
       </Box>

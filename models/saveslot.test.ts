@@ -26,7 +26,7 @@ Deno.test({
     const testData = new Uint8Array(SaveSlot.requiredSize);
     const instance = new SaveSlot(testData);
     assertEquals(instance.data, testData);
-  }
+  },
 });
 
 Deno.test({
