@@ -1,8 +1,7 @@
 # OoT Save Edit
 
 ![Build Status](https://github.com/calmez/oot-save-edit/actions/workflows/main.yml/badge.svg)
-
-[Docs](https://calmez.github.io/oot-save-edit/)
+[![Docs](https://github.com/calmez/oot-save-edit/actions/workflows/pages/pages-build-deployment/badge.svg?branch=gh-pages)](https://calmez.github.io/oot-save-edit)
 
 ⚠️ This project is still very much work in progress and not fully usable at this
 moment. ⚠️
