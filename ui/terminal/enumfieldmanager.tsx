@@ -1,10 +1,18 @@
 import React from "react";
 import { Box } from "ink";
 import SelectInput from "ink-select-input";
+import { AbstractFormField, SpecificFormFieldRendererProps } from "ink-form";
+
+type FormFieldEnum = AbstractFormField<"enum", number> & {
+  enum: Record<number, string>;
+};
 
 export const EnumFieldManager = {
   type: "enum",
-  renderValue: ({ value, field }) => {
+  renderValue: ({
+    value,
+    field,
+  }: SpecificFormFieldRendererProps<FormFieldEnum>) => {
     const options = Object.values(field.enum)
       .filter((value) => typeof value === "number")
       .map((key) => {
@@ -19,7 +27,7 @@ export const EnumFieldManager = {
       </>
     );
   },
-  renderField: (props) => {
+  renderField: (props: SpecificFormFieldRendererProps<FormFieldEnum>) => {
     const options = Object.values(props.field.enum)
       .filter((value) => typeof value === "number")
       .map((key) => {

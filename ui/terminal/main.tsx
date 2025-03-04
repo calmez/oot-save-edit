@@ -4,7 +4,7 @@ import Gradient from "ink-gradient";
 import { Save } from "./save.tsx";
 
 const App = () => {
-  const { _isFocused } = useFocus();
+  useFocus();
   const width = Deno.consoleSize().columns;
   const height = Deno.consoleSize().rows;
   const filename: string = Deno.args[0];
