@@ -7,9 +7,44 @@
     "dev": "deno run --inspect-wait --allow-read ./main.ts",
     "debug:tui": "COMMAND=run ARGS=--inspect-wait deno task template:tui",
     "debug:gui": "COMMAND=run ARGS=--inspect-wait deno task template:gui",
-    "build:tui": "COMMAND=compile ARGS=\"--no-prompt --output=./build/tui\" deno task template:tui",
-    "build:gui": "COMMAND=compile ARGS=\"--no-prompt --output=./build/gui --include ./ui/server.ts\" deno task template:gui",
-    "build:docs": "deno run --allow-read --allow-env --allow-run npm:typedoc --tsconfig tsconfig.doc.json --out docs index.ts"
+    "build:tui": "COMMAND=compile ARGS=\"--no-prompt --output=./build/$PLATFORM/tui --target $PLATFORM\" deno task template:tui",
+    "build:tui:linux-x86": "PLATFORM=x86_64-unknown-linux-gnu deno task build:tui",
+    "build:tui:linux-amd64": "PLATFORM=aarch64-unknown-linux-gnu deno task build:tui",
+    "build:tui:mac-x86": "PLATFORM=x86_64-apple-darwin deno task build:tui",
+    "build:tui:mac-amd64": "PLATFORM=aarch64-apple-darwin deno task build:tui",
+    "build:tui:win": "PLATFORM=x86_64-pc-windows-msvc deno task build:tui",
+    "build:tui:all": {
+      "dependencies": [
+        "build:tui:linux-x86",
+        "build:tui:linux-amd64",
+        "build:tui:mac-x86",
+        "build:tui:mac-amd64",
+        "build:tui:win"
+      ]
+    },
+    "build:gui": "COMMAND=compile ARGS=\"--no-prompt --output=./build/$PLATFORM/gui --target $PLATFORM --include ./ui/server.ts\" deno task template:gui",
+    "build:gui:linux-x86": "PLATFORM=x86_64-unknown-linux-gnu deno task build:gui",
+    "build:gui:linux-amd64": "PLATFORM=aarch64-unknown-linux-gnu deno task build:gui",
+    "build:gui:mac-x86": "PLATFORM=x86_64-apple-darwin deno task build:gui",
+    "build:gui:mac-amd64": "PLATFORM=aarch64-apple-darwin deno task build:gui",
+    "build:gui:win": "PLATFORM=x86_64-pc-windows-msvc deno task build:gui",
+    "build:gui:all": {
+      "dependencies": [
+        "build:gui:linux-x86",
+        "build:gui:linux-amd64",
+        "build:gui:mac-x86",
+        "build:gui:mac-amd64",
+        "build:gui:win"
+      ]
+    },
+    "build:docs": "deno run --allow-read --allow-env --allow-run npm:typedoc --tsconfig tsconfig.doc.json --out docs index.ts",
+    "build:all": {
+      "dependencies": [
+        "build:tui:all",
+        "build:gui:all",
+        "build:docs"
+      ]
+    }
   },
   "imports": {
     "@std/assert": "jsr:@std/assert@1",
