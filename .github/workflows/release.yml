@@ -1,7 +1,9 @@
 name: Publish
 
 on:
-  release
+  push:
+    tags:
+      - "v*.*.*"
 
 jobs:
   build:
@@ -11,11 +13,11 @@ jobs:
       - uses: denoland/setup-deno@v2
         with:
           deno-version: v2.x
-      - name: install
+      - name: Install
         run: deno install --lock
-      - name: build
+      - name: Build
         run: deno task build:all
-      - name: asset upload
+      - name: Asset upload
         uses: python-semantic-release/publish-action@v9.21.0
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
