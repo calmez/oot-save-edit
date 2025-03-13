@@ -31,9 +31,4 @@ jobs:
         with:
           root_options: -vv
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          git_committer_name: "calmez-ghbot"
-          git_committer_email: "ghbot-noreply@calmez.net"
-          changelog: false
           vcs_release: true
-          tag: true
-          commit: false
