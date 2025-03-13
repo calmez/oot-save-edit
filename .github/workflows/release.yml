@@ -4,6 +4,7 @@ on:
   push:
     tags:
       - "v*.*.*"
+  workflow_dispatch:
 
 jobs:
   build:
@@ -20,7 +21,7 @@ jobs:
       - name: Asset upload
         uses: python-semantic-release/publish-action@v9.21.0
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          github_token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
           tag: ${{ github.ref }}
       - name: Deploy docs
         uses: JamesIves/github-pages-deploy-action@v4
