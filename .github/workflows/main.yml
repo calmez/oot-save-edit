@@ -38,3 +38,4 @@ jobs:
           root_options: -vv
           github_token: ${{ secrets.GITHUB_TOKEN }}
           vcs_release: true
+          commit: false
