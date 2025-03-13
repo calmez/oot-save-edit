@@ -29,8 +29,8 @@ jobs:
         run: deno fmt --check
       - name: Run tests
         run: deno test
-      #- name: Build
-      #  run: deno task build:all
+      - name: Build
+        run: deno task build:all
       - name: Semantic Version Release
         id: release
         uses: python-semantic-release/python-semantic-release@v9.21.0
