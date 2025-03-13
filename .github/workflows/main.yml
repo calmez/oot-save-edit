@@ -1,10 +1,10 @@
-name: "Tests"
+name: Build
 
 on:
   push:
     branches: ["main"]
   pull_request:
-    branches: ["main", "develop"]
+    branches: ["main"]
   workflow_dispatch:
 
 jobs:
@@ -23,14 +23,16 @@ jobs:
         run: deno fmt --check
       - name: Run tests
         run: deno test
-      - name: Build docs
-        run: deno task build:docs
-      - name: Deploy docs
-        uses: JamesIves/github-pages-deploy-action@v4
+      - name: Build
+        run: deno task build:all
+      - name: Semantic Version Release
+        id: release
+        uses: python-semantic-release/python-semantic-release@v9.21.0
         with:
-          ssh-key: ${{ secrets.DEPLOY_KEY }}
-          folder: docs
-          clean: true
-          single-commit: true
-          git-config-name: calmez-ghbot
-          git-config-email: ghbot-noreply@calmez.net
+          github_token: ${{ secrets.DEPLOY_KEY }}
+          git_committer_name: "calmez-ghbot"
+          git_committer_email: "ghbot-noreply@calmez.net"
+          changelog: false
+          vcs_release: true
+          tag: true
+          commit: false
