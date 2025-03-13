@@ -30,6 +30,7 @@ jobs:
         uses: python-semantic-release/python-semantic-release@v9.21.0
         with:
           root_options: -vv
+          force: prerelease
           github_token: ${{ secrets.DEPLOY_KEY }}
           git_committer_name: "calmez-ghbot"
           git_committer_email: "ghbot-noreply@calmez.net"
