@@ -1,10 +1,8 @@
 name: Publish
 
 on:
-  push:
-    tags:
-      - "v*.*.*"
-  workflow_dispatch:
+  release:
+    types: [created]
 
 jobs:
   build:
@@ -18,11 +16,21 @@ jobs:
         run: deno install --lock
       - name: Build
         run: deno task build:all
-      - name: Asset upload
-        uses: python-semantic-release/publish-action@v9.21.0
+      - name: Get release
+        id: get_release
+        uses: bruceadams/get-release@v1.3.2
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+      - name: Upload release asset GUI MacOS ARM
+        id: upload-release-asset 
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
         with:
-          github_token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
-          tag: ${{ github.ref }}
+          upload_url: ${{ steps.get_release.outputs.upload_url }}
+          asset_path: ./build/aarch64-apple-darwin/gui
+          asset_name: macos-apple-silicon-gui
+          asset_content_type: application/x-mach-binary
       - name: Deploy docs
         uses: JamesIves/github-pages-deploy-action@v4
         with:
