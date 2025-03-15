@@ -54,7 +54,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{ steps.get_release_by_tag.outputs.result.upload_url }}
+          upload_url: ${{ steps.get_release_by_tag.outputs.result }}
           asset_path: ./build/aarch64-apple-darwin/gui
           asset_name: macos-apple-silicon-gui
           asset_content_type: application/x-mach-binary
