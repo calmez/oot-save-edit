@@ -45,7 +45,7 @@ jobs:
           script: |
             const tag = "${{ steps.version.outputs.tag }}";
             const release = await github.request(
-              `${context.repo.owner}/${context.repo.repo}/releases/tags/${tag}`,
+              `/repos/${context.repo.owner}/${context.repo.repo}/releases/tags/${tag}`,
             );
             return release.data.upload_url;
           result-encoding: string
