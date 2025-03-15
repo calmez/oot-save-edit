@@ -37,7 +37,7 @@
         "build:gui:win"
       ]
     },
-    "build:docs": "deno run --allow-read --allow-env --allow-run npm:typedoc --tsconfig tsconfig.doc.json --out docs index.ts",
+    "build:docs": "deno run --allow-read --allow-env --allow-run npm:typedoc --tsconfig tsconfig.doc.json --out docs --name oot-save-edit --readme docs.md index.ts",
     "build:all": {
       "dependencies": [
         "build:tui:all",
