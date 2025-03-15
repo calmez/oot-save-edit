@@ -40,18 +40,22 @@ jobs:
           commit: false
       - name: Get Release by Tag
         id: get_release_by_tag
-        uses: jonfriesen/get-release-by-tag@v0.0.11
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const release = await github.repos.getReleaseByTag(
+              context.repo.owner,
+              context.repo.repo,
+              ${{ steps.version.outputs.tag }}
+            );
+            return release.data.upload_url;
+          result-encoding: string
+      - name: Upload release asset GUI MacOS ARM
+        uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ steps.version.outputs.tag }}
-      - name: Upload release asset GUI MacOS ARM
-        id: upload-release-asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
-        with:
-          upload_url: ${{ steps.get_release_by_tag.outputs.release.data.upload_url }}
+          upload_url: ${{ steps.get_release_by_tag.outputs.result.upload_url }}
           asset_path: ./build/aarch64-apple-darwin/gui
           asset_name: macos-apple-silicon-gui
           asset_content_type: application/x-mach-binary
