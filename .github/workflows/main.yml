@@ -67,14 +67,98 @@ jobs:
         with:
           upload_url: ${{ steps.get_release_by_tag.outputs.result }}
           asset_path: ./build/aarch64-apple-darwin/gui
-          asset_name: macos-apple-silicon-gui
+          asset_name: oot-save-edit_gui_macos-apple-silicon
           asset_content_type: application/x-mach-binary
+      - name: Upload release asset GUI MacOS Intel
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.get_release_by_tag.outputs.result }}
+          asset_path: ./build/x86_64-apple-darwin/gui
+          asset_name: oot-save-edit_gui_macos-intel
+          asset_content_type: application/x-mach-binary
+      - name: Upload release asset GUI Linux ARM
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.get_release_by_tag.outputs.result }}
+          asset_path: ./build/aarch64-unknown-linux-gnu/gui
+          asset_name: oot-save-edit_gui_linux-intel
+          asset_content_type: application/x-pie-executable
+      - name: Upload release asset GUI Linux Intel
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.get_release_by_tag.outputs.result }}
+          asset_path: ./build/x86_64-unknown-linux-gnu/gui
+          asset_name: oot-save-edit_gui_linux-intel
+          asset_content_type: application/x-pie-executable
+      - name: Upload release asset GUI Windows
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.get_release_by_tag.outputs.result }}
+          asset_path: ./build/x86_64-pc-windows-msvc/gui.exe
+          asset_name: oot-save-edit_gui.exe
+          asset_content_type: application/x-dosexec
+      - name: Upload release asset TUI MacOS ARM
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.get_release_by_tag.outputs.result }}
+          asset_path: ./build/aarch64-apple-darwin/tui
+          asset_name: oot-save-edit_tui_macos-apple-silicon
+          asset_content_type: application/x-mach-binary
+      - name: Upload release asset TUI MacOS Intel
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.get_release_by_tag.outputs.result }}
+          asset_path: ./build/x86_64-apple-darwin/tui
+          asset_name: oot-save-edit_tui_macos-intel
+          asset_content_type: application/x-mach-binary
+      - name: Upload release asset TUI Linux ARM
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.get_release_by_tag.outputs.result }}
+          asset_path: ./build/aarch64-unknown-linux-gnu/tui
+          asset_name: oot-save-edit_tui_linux-intel
+          asset_content_type: application/x-pie-executable
+      - name: Upload release asset TUI Linux Intel
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.get_release_by_tag.outputs.result }}
+          asset_path: ./build/x86_64-unknown-linux-gnu/tui
+          asset_name: oot-save-edit_tui_linux-intel
+          asset_content_type: application/x-pie-executable
+      - name: Upload release asset TUI Windows
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.get_release_by_tag.outputs.result }}
+          asset_path: ./build/x86_64-pc-windows-msvc/tui.exe
+          asset_name: oot-save-edit_tui.exe
+          asset_content_type: application/x-dosexec
   docs:
     runs-on: ubuntu-latest
     needs: verify
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
       - name: Install
         run: deno install --lock
       - name: Generate docs
