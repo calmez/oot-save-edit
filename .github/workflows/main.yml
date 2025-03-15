@@ -28,6 +28,8 @@ jobs:
         run: deno fmt --check
       - name: Run tests
         run: deno test
+      - name: Build
+        run: deno task build:all
   release:
     name: Build and Release
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
