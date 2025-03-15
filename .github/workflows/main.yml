@@ -44,7 +44,7 @@ jobs:
         with:
           script: |
             const tag = "${{ steps.version.outputs.tag }}";
-            const release = await github.repos.getReleaseByTag(
+            const release = await github.rest.repos.getReleaseByTag(
               context.repo.owner,
               context.repo.repo,
               tag,
