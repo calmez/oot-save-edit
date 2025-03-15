@@ -32,10 +32,35 @@ jobs:
       - name: Build
         run: deno task build:all
       - name: Version
-        id: release
+        id: version
         uses: python-semantic-release/python-semantic-release@v9.21.0
         with:
-          root_options: -vv
           github_token: ${{ secrets.GITHUB_TOKEN }}
           vcs_release: true
           commit: false
+      - name: Get Release by Tag
+        id: get_release_by_tag
+        uses: jonfriesen/get-release-by-tag
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+      - name: Upload release asset GUI MacOS ARM
+        id: upload-release-asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+        with:
+          upload_url: ${{ steps.get_release_by_tag.outputs.release.data.upload_url }}
+          asset_path: ./build/aarch64-apple-darwin/gui
+          asset_name: macos-apple-silicon-gui
+          asset_content_type: application/x-mach-binary
+      - name: Deploy docs
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          ssh-key: ${{ secrets.DEPLOY_KEY }}
+          folder: docs
+          clean: true
+          single-commit: true
+          git-config-name: calmez-ghbot
+          git-config-email: ghbot-noreply@calmez.net
