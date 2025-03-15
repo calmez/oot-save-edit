@@ -15,7 +15,9 @@ format of the save file. <https://wiki.cloudmodding.com/oot/Save_Format>
 Also this work is based on [@AdmiralCurtiss](https://github.com/AdmiralCurtiss)'
 very helpful [OotSaveEditor](https://github.com/AdmiralCurtiss/OoTSaveEditor).
 
-Another helpful resource was [this implementation](https://github.com/libretro/parallel-n64/blob/master/tools/pj64tosrm.c) for handling `srm` files. In order to be compatible with libretro emulators.
+Another helpful resource was
+[this implementation](https://github.com/libretro/parallel-n64/blob/master/tools/pj64tosrm.c)
+for handling `srm` files. In order to be compatible with libretro emulators.
 
 My idea was to make it more accessible to developers by rewriting this in
 Typescript. And it gave me a good excuse to try out Deno - spoiler alert: it's
