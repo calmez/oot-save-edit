@@ -29,6 +29,7 @@ interface FormData {
   slot_0_maxHealth: number;
   slot_0_currentMagic: number;
   slot_0_maxMagic: number;
+  slot_0_rupees: number;
 }
 
 interface SaveProps {
@@ -177,6 +178,14 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
                   label: "Max Magic",
                   initialValue: saveFile.slots[0].maxMagic,
                 },
+                {
+                  type: "integer",
+                  min: 0,
+                  max: 500,
+                  name: "slot_0_rupees",
+                  label: "Rupees",
+                  initialValue: saveFile.slots[0].rupees,
+                },
               ],
             },
           ],
@@ -193,6 +202,7 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
           saveFile.slots[0].maxHealth = values.slot_0_maxHealth * 16;
           saveFile.slots[0].currentMagic = values.slot_0_currentMagic;
           saveFile.slots[0].maxMagic = values.slot_0_maxMagic;
+          saveFile.slots[0].rupees = values.slot_0_rupees;
 
           setSaveFile(saveFile);
         }}
