@@ -14,6 +14,12 @@ import { ReadonlyBooleanFormFieldManager } from "./fieldmanagers/readonlyboolean
 import { ReadonlyEnumFormFieldManager } from "./fieldmanagers/readonlyenum.tsx";
 
 interface FormData {
+  info_filename: string;
+  info_wordSwapped: boolean;
+  info_fileFormat: FileFormat;
+  saveoptions_filename: string;
+  saveoptions_swapWords: boolean;
+  saveoptions_fileFormat: FileFormat;
   header_languageOption: LanguageOption;
   header_zTargetOption: ZTargetOption;
   header_soundOption: SoundOption;
@@ -47,20 +53,20 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
               fields: [
                 {
                   type: "readonly.string",
-                  name: "filename",
+                  name: "info_filename",
                   label: "Filename",
                   initialValue: filename,
                 },
                 {
                   type: "readonly.boolean",
-                  name: "wordSwapped",
+                  name: "info_wordSwapped",
                   label: "Word Swapped",
                   // TODO set this when we have this info from the save file
                   initialValue: false,
                 },
                 {
                   type: "readonly.enum",
-                  name: "fileFormat",
+                  name: "info_fileFormat",
                   label: "File Format",
                   enum: FileFormat,
                   // TODO set this when we have this info from the save file
@@ -73,19 +79,19 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
               fields: [
                 {
                   type: "string",
-                  name: "output_filename",
+                  name: "saveoptions_filename",
                   label: "Output Filename",
                   initialValue: filename,
                 },
                 {
                   type: "boolean",
-                  name: "output_swapWords",
+                  name: "saveoptions_swapWords",
                   label: "Swap Words",
                   initialValue: false,
                 },
                 {
                   type: "enum",
-                  name: "output_fileFormat",
+                  name: "saveoptions_fileFormat",
                   label: "File Format",
                   enum: FileFormat,
                   // TODO set this to the input file format
@@ -148,8 +154,8 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
           saveFile.slots[0].age = values.slot_0_age;
           setSaveFile(saveFile);
         }}
-        onSubmit={(_values: FormData) => {
-          const outfile = Deno.openSync(filename, { write: true });
+        onSubmit={(values: FormData) => {
+          const outfile = Deno.openSync(values.saveoptions_filename, { write: true });
           saveFile.write(outfile);
           outfile.close();
         }}
