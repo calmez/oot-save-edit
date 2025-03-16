@@ -155,7 +155,10 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
           setSaveFile(saveFile);
         }}
         onSubmit={(values: FormData) => {
-          const outfile = Deno.openSync(values.saveoptions_filename, { write: true });
+          const outfile = Deno.openSync(values.saveoptions_filename, {
+            write: true,
+            create: true,
+          });
           saveFile.write(outfile);
           outfile.close();
         }}
