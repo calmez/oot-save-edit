@@ -8,8 +8,9 @@ import {
   ZTargetOption,
 } from "../../models/saveheader.ts";
 import { Age } from "../../models/saveslot.ts";
-import { EnumFieldManager } from "./enumfieldmanager.tsx";
-import { ReadonlyStringFormFieldManager } from "./readonlystringfieldmanager.tsx";
+import { EnumFormFieldManager } from "./fieldmanagers/enum.tsx";
+import { ReadonlyStringFormFieldManager } from "./fieldmanagers/readonlystring.tsx";
+import { ReadonlyBooleanFormFieldManager } from "./fieldmanagers/readonlyboolean.tsx";
 
 interface FormData {
   header_languageOption: LanguageOption;
@@ -31,7 +32,11 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
   return (
     <Box flexDirection="column">
       <Form
-        customManagers={[EnumFieldManager, ReadonlyStringFormFieldManager]}
+        customManagers={[
+          EnumFormFieldManager,
+          ReadonlyStringFormFieldManager,
+          ReadonlyBooleanFormFieldManager,
+        ]}
         form={{
           title: "Edit Save",
           sections: [
@@ -43,6 +48,13 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
                   name: "filename",
                   label: "Filename",
                   initialValue: filename,
+                },
+                {
+                  type: "readonly.boolean",
+                  name: "wordSwapped",
+                  label: "Word Swapped",
+                  // TODO set this when we have this info from the save file
+                  initialValue: false,
                 },
               ],
             },

@@ -11,7 +11,7 @@ type FormFieldEnum = AbstractFormField<"enum", number> & {
   enum: Record<number, string>;
 };
 
-export const EnumFieldManager = {
+export const EnumFormFieldManager = {
   type: "enum",
   renderValue: ({
     value,
