@@ -24,6 +24,7 @@ interface FormData {
   header_zTargetOption: ZTargetOption;
   header_soundOption: SoundOption;
   slot_0_playerName: string;
+  slot_0_deathCounter: number;
   slot_0_age: Age;
   slot_0_currentHealth: number;
   slot_0_maxHealth: number;
@@ -141,6 +142,14 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
                   regex: /^[A-Za-z]{1,8}$/,
                 },
                 {
+                  type: "integer",
+                  min: 0,
+                  max: 0xFFFF,
+                  name: "slot_0_deathCounter",
+                  label: "Deaths",
+                  initialValue: saveFile.slots[0].deathCounter,
+                },
+                {
                   type: "enum",
                   name: "slot_0_age",
                   label: "Age",
@@ -197,6 +206,7 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
           saveFile.header.soundOption = values.header_soundOption;
           // slot 1
           saveFile.slots[0].playerName = values.slot_0_playerName;
+          saveFile.slots[0].deathCounter = values.slot_0_deathCounter;
           saveFile.slots[0].age = values.slot_0_age;
           saveFile.slots[0].currentHealth = values.slot_0_currentHealth * 16;
           saveFile.slots[0].maxHealth = values.slot_0_maxHealth * 16;
