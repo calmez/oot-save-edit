@@ -30,6 +30,7 @@
     "npm:ink-form@2": "2.0.1_ink@5.1.1__react@18.3.1_react@18.3.1",
     "npm:ink-gradient@3": "3.0.0_ink@5.1.1__react@18.3.1_react@18.3.1",
     "npm:ink-select-input@6": "6.0.0_ink@5.1.1__react@18.3.1_react@18.3.1",
+    "npm:ink-text-input@6": "6.0.0_ink@5.1.1__react@18.3.1_react@18.3.1",
     "npm:ink@5": "5.1.1_react@18.3.1",
     "npm:path-to-regexp@^6.3.0": "6.3.0",
     "npm:react@18": "18.3.1",
@@ -819,6 +820,7 @@
       "npm:ink-form@2",
       "npm:ink-gradient@3",
       "npm:ink-select-input@6",
+      "npm:ink-text-input@6",
       "npm:ink@5",
       "npm:react@18"
     ]

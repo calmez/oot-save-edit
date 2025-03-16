@@ -9,6 +9,7 @@ import {
 } from "../../models/saveheader.ts";
 import { Age } from "../../models/saveslot.ts";
 import { EnumFieldManager } from "./enumfieldmanager.tsx";
+import { ReadonlyStringFormFieldManager } from "./readonlystringfieldmanager.tsx";
 
 interface FormData {
   header_languageOption: LanguageOption;
@@ -30,10 +31,21 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
   return (
     <Box flexDirection="column">
       <Form
-        customManagers={[EnumFieldManager]}
+        customManagers={[EnumFieldManager, ReadonlyStringFormFieldManager]}
         form={{
           title: "Edit Save",
           sections: [
+            {
+              title: "File info",
+              fields: [
+                {
+                  type: "readonly.string",
+                  name: "filename",
+                  label: "Filename",
+                  initialValue: filename,
+                },
+              ],
+            },
             {
               title: "General",
               fields: [

@@ -57,6 +57,7 @@
     "ink-big-text": "npm:ink-big-text@2",
     "ink-gradient": "npm:ink-gradient@3",
     "ink-form": "npm:ink-form@2",
-    "ink-select-input": "npm:ink-select-input@6"
+    "ink-select-input": "npm:ink-select-input@6",
+    "ink-text-input": "npm:ink-text-input@6"
   }
 }

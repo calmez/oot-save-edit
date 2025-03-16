@@ -18,6 +18,7 @@ const App = () => {
       padding={1}
       borderStyle="round"
       borderColor="white"
+      overflow="scroll"
     >
       <Box flexDirection="row" justifyContent="center">
         <Gradient name="rainbow">
@@ -33,11 +34,13 @@ const App = () => {
   );
 };
 
-const { rerender } = render(<App />, { exitOnCtrlC: false});
+const { rerender } = render(<App />);
 let currentSize = Deno.consoleSize();
 Deno.addSignalListener("SIGWINCH", () => {
   const newSize = Deno.consoleSize();
-  if (newSize.columns !== currentSize.columns || newSize.rows !== currentSize.rows) {
+  if (
+    newSize.columns !== currentSize.columns || newSize.rows !== currentSize.rows
+  ) {
     currentSize = newSize;
     rerender(<App />);
   }
