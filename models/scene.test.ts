@@ -724,8 +724,11 @@ Deno.test({
   fn() {
     const roomWithEntrance = RoomWithEntrance.DekuTree_FromKokiriForest;
     const expectedEntrance = Entrance.FromKokiriForest;
-    assertEquals(EntranceFromRoomWithEntrance(roomWithEntrance), expectedEntrance);
-  }
+    assertEquals(
+      EntranceFromRoomWithEntrance(roomWithEntrance),
+      expectedEntrance,
+    );
+  },
 });
 
 Deno.test({
@@ -734,7 +737,7 @@ Deno.test({
     const scene = Scene.DekuTree_FromKokiriForest_Child_Day;
     const expectedRoom = Room.DekuTree;
     assertEquals(RoomFromScene(scene), expectedRoom);
-  }
+  },
 });
 
 Deno.test({
@@ -743,7 +746,7 @@ Deno.test({
     const scene = Scene.DekuTree_FromKokiriForest_Child_Day;
     const expectedEntrance = Entrance.FromKokiriForest;
     assertEquals(EntranceFromScene(scene), expectedEntrance);
-  }
+  },
 });
 
 Deno.test({
@@ -752,5 +755,5 @@ Deno.test({
     const scene = Scene.DekuTree_FromKokiriForest_Child_Day;
     const expectedRoomWithEntrance = RoomWithEntrance.DekuTree_FromKokiriForest;
     assertEquals(RoomWithEntranceFromScene(scene), expectedRoomWithEntrance);
-  }
+  },
 });
