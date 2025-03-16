@@ -30,7 +30,9 @@ export const ReadonlyEnumFormFieldManager = {
       </Text>
     );
   },
-  renderField: (props: SpecificFormFieldRendererProps<FormFieldReadonlyEnum>) => {
+  renderField: (
+    props: SpecificFormFieldRendererProps<FormFieldReadonlyEnum>,
+  ) => {
     const options = Object.values(props.field.enum)
       .filter((value) => typeof value === "number")
       .map((key) => {

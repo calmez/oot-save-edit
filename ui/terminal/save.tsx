@@ -65,7 +65,32 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
                   enum: FileFormat,
                   // TODO set this when we have this info from the save file
                   initialValue: FileFormat.SRA,
-                }
+                },
+              ],
+            },
+            {
+              title: "Save options",
+              fields: [
+                {
+                  type: "string",
+                  name: "output_filename",
+                  label: "Output Filename",
+                  initialValue: filename,
+                },
+                {
+                  type: "boolean",
+                  name: "output_swapWords",
+                  label: "Swap Words",
+                  initialValue: false,
+                },
+                {
+                  type: "enum",
+                  name: "output_fileFormat",
+                  label: "File Format",
+                  enum: FileFormat,
+                  // TODO set this to the input file format
+                  initialValue: FileFormat.SRA,
+                },
               ],
             },
             {
