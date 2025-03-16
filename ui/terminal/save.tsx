@@ -231,7 +231,7 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
                   initialValue: formState.saveFile.slots[0].magicFlag1,
                 },
                 {
-                  type: "boolean",
+                  type: ((flag1) => `${flag1 ? "" : "readonly."}boolean`)(formState.saveFile.slots[0].magicFlag1),
                   name: "slot_0_magicFlag2",
                   label: "Magic Flag 2",
                   initialValue: formState.saveFile.slots[0].magicFlag2,
@@ -288,7 +288,7 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
                   name: "slot_0_goldSkulltulaTokens",
                   label: "Gold Skulltula Tokens",
                   initialValue: formState.saveFile.slots[0].goldSkulltulaTokens,
-                },
+                }
               ],
             },
           ],
