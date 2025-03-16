@@ -39,6 +39,7 @@ interface FormData {
   slot_0_room: Room;
   slot_0_entrance: Entrance;
   slot_0_magicBeans: number;
+  slot_0_doubleDefenseHearts: number;
 }
 
 interface SaveProps {
@@ -77,6 +78,8 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
       slot_0_rupees: saveFile.slots[0].rupees,
       slot_0_room: saveFile.slots[0].room,
       slot_0_entrance: saveFile.slots[0].entrance,
+      slot_0_magicBeans: saveFile.slots[0].magicBeans,
+      slot_0_doubleDefenseHearts: saveFile.slots[0].doubleDefenseHearts,
     },
   });
   file.close();
@@ -268,6 +271,14 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
                   label: "Magic Beans",
                   initialValue: formState.saveFile.slots[0].magicBeans,
                 },
+                {
+                  type: "integer",
+                  min: 0,
+                  max: formState.saveFile.slots[0].maxHealth / 16,
+                  name: "slot_0_doubleDefenseHearts",
+                  label: "Double Defense Hearts",
+                  initialValue: formState.saveFile.slots[0].doubleDefenseHearts,
+                },
               ],
             },
           ],
@@ -310,6 +321,7 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
             formState.saveFile.slots[0].entrance = values.slot_0_entrance;
           }
           formState.saveFile.slots[0].magicBeans = values.slot_0_magicBeans;
+          formState.saveFile.slots[0].doubleDefenseHearts = values.slot_0_doubleDefenseHearts;
 
           // TODO slot 2
           // TODO slot 3
