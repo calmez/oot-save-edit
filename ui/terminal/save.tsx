@@ -30,6 +30,8 @@ interface FormData {
   slot_0_maxHealth: number;
   slot_0_currentMagic: number;
   slot_0_maxMagic: number;
+  slot_0_magicFlag1: boolean;
+  slot_0_magicFlag2: boolean;
   slot_0_rupees: number;
 }
 
@@ -180,12 +182,16 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
                   initialValue: saveFile.slots[0].currentMagic,
                 },
                 {
-                  type: "integer",
-                  min: 0,
-                  max: 2,
-                  name: "slot_0_maxMagic",
-                  label: "Max Magic",
-                  initialValue: saveFile.slots[0].maxMagic,
+                  type: "boolean",
+                  name: "slot_0_magicFlag1",
+                  label: "Magic Flag 1",
+                  initialValue: saveFile.slots[0].magicFlag1,
+                },
+                {
+                  type: "boolean",
+                  name: "slot_0_magicFlag2",
+                  label: "Magic Flag 2",
+                  initialValue: saveFile.slots[0].magicFlag2,
                 },
                 {
                   type: "integer",
@@ -211,7 +217,16 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
           saveFile.slots[0].currentHealth = values.slot_0_currentHealth * 16;
           saveFile.slots[0].maxHealth = values.slot_0_maxHealth * 16;
           saveFile.slots[0].currentMagic = values.slot_0_currentMagic;
-          saveFile.slots[0].maxMagic = values.slot_0_maxMagic;
+          saveFile.slots[0].magicFlag1 = values.slot_0_magicFlag1;
+          saveFile.slots[0].magicFlag2 = values.slot_0_magicFlag2;
+          saveFile.slots[0].maxMagic = ((flag1, flag2) => {
+            if (flag1 && flag2) {
+              return 2;
+            } else if (flag1) {
+              return 1;
+            }
+            return 0;
+          })(saveFile.slots[0].magicFlag1, saveFile.slots[0].magicFlag2),
           saveFile.slots[0].rupees = values.slot_0_rupees;
 
           setSaveFile(saveFile);

@@ -1,5 +1,11 @@
 import { assertInstanceOf } from "@std/assert/instance-of";
-import { Age, InventoryItems, Items, MagicAmount, SaveSlot } from "./saveslot.ts";
+import {
+  Age,
+  InventoryItems,
+  Items,
+  MagicAmount,
+  SaveSlot,
+} from "./saveslot.ts";
 import { assertEquals, assertNotEquals, assertThrows } from "@std/assert";
 import { toUint8Array } from "../utils/conversions.ts";
 import { OotText } from "../utils/text.ts";
