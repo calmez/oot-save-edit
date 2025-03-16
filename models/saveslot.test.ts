@@ -9,12 +9,7 @@ import {
 import { assertEquals, assertNotEquals, assertThrows } from "@std/assert";
 import { toUint8Array } from "../utils/conversions.ts";
 import { OotText } from "../utils/text.ts";
-import {
-  Entrance,
-  Room,
-  RoomWithEntranceFor,
-  Scene,
-} from "./scene.ts";
+import { Entrance, Room, RoomWithEntranceFor, Scene } from "./scene.ts";
 
 Deno.test({
   name: "should create",
