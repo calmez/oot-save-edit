@@ -321,7 +321,8 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
             formState.saveFile.slots[0].entrance = values.slot_0_entrance;
           }
           formState.saveFile.slots[0].magicBeans = values.slot_0_magicBeans;
-          formState.saveFile.slots[0].doubleDefenseHearts = values.slot_0_doubleDefenseHearts;
+          formState.saveFile.slots[0].doubleDefenseHearts =
+            values.slot_0_doubleDefenseHearts;
 
           // TODO slot 2
           // TODO slot 3
