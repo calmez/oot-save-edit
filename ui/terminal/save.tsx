@@ -7,7 +7,7 @@ import {
   SoundOption,
   ZTargetOption,
 } from "../../models/saveheader.ts";
-import { Age } from "../../models/saveslot.ts";
+import { Age, MagicAmount } from "../../models/saveslot.ts";
 import { EnumFormFieldManager } from "./fieldmanagers/enum.tsx";
 import { ReadonlyStringFormFieldManager } from "./fieldmanagers/readonlystring.tsx";
 import { ReadonlyBooleanFormFieldManager } from "./fieldmanagers/readonlyboolean.tsx";
@@ -27,6 +27,8 @@ interface FormData {
   slot_0_age: Age;
   slot_0_currentHealth: number;
   slot_0_maxHealth: number;
+  slot_0_currentMagic: number;
+  slot_0_maxMagic: number;
 }
 
 interface SaveProps {
@@ -160,6 +162,21 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
                   label: "Max Health",
                   initialValue: saveFile.slots[0].maxHealth / 16,
                 },
+                {
+                  type: "enum",
+                  name: "slot_0_currentMagic",
+                  label: "Current Magic",
+                  enum: MagicAmount,
+                  initialValue: saveFile.slots[0].currentMagic,
+                },
+                {
+                  type: "integer",
+                  min: 0,
+                  max: 2,
+                  name: "slot_0_maxMagic",
+                  label: "Max Magic",
+                  initialValue: saveFile.slots[0].maxMagic,
+                },
               ],
             },
           ],
@@ -174,6 +191,8 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
           saveFile.slots[0].age = values.slot_0_age;
           saveFile.slots[0].currentHealth = values.slot_0_currentHealth * 16;
           saveFile.slots[0].maxHealth = values.slot_0_maxHealth * 16;
+          saveFile.slots[0].currentMagic = values.slot_0_currentMagic;
+          saveFile.slots[0].maxMagic = values.slot_0_maxMagic;
 
           setSaveFile(saveFile);
         }}
