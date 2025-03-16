@@ -12,6 +12,9 @@ import { EnumFormFieldManager } from "./fieldmanagers/enum.tsx";
 import { ReadonlyStringFormFieldManager } from "./fieldmanagers/readonlystring.tsx";
 import { ReadonlyBooleanFormFieldManager } from "./fieldmanagers/readonlyboolean.tsx";
 import { ReadonlyEnumFormFieldManager } from "./fieldmanagers/readonlyenum.tsx";
+import { Entrance, Room, RoomWithEntranceFor } from "../../models/scene.ts";
+import { ValidEntrancesForRoom } from "../../index.ts";
+import { SelectionFormFieldManager } from "./fieldmanagers/selection.tsx";
 
 interface FormData {
   info_filename: string;
@@ -33,15 +36,48 @@ interface FormData {
   slot_0_magicFlag1: boolean;
   slot_0_magicFlag2: boolean;
   slot_0_rupees: number;
+  slot_0_room: Room;
+  slot_0_entrance: Entrance;
 }
 
 interface SaveProps {
   filename: string;
 }
 
+interface FormState {
+  saveFile: SaveFile;
+  currentFormData: FormData;
+}
+
 export const Save = ({ filename }: SaveProps): React.JSX.Element => {
   const file = Deno.openSync(filename);
-  const [saveFile, setSaveFile] = useState<SaveFile>(new SaveFile(file));
+  const saveFile = new SaveFile(file);
+  const [formState, setFormState] = useState<FormState>({
+    saveFile: saveFile,
+    currentFormData: {
+      info_filename: filename,
+      info_wordSwapped: false,
+      info_fileFormat: FileFormat.SRA,
+      saveoptions_filename: filename,
+      saveoptions_swapWords: false,
+      saveoptions_fileFormat: FileFormat.SRA,
+      header_languageOption: saveFile.header.languageOption,
+      header_zTargetOption: saveFile.header.zTargetOption,
+      header_soundOption: saveFile.header.soundOption,
+      slot_0_playerName: saveFile.slots[0].playerName,
+      slot_0_deathCounter: saveFile.slots[0].deathCounter,
+      slot_0_age: saveFile.slots[0].age,
+      slot_0_currentHealth: saveFile.slots[0].currentHealth / 16,
+      slot_0_maxHealth: saveFile.slots[0].maxHealth / 16,
+      slot_0_currentMagic: saveFile.slots[0].currentMagic,
+      slot_0_maxMagic: saveFile.slots[0].maxMagic,
+      slot_0_magicFlag1: saveFile.slots[0].magicFlag1,
+      slot_0_magicFlag2: saveFile.slots[0].magicFlag2,
+      slot_0_rupees: saveFile.slots[0].rupees,
+      slot_0_room: saveFile.slots[0].room,
+      slot_0_entrance: saveFile.slots[0].entrance,
+    },
+  });
   file.close();
 
   return (
@@ -49,6 +85,7 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
       <Form
         customManagers={[
           EnumFormFieldManager,
+          SelectionFormFieldManager,
           ReadonlyStringFormFieldManager,
           ReadonlyBooleanFormFieldManager,
           ReadonlyEnumFormFieldManager,
@@ -115,21 +152,21 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
                   name: "header_languageOption",
                   label: "Language",
                   enum: LanguageOption,
-                  initialValue: saveFile.header.languageOption,
+                  initialValue: formState.saveFile.header.languageOption,
                 },
                 {
                   type: "enum",
                   name: "header_zTargetOption",
                   label: "Z-Target",
                   enum: ZTargetOption,
-                  initialValue: saveFile.header.zTargetOption,
+                  initialValue: formState.saveFile.header.zTargetOption,
                 },
                 {
                   type: "enum",
                   name: "header_soundOption",
                   label: "Sound",
                   enum: SoundOption,
-                  initialValue: saveFile.header.soundOption,
+                  initialValue: formState.saveFile.header.soundOption,
                 },
               ],
             },
@@ -140,7 +177,7 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
                   type: "string",
                   name: "slot_0_playerName",
                   label: "Player Name",
-                  initialValue: saveFile.slots[0].playerName,
+                  initialValue: formState.saveFile.slots[0].playerName,
                   regex: /^[A-Za-z]{1,8}$/,
                 },
                 {
@@ -149,49 +186,49 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
                   max: 0xFFFF,
                   name: "slot_0_deathCounter",
                   label: "Deaths",
-                  initialValue: saveFile.slots[0].deathCounter,
+                  initialValue: formState.saveFile.slots[0].deathCounter,
                 },
                 {
                   type: "enum",
                   name: "slot_0_age",
                   label: "Age",
                   enum: Age,
-                  initialValue: saveFile.slots[0].age,
+                  initialValue: formState.saveFile.slots[0].age,
                 },
                 {
                   type: "float",
                   step: 0.25,
                   min: 0,
-                  max: saveFile.slots[0].maxHealth / 16,
+                  max: formState.saveFile.slots[0].maxHealth / 16,
                   name: "slot_0_currentHealth",
                   label: "Current Health",
-                  initialValue: saveFile.slots[0].currentHealth / 16,
+                  initialValue: formState.saveFile.slots[0].currentHealth / 16,
                 },
                 {
                   type: "integer",
                   min: 0,
                   name: "slot_0_maxHealth",
                   label: "Max Health",
-                  initialValue: saveFile.slots[0].maxHealth / 16,
+                  initialValue: formState.saveFile.slots[0].maxHealth / 16,
                 },
                 {
                   type: "enum",
                   name: "slot_0_currentMagic",
                   label: "Current Magic",
                   enum: MagicAmount,
-                  initialValue: saveFile.slots[0].currentMagic,
+                  initialValue: formState.saveFile.slots[0].currentMagic,
                 },
                 {
                   type: "boolean",
                   name: "slot_0_magicFlag1",
                   label: "Magic Flag 1",
-                  initialValue: saveFile.slots[0].magicFlag1,
+                  initialValue: formState.saveFile.slots[0].magicFlag1,
                 },
                 {
                   type: "boolean",
                   name: "slot_0_magicFlag2",
                   label: "Magic Flag 2",
-                  initialValue: saveFile.slots[0].magicFlag2,
+                  initialValue: formState.saveFile.slots[0].magicFlag2,
                 },
                 {
                   type: "integer",
@@ -199,7 +236,27 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
                   max: 500,
                   name: "slot_0_rupees",
                   label: "Rupees",
-                  initialValue: saveFile.slots[0].rupees,
+                  initialValue: formState.saveFile.slots[0].rupees,
+                },
+                {
+                  type: "enum",
+                  name: "slot_0_room",
+                  label: "Room",
+                  enum: Room,
+                  initialValue: formState.saveFile.slots[0].room,
+                },
+                {
+                  type: "selection",
+                  name: "slot_0_entrance",
+                  label: "Entrance",
+                  options: ValidEntrancesForRoom(
+                    formState.saveFile.slots[0].room,
+                  ).map((
+                    entrance,
+                  ) => {
+                    return { label: Entrance[entrance], value: entrance };
+                  }),
+                  initialValue: formState.saveFile.slots[0].entrance,
                 },
               ],
             },
@@ -207,30 +264,54 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
         }}
         onChange={(values: FormData) => {
           // header
-          saveFile.header.languageOption = values.header_languageOption;
-          saveFile.header.zTargetOption = values.header_zTargetOption;
-          saveFile.header.soundOption = values.header_soundOption;
+          formState.saveFile.header.languageOption =
+            values.header_languageOption;
+          formState.saveFile.header.zTargetOption = values.header_zTargetOption;
+          formState.saveFile.header.soundOption = values.header_soundOption;
           // slot 1
-          saveFile.slots[0].playerName = values.slot_0_playerName;
-          saveFile.slots[0].deathCounter = values.slot_0_deathCounter;
-          saveFile.slots[0].age = values.slot_0_age;
-          saveFile.slots[0].currentHealth = values.slot_0_currentHealth * 16;
-          saveFile.slots[0].maxHealth = values.slot_0_maxHealth * 16;
-          saveFile.slots[0].currentMagic = values.slot_0_currentMagic;
-          saveFile.slots[0].magicFlag1 = values.slot_0_magicFlag1;
-          saveFile.slots[0].magicFlag2 = values.slot_0_magicFlag2;
-          saveFile.slots[0].maxMagic = ((flag1, flag2) => {
+          formState.saveFile.slots[0].playerName = values.slot_0_playerName;
+          formState.saveFile.slots[0].deathCounter = values.slot_0_deathCounter;
+          formState.saveFile.slots[0].age = values.slot_0_age;
+          formState.saveFile.slots[0].currentHealth =
+            values.slot_0_currentHealth * 16;
+          formState.saveFile.slots[0].maxHealth = values.slot_0_maxHealth * 16;
+          formState.saveFile.slots[0].currentMagic = values.slot_0_currentMagic;
+          formState.saveFile.slots[0].magicFlag1 = values.slot_0_magicFlag1;
+          formState.saveFile.slots[0].magicFlag2 = values.slot_0_magicFlag2;
+          formState.saveFile.slots[0].maxMagic = ((flag1, flag2) => {
             if (flag1 && flag2) {
               return 2;
             } else if (flag1) {
               return 1;
             }
             return 0;
-          })(saveFile.slots[0].magicFlag1, saveFile.slots[0].magicFlag2),
-          saveFile.slots[0].rupees = values.slot_0_rupees;
+          })(
+            formState.saveFile.slots[0].magicFlag1,
+            formState.saveFile.slots[0].magicFlag2,
+          ), formState.saveFile.slots[0].rupees = values.slot_0_rupees;
+          if (formState.saveFile.slots[0].room !== values.slot_0_room) {
+            formState.saveFile.slots[0].roomWithEntrance = RoomWithEntranceFor(
+              values.slot_0_room,
+              ValidEntrancesForRoom(
+                values.slot_0_room,
+              )[0],
+            );
+          } else {
+            formState.saveFile.slots[0].entrance = values.slot_0_entrance;
+          }
 
-          setSaveFile(saveFile);
+          // TODO slot 2
+          // TODO slot 3
+
+          setFormState({
+            ...formState,
+            currentFormData: {
+              ...values,
+              slot_0_entrance: formState.saveFile.slots[0].entrance,
+            },
+          });
         }}
+        value={formState.currentFormData}
         onSubmit={(values: FormData) => {
           const outfile = Deno.openSync(values.saveoptions_filename, {
             write: true,

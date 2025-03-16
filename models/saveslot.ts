@@ -1,6 +1,17 @@
 import { toNumber, toUint8Array } from "../utils/conversions.ts";
 import { OotText } from "../utils/text.ts";
-import { Scene, Time } from "./scene.ts";
+import {
+  Entrance,
+  EntranceFromRoomWithEntrance,
+  EntranceFromScene,
+  Room,
+  RoomFromRoomWithEntrance,
+  RoomFromScene,
+  RoomWithEntrance,
+  Scene,
+  SceneFrom,
+  Time,
+} from "./scene.ts";
 
 export enum Age {
   Child = 0x00,
@@ -510,6 +521,33 @@ export class SaveSlot {
 
   set biggoronsSwordFlag2(value: boolean) {
     this.bytes.set(toUint8Array(value, 1), 0x003E);
+  }
+
+  set room(value: Room) {
+    const entrance = EntranceFromScene(this.savedSceneIndex);
+    // TODO figure out cutscene number
+    this.savedSceneIndex = SceneFrom(value, entrance, this.age, this.nightFlag);
+  }
+
+  get room(): Room {
+    return RoomFromScene(this.savedSceneIndex);
+  }
+
+  set entrance(value: Entrance) {
+    const room = RoomFromScene(this.savedSceneIndex);
+    // TODO figure out cutscene number
+    this.savedSceneIndex = SceneFrom(room, value, this.age, this.nightFlag);
+  }
+
+  get entrance(): Entrance {
+    return EntranceFromScene(this.savedSceneIndex);
+  }
+
+  set roomWithEntrance(value: RoomWithEntrance) {
+    const room = RoomFromRoomWithEntrance(value);
+    const entrance = EntranceFromRoomWithEntrance(value);
+    // TODO figure out cutscene number
+    this.savedSceneIndex = SceneFrom(room, entrance, this.age, this.nightFlag);
   }
 
   get savedSceneIndex(): Scene {
