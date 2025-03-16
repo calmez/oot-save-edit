@@ -12,7 +12,6 @@ import { OotText } from "../utils/text.ts";
 import {
   Entrance,
   Room,
-  RoomFromRoomWithEntrance,
   RoomWithEntranceFor,
   Scene,
 } from "./scene.ts";
