@@ -40,6 +40,7 @@ interface FormData {
   slot_0_entrance: Entrance;
   slot_0_magicBeans: number;
   slot_0_doubleDefenseHearts: number;
+  slot_0_goldSkulltulaTokens: number;
 }
 
 interface SaveProps {
@@ -80,6 +81,7 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
       slot_0_entrance: saveFile.slots[0].entrance,
       slot_0_magicBeans: saveFile.slots[0].magicBeans,
       slot_0_doubleDefenseHearts: saveFile.slots[0].doubleDefenseHearts,
+      slot_0_goldSkulltulaTokens: saveFile.slots[0].goldSkulltulaTokens,
     },
   });
   file.close();
@@ -279,6 +281,14 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
                   label: "Double Defense Hearts",
                   initialValue: formState.saveFile.slots[0].doubleDefenseHearts,
                 },
+                {
+                  type: "integer",
+                  min: 0,
+                  max: 99,
+                  name: "slot_0_goldSkulltulaTokens",
+                  label: "Gold Skulltula Tokens",
+                  initialValue: formState.saveFile.slots[0].goldSkulltulaTokens,
+                },
               ],
             },
           ],
@@ -323,6 +333,8 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
           formState.saveFile.slots[0].magicBeans = values.slot_0_magicBeans;
           formState.saveFile.slots[0].doubleDefenseHearts =
             values.slot_0_doubleDefenseHearts;
+          formState.saveFile.slots[0].goldSkulltulaTokens =
+            values.slot_0_goldSkulltulaTokens;
 
           // TODO slot 2
           // TODO slot 3
