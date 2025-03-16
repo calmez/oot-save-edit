@@ -25,6 +25,8 @@ interface FormData {
   header_soundOption: SoundOption;
   slot_0_playerName: string;
   slot_0_age: Age;
+  slot_0_currentHealth: number;
+  slot_0_maxHealth: number;
 }
 
 interface SaveProps {
@@ -142,16 +144,37 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
                   enum: Age,
                   initialValue: saveFile.slots[0].age,
                 },
+                {
+                  type: "float",
+                  step: 0.25,
+                  min: 0,
+                  max: saveFile.slots[0].maxHealth / 16,
+                  name: "slot_0_currentHealth",
+                  label: "Current Health",
+                  initialValue: saveFile.slots[0].currentHealth / 16,
+                },
+                {
+                  type: "integer",
+                  min: 0,
+                  name: "slot_0_maxHealth",
+                  label: "Max Health",
+                  initialValue: saveFile.slots[0].maxHealth / 16,
+                },
               ],
             },
           ],
         }}
         onChange={(values: FormData) => {
+          // header
           saveFile.header.languageOption = values.header_languageOption;
           saveFile.header.zTargetOption = values.header_zTargetOption;
           saveFile.header.soundOption = values.header_soundOption;
+          // slot 1
           saveFile.slots[0].playerName = values.slot_0_playerName;
           saveFile.slots[0].age = values.slot_0_age;
+          saveFile.slots[0].currentHealth = values.slot_0_currentHealth * 16;
+          saveFile.slots[0].maxHealth = values.slot_0_maxHealth * 16;
+
           setSaveFile(saveFile);
         }}
         onSubmit={(values: FormData) => {
