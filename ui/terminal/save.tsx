@@ -38,6 +38,7 @@ interface FormData {
   slot_0_rupees: number;
   slot_0_room: Room;
   slot_0_entrance: Entrance;
+  slot_0_magicBeans: number;
 }
 
 interface SaveProps {
@@ -258,6 +259,15 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
                   }),
                   initialValue: formState.saveFile.slots[0].entrance,
                 },
+                // TODO look into how to handle the inventory
+                {
+                  type: "integer",
+                  min: 0,
+                  max: 0xFF,
+                  name: "slot_0_magicBeans",
+                  label: "Magic Beans",
+                  initialValue: formState.saveFile.slots[0].magicBeans,
+                },
               ],
             },
           ],
@@ -299,6 +309,7 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
           } else {
             formState.saveFile.slots[0].entrance = values.slot_0_entrance;
           }
+          formState.saveFile.slots[0].magicBeans = values.slot_0_magicBeans;
 
           // TODO slot 2
           // TODO slot 3
