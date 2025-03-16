@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { SaveFile } from "../../models/savefile.ts";
+import { FileFormat, SaveFile } from "../../models/savefile.ts";
 import { Box } from "ink";
 import { Form } from "ink-form";
 import {
@@ -11,6 +11,7 @@ import { Age } from "../../models/saveslot.ts";
 import { EnumFormFieldManager } from "./fieldmanagers/enum.tsx";
 import { ReadonlyStringFormFieldManager } from "./fieldmanagers/readonlystring.tsx";
 import { ReadonlyBooleanFormFieldManager } from "./fieldmanagers/readonlyboolean.tsx";
+import { ReadonlyEnumFormFieldManager } from "./fieldmanagers/readonlyenum.tsx";
 
 interface FormData {
   header_languageOption: LanguageOption;
@@ -36,6 +37,7 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
           EnumFormFieldManager,
           ReadonlyStringFormFieldManager,
           ReadonlyBooleanFormFieldManager,
+          ReadonlyEnumFormFieldManager,
         ]}
         form={{
           title: "Edit Save",
@@ -56,6 +58,14 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
                   // TODO set this when we have this info from the save file
                   initialValue: false,
                 },
+                {
+                  type: "readonly.enum",
+                  name: "fileFormat",
+                  label: "File Format",
+                  enum: FileFormat,
+                  // TODO set this when we have this info from the save file
+                  initialValue: FileFormat.SRA,
+                }
               ],
             },
             {
