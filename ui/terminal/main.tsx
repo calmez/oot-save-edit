@@ -33,4 +33,12 @@ const App = () => {
   );
 };
 
-render(<App />);
+const { rerender } = render(<App />, { exitOnCtrlC: false});
+let currentSize = Deno.consoleSize();
+Deno.addSignalListener("SIGWINCH", () => {
+  const newSize = Deno.consoleSize();
+  if (newSize.columns !== currentSize.columns || newSize.rows !== currentSize.rows) {
+    currentSize = newSize;
+    rerender(<App />);
+  }
+});
