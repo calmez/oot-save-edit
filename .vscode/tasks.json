@@ -8,6 +8,11 @@
         "debug:tui",
         "./test-data/foo.srm"
       ],
+      "options": {
+        "env": {
+          "DEV": "true"
+        }
+      },
       "problemMatcher": [
         "$deno"
       ],
