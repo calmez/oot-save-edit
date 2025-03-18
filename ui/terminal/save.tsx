@@ -15,6 +15,7 @@ import { ReadonlyEnumFormFieldManager } from "./fieldmanagers/readonlyenum.tsx";
 import { Entrance, Room, RoomWithEntranceFor } from "../../models/scene.ts";
 import { ValidEntrancesForRoom } from "../../index.ts";
 import { SelectionFormFieldManager } from "./fieldmanagers/selection.tsx";
+import { maxHeaderSize } from "node:http";
 
 interface FormData {
   info_filename: string;
@@ -41,6 +42,7 @@ interface FormData {
   slot_0_magicBeans: number;
   slot_0_doubleDefenseHearts: number;
   slot_0_goldSkulltulaTokens: number;
+  slot_0_bigPoePoints: number;
 }
 
 interface SaveProps {
@@ -290,6 +292,15 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
                   name: "slot_0_goldSkulltulaTokens",
                   label: "Gold Skulltula Tokens",
                   initialValue: formState.saveFile.slots[0].goldSkulltulaTokens,
+                },
+                {
+                  type: "integer",
+                  min: 0,
+                  max: 0xFFFFFFFF,
+                  step: 100,
+                  name: "slot_0_bigPoePoints",
+                  label: "Big Poe Points",
+                  initialValue: formState.saveFile.slots[0].bigPoePoints,
                 },
               ],
             },
