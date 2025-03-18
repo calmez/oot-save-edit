@@ -8,7 +8,8 @@ import { useEffect } from "react";
 type FormFieldPoint3D = AbstractFormField<"point3d", FaroresWindWarp> & {};
 
 type Point3DFieldRendererProps =
-  SpecificFormFieldRendererProps<FormFieldPoint3D> & {
+  & SpecificFormFieldRendererProps<FormFieldPoint3D>
+  & {
     property: keyof FaroresWindWarp;
     step?: number;
     min?: number;
@@ -16,7 +17,7 @@ type Point3DFieldRendererProps =
   };
 
 export const Point3DFieldRenderer: React.FC<Point3DFieldRendererProps> = (
-  props: Point3DFieldRendererProps
+  props: Point3DFieldRendererProps,
 ) => {
   const { isFocused } = useFocus({ id: props.property });
   const regex = /^-?\d+$/;
@@ -29,7 +30,9 @@ export const Point3DFieldRenderer: React.FC<Point3DFieldRendererProps> = (
         props.value = { x: 0, y: 0, z: 0, yRotation: 0 };
       }
       if (props.min !== undefined && props.min > newValue) {
-        props.onError(`"${value}" too small, must be above or equal to ${props.min}.`);
+        props.onError(
+          `"${value}" too small, must be above or equal to ${props.min}.`,
+        );
         props.onChange({
           ...{
             x: props.value?.x ?? 0,
@@ -40,8 +43,11 @@ export const Point3DFieldRenderer: React.FC<Point3DFieldRendererProps> = (
           [props.property]: newValue,
         });
         return;
-      }      if (props.min !== undefined && props.min > newValue) {
-        props.onError(`"${value}" too big, must be below or equal to ${props.max}.`);
+      }
+      if (props.min !== undefined && props.min > newValue) {
+        props.onError(
+          `"${value}" too big, must be below or equal to ${props.max}.`,
+        );
         props.onChange({
           ...{
             x: props.value?.x ?? 0,
@@ -60,7 +66,7 @@ export const Point3DFieldRenderer: React.FC<Point3DFieldRendererProps> = (
       }
     } else {
       props.onError(
-        `"${value}" in field "${props.property}" is not an integer.`
+        `"${value}" in field "${props.property}" is not an integer.`,
       );
       props.onChange({
         ...{
@@ -82,7 +88,7 @@ export const Point3DFieldRenderer: React.FC<Point3DFieldRendererProps> = (
         change(`${(props.value?.[props.property] ?? 0) - (props.step ?? 1)}`);
       }
     },
-    { isActive: isFocused }
+    { isActive: isFocused },
   );
 
   // TODO properly defined labels
