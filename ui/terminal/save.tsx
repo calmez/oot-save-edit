@@ -16,6 +16,7 @@ import { Entrance, Room, RoomWithEntranceFor } from "../../models/scene.ts";
 import { ValidEntrancesForRoom } from "../../index.ts";
 import { SelectionFormFieldManager } from "./fieldmanagers/selection.tsx";
 import { maxHeaderSize } from "node:http";
+import { Point3DFormFieldManager } from "./fieldmanagers/3dpoint.tsx";
 
 interface FormData {
   info_filename: string;
@@ -94,6 +95,7 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
         customManagers={[
           EnumFormFieldManager,
           SelectionFormFieldManager,
+          Point3DFormFieldManager,
           ReadonlyStringFormFieldManager,
           ReadonlyBooleanFormFieldManager,
           ReadonlyEnumFormFieldManager,
@@ -301,6 +303,12 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
                   name: "slot_0_bigPoePoints",
                   label: "Big Poe Points",
                   initialValue: formState.saveFile.slots[0].bigPoePoints,
+                },
+                {
+                  type: "point3d",
+                  name: "slot_0_faroresWindWarp",
+                  label: "Farores Wind Warp",
+                  initialValue: formState.saveFile.slots[0].faroresWindWarp,
                 },
               ],
             },
