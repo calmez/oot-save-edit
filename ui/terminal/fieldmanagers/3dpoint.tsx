@@ -1,11 +1,12 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Box, Text, useFocus, useFocusManager, useInput } from "ink";
 import TextInput from "ink-text-input";
 import { AbstractFormField, SpecificFormFieldRendererProps } from "ink-form";
 import { FaroresWindWarp } from "../../../models/saveslot.ts";
-import { useEffect } from "react";
 
-type FormFieldPoint3D = AbstractFormField<"point3d", FaroresWindWarp> & {};
+type FormFieldPoint3D = AbstractFormField<"point3d", FaroresWindWarp> & {
+  subfieldLabels: { [key in keyof FaroresWindWarp]: string };
+};
 
 type Point3DFieldRendererProps =
   & SpecificFormFieldRendererProps<FormFieldPoint3D>
@@ -91,10 +92,9 @@ export const Point3DFieldRenderer: React.FC<Point3DFieldRendererProps> = (
     { isActive: isFocused },
   );
 
-  // TODO properly defined labels
   return (
     <Box width="100%" gap={0} flexDirection="column">
-      <Text>{props.property}:</Text>
+      <Text>{props.field.subfieldLabels[props.property]}:</Text>
       <Box
         borderStyle="round"
         marginX={2}
@@ -146,7 +146,7 @@ export const Point3DFormFieldManager = {
               {...props}
               property={key as keyof typeof props.value}
               min={0}
-              max={0xFFFF}
+              max={0xffff}
             />
           ))}
         </Box>
@@ -161,9 +161,16 @@ export const Point3DFormFieldManager = {
   },
   renderValue: (props: SpecificFormFieldRendererProps<FormFieldPoint3D>) => (
     <>
-      {`[x: ${props.value?.x ?? 0}, y: ${props.value?.y ?? 0}, z: ${
-        props.value?.z ?? 0
-      }, rotation: ${props.value?.yRotation ?? 0}]`}
+      {"[" +
+        Object.keys(props.value ?? { x: 0, y: 0, z: 0, yRotation: 0 })
+          .map((key: string) => {
+            const label =
+              props.field.subfieldLabels[key as keyof FaroresWindWarp];
+            const value = props.value?.[key as keyof FaroresWindWarp] ?? 0;
+            return `${label}: ${value}`;
+          })
+          .join(", ") +
+        "]"}
     </>
   ),
 };

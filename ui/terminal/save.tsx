@@ -308,6 +308,12 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
                   type: "point3d",
                   name: "slot_0_faroresWindWarp",
                   label: "Farores Wind Warp",
+                  subfieldLabels: {
+                    x: "X",
+                    y: "Y",
+                    z: "Z",
+                    yRotation: "Rotation",
+                  },
                   initialValue: formState.saveFile.slots[0].faroresWindWarp,
                 },
               ],
