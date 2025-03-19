@@ -76,6 +76,7 @@ export const Point3DFieldRenderer: React.FC<Point3DFieldRendererProps> = (
           z: props.value?.z ?? 0,
           yRotation: props.value?.yRotation ?? 0,
         },
+        // deno-lint-ignore no-explicit-any
         [props.property]: value as any,
       });
     }
