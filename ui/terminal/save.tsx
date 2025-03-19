@@ -15,7 +15,6 @@ import { ReadonlyEnumFormFieldManager } from "./fieldmanagers/readonlyenum.tsx";
 import { Entrance, Room, RoomWithEntranceFor } from "../../models/scene.ts";
 import { ValidEntrancesForRoom } from "../../index.ts";
 import { SelectionFormFieldManager } from "./fieldmanagers/selection.tsx";
-import { maxHeaderSize } from "node:http";
 import { Point3DFormFieldManager } from "./fieldmanagers/3dpoint.tsx";
 
 interface FormData {
