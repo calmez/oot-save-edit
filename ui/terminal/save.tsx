@@ -16,6 +16,11 @@ import { Entrance, Room, RoomWithEntranceFor } from "../../models/scene.ts";
 import { ValidEntrancesForRoom } from "../../index.ts";
 import { SelectionFormFieldManager } from "./fieldmanagers/selection.tsx";
 import { Point3DFormFieldManager } from "./fieldmanagers/3dpoint.tsx";
+import {
+  HealthData,
+  HealthFieldRenderer,
+  HealthFormFieldManager,
+} from "./fieldmanagers/health.tsx";
 
 interface FormData {
   info_filename: string;
@@ -30,8 +35,7 @@ interface FormData {
   slot_0_playerName: string;
   slot_0_deathCounter: number;
   slot_0_age: Age;
-  slot_0_currentHealth: number;
-  slot_0_maxHealth: number;
+  slot_0_health: HealthData;
   slot_0_currentMagic: number;
   slot_0_maxMagic: number;
   slot_0_magicFlag1: boolean;
@@ -40,7 +44,6 @@ interface FormData {
   slot_0_room: Room;
   slot_0_entrance: Entrance;
   slot_0_magicBeans: number;
-  slot_0_doubleDefenseHearts: number;
   slot_0_goldSkulltulaTokens: number;
   slot_0_bigPoePoints: number;
 }
@@ -72,8 +75,11 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
       slot_0_playerName: saveFile.slots[0].playerName,
       slot_0_deathCounter: saveFile.slots[0].deathCounter,
       slot_0_age: saveFile.slots[0].age,
-      slot_0_currentHealth: saveFile.slots[0].currentHealth / 16,
-      slot_0_maxHealth: saveFile.slots[0].maxHealth / 16,
+      slot_0_health: {
+        maxHealth: saveFile.slots[0].maxHealth / 16,
+        currentHealth: saveFile.slots[0].currentHealth / 16,
+        doubleDefenseHearts: saveFile.slots[0].doubleDefenseHearts,
+      },
       slot_0_currentMagic: saveFile.slots[0].currentMagic,
       slot_0_maxMagic: saveFile.slots[0].maxMagic,
       slot_0_magicFlag1: saveFile.slots[0].magicFlag1,
@@ -82,7 +88,6 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
       slot_0_room: saveFile.slots[0].room,
       slot_0_entrance: saveFile.slots[0].entrance,
       slot_0_magicBeans: saveFile.slots[0].magicBeans,
-      slot_0_doubleDefenseHearts: saveFile.slots[0].doubleDefenseHearts,
       slot_0_goldSkulltulaTokens: saveFile.slots[0].goldSkulltulaTokens,
     },
   });
@@ -95,6 +100,7 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
           EnumFormFieldManager,
           SelectionFormFieldManager,
           Point3DFormFieldManager,
+          HealthFormFieldManager,
           ReadonlyStringFormFieldManager,
           ReadonlyBooleanFormFieldManager,
           ReadonlyEnumFormFieldManager,
@@ -192,7 +198,7 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
                 {
                   type: "integer",
                   min: 0,
-                  max: 0xFFFF,
+                  max: 0xffff,
                   name: "slot_0_deathCounter",
                   label: "Deaths",
                   initialValue: formState.saveFile.slots[0].deathCounter,
@@ -205,21 +211,44 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
                   initialValue: formState.saveFile.slots[0].age,
                 },
                 {
-                  type: "float",
-                  step: 0.25,
-                  min: 0,
-                  max: formState.saveFile.slots[0].maxHealth / 16,
-                  name: "slot_0_currentHealth",
-                  label: "Current Health",
-                  initialValue: formState.saveFile.slots[0].currentHealth / 16,
+                  type: "health",
+                  name: "slot_0_health",
+                  label: "Health",
+                  subfields: {
+                    maxHealth: {
+                      renderer: HealthFieldRenderer,
+                      props: {
+                        label: "Max Health",
+                        min: 0,
+                        max: 0xffff,
+                      },
+                    },
+                    currentHealth: {
+                      renderer: HealthFieldRenderer,
+                      props: {
+                        label: "Current Health",
+                        min: 0,
+                        max: 0xffff,
+                      },
+                    },
+                    doubleDefenseHearts: {
+                      renderer: HealthFieldRenderer,
+                      props: {
+                        label: "Double Defense Hearts",
+                        min: 0,
+                        max: 0xffff,
+                      },
+                    },
+                  },
+                  initialValue: {
+                    currentHealth: formState.saveFile.slots[0].currentHealth /
+                      16,
+                    maxHealth: formState.saveFile.slots[0].maxHealth / 16,
+                    doubleDefenseHearts:
+                      formState.saveFile.slots[0].doubleDefenseHearts,
+                  },
                 },
-                {
-                  type: "integer",
-                  min: 0,
-                  name: "slot_0_maxHealth",
-                  label: "Max Health",
-                  initialValue: formState.saveFile.slots[0].maxHealth / 16,
-                },
+                // TODO make combined field for magic
                 {
                   type: "enum",
                   name: "slot_0_currentMagic",
@@ -249,6 +278,7 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
                   label: "Rupees",
                   initialValue: formState.saveFile.slots[0].rupees,
                 },
+                // TODO make combined field for room and entrance
                 {
                   type: "enum",
                   name: "slot_0_room",
@@ -262,9 +292,7 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
                   label: "Entrance",
                   options: ValidEntrancesForRoom(
                     formState.saveFile.slots[0].room,
-                  ).map((
-                    entrance,
-                  ) => {
+                  ).map((entrance) => {
                     return { label: Entrance[entrance], value: entrance };
                   }),
                   initialValue: formState.saveFile.slots[0].entrance,
@@ -273,18 +301,10 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
                 {
                   type: "integer",
                   min: 0,
-                  max: 0xFF,
+                  max: 0xff,
                   name: "slot_0_magicBeans",
                   label: "Magic Beans",
                   initialValue: formState.saveFile.slots[0].magicBeans,
-                },
-                {
-                  type: "integer",
-                  min: 0,
-                  max: formState.saveFile.slots[0].maxHealth / 16,
-                  name: "slot_0_doubleDefenseHearts",
-                  label: "Double Defense Hearts",
-                  initialValue: formState.saveFile.slots[0].doubleDefenseHearts,
                 },
                 {
                   type: "integer",
@@ -297,7 +317,7 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
                 {
                   type: "integer",
                   min: 0,
-                  max: 0xFFFFFFFF,
+                  max: 0xffffffff,
                   step: 100,
                   name: "slot_0_bigPoePoints",
                   label: "Big Poe Points",
@@ -330,12 +350,15 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
           formState.saveFile.slots[0].deathCounter = values.slot_0_deathCounter;
           formState.saveFile.slots[0].age = values.slot_0_age;
           formState.saveFile.slots[0].currentHealth =
-            values.slot_0_currentHealth * 16;
-          formState.saveFile.slots[0].maxHealth = values.slot_0_maxHealth * 16;
+            values.slot_0_health.currentHealth * 16;
+          formState.saveFile.slots[0].maxHealth =
+            values.slot_0_health.maxHealth * 16;
+          formState.saveFile.slots[0].doubleDefenseHearts =
+            values.slot_0_health.doubleDefenseHearts;
           formState.saveFile.slots[0].currentMagic = values.slot_0_currentMagic;
           formState.saveFile.slots[0].magicFlag1 = values.slot_0_magicFlag1;
           formState.saveFile.slots[0].magicFlag2 = values.slot_0_magicFlag2;
-          formState.saveFile.slots[0].maxMagic = ((flag1, flag2) => {
+          (formState.saveFile.slots[0].maxMagic = ((flag1, flag2) => {
             if (flag1 && flag2) {
               return 2;
             } else if (flag1) {
@@ -345,20 +368,16 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
           })(
             formState.saveFile.slots[0].magicFlag1,
             formState.saveFile.slots[0].magicFlag2,
-          ), formState.saveFile.slots[0].rupees = values.slot_0_rupees;
+          )), (formState.saveFile.slots[0].rupees = values.slot_0_rupees);
           if (formState.saveFile.slots[0].room !== values.slot_0_room) {
             formState.saveFile.slots[0].roomWithEntrance = RoomWithEntranceFor(
               values.slot_0_room,
-              ValidEntrancesForRoom(
-                values.slot_0_room,
-              )[0],
+              ValidEntrancesForRoom(values.slot_0_room)[0],
             );
           } else {
             formState.saveFile.slots[0].entrance = values.slot_0_entrance;
           }
           formState.saveFile.slots[0].magicBeans = values.slot_0_magicBeans;
-          formState.saveFile.slots[0].doubleDefenseHearts =
-            values.slot_0_doubleDefenseHearts;
           formState.saveFile.slots[0].goldSkulltulaTokens =
             values.slot_0_goldSkulltulaTokens;
 
