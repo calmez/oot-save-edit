@@ -116,6 +116,7 @@ export const Point3DFieldRenderer: React.FC<Point3DFieldRendererProps> = (
 export const Point3DFormFieldManager = {
   type: "point3d",
   renderField: (props: SpecificFormFieldRendererProps<FormFieldPoint3D>) => {
+    const { isFocused } = useFocus({});
     const focusManager = useFocusManager();
 
     useEffect(() => {
@@ -137,7 +138,7 @@ export const Point3DFormFieldManager = {
       if (key.return) {
         props.onSave();
       }
-    });
+    }, { isActive: isFocused });
 
     return (
       <Box flexDirection="column" width="100%">

@@ -4,7 +4,7 @@ import {
   FormFieldValueRendererProps,
   SpecificFormFieldRendererProps,
 } from "ink-form";
-import { Box, Text, useFocusManager, useInput } from "ink";
+import { Box, Text, useFocus, useFocusManager, useInput } from "ink";
 
 export type SubfieldRendererProps<
   F extends FormField,
@@ -38,13 +38,10 @@ export function FormFieldManagerWithSubfieldsFactory<F extends FormField, V>(
         }
       >,
     ) => {
+      const { isFocused } = useFocus({});
       const focusManager = useFocusManager();
 
       useEffect(() => {
-        focusManager.disableFocus();
-        // TODO figure out why this doesn't work
-        // it calls the focus with the correct argument but in the renderer
-        // useFocus doesn't report the component as focused
         focusManager.focus(Object.keys(props.field.subfields)[0]);
       }, []);
 
@@ -62,19 +59,23 @@ export function FormFieldManagerWithSubfieldsFactory<F extends FormField, V>(
         if (key.return) {
           props.onSave();
         }
-      });
+      }, { isActive: isFocused });
 
       return (
         <Box flexDirection="column" width="100%">
           <Box gap={1} flexDirection="row">
-            {Object.keys(props.field.subfields ?? {}).map((key) => {
-              const subfield = props.field.subfields[key as keyof V];
-              return subfield.renderer({
-                ...props,
-                ...subfield.props,
-                property: key as keyof V,
-              });
-            })}
+            {Object.keys(props.field.subfields ?? {})
+              .map((key) => ({
+                key,
+                subfield: props.field.subfields[key as keyof V],
+              }))
+              .map(({ key, subfield }) => (
+                <subfield.renderer
+                  {...props}
+                  {...subfield.props}
+                  property={key as keyof V}
+                />
+              ))}
           </Box>
           <Box>
             <Text dimColor>
