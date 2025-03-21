@@ -3000,3 +3000,37 @@ export function SceneFrom(
   }
   return scene;
 }
+
+export function RoomFromRoomWithEntrance(
+  roomWithEntrance: RoomWithEntrance,
+): Room {
+  return Room[
+    RoomWithEntrance[roomWithEntrance].split("_")[0] as keyof typeof Room
+  ];
+}
+
+export function EntranceFromRoomWithEntrance(
+  roomWithEntrance: RoomWithEntrance,
+): Entrance {
+  return Entrance[
+    RoomWithEntrance[roomWithEntrance].split("_")[1] as keyof typeof Entrance
+  ];
+}
+
+export function RoomFromScene(scene: Scene) {
+  return Room[
+    Scene[scene].split("_")[0] as keyof typeof Room
+  ];
+}
+
+export function EntranceFromScene(scene: Scene) {
+  return Entrance[
+    Scene[scene].split("_")[1] as keyof typeof Entrance
+  ];
+}
+
+export function RoomWithEntranceFromScene(scene: Scene) {
+  const room = RoomFromScene(scene);
+  const entrance = EntranceFromScene(scene);
+  return RoomWithEntranceFor(room, entrance);
+}

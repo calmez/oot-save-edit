@@ -1,6 +1,11 @@
 import { SaveHeader } from "./saveheader.ts";
 import { SaveSlot } from "./saveslot.ts";
 
+export enum FileFormat {
+  SRA,
+  SRM,
+}
+
 export class SaveFile {
   header: SaveHeader;
   slots: [SaveSlot, SaveSlot, SaveSlot];

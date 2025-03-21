@@ -2,9 +2,14 @@ import { assertEquals, assertThrows } from "@std/assert";
 import { Age } from "./saveslot.ts";
 import {
   Entrance,
+  EntranceFromRoomWithEntrance,
+  EntranceFromScene,
   Room,
+  RoomFromRoomWithEntrance,
+  RoomFromScene,
   RoomWithEntrance,
   RoomWithEntranceFor,
+  RoomWithEntranceFromScene,
   Scene,
   SceneFrom,
   Time,
@@ -702,5 +707,53 @@ Deno.test({
     const time = Time.Day;
     const cutsceneOffset = 4;
     assertThrows(() => SceneFrom(room, entrance, age, time, cutsceneOffset));
+  },
+});
+
+Deno.test({
+  name: "should provide the Room for a RoomWithEntrance",
+  fn() {
+    const roomWithEntrance = RoomWithEntrance.DekuTree_FromKokiriForest;
+    const expectedRoom = Room.DekuTree;
+    assertEquals(RoomFromRoomWithEntrance(roomWithEntrance), expectedRoom);
+  },
+});
+
+Deno.test({
+  name: "should provide the Entrance for a RoomWithEntrance",
+  fn() {
+    const roomWithEntrance = RoomWithEntrance.DekuTree_FromKokiriForest;
+    const expectedEntrance = Entrance.FromKokiriForest;
+    assertEquals(
+      EntranceFromRoomWithEntrance(roomWithEntrance),
+      expectedEntrance,
+    );
+  },
+});
+
+Deno.test({
+  name: "should provide the Room for a Scene",
+  fn() {
+    const scene = Scene.DekuTree_FromKokiriForest_Child_Day;
+    const expectedRoom = Room.DekuTree;
+    assertEquals(RoomFromScene(scene), expectedRoom);
+  },
+});
+
+Deno.test({
+  name: "should provide the Entrance for a Scene",
+  fn() {
+    const scene = Scene.DekuTree_FromKokiriForest_Child_Day;
+    const expectedEntrance = Entrance.FromKokiriForest;
+    assertEquals(EntranceFromScene(scene), expectedEntrance);
+  },
+});
+
+Deno.test({
+  name: "should provide the RoomWithEntrance for a Scene",
+  fn() {
+    const scene = Scene.DekuTree_FromKokiriForest_Child_Day;
+    const expectedRoomWithEntrance = RoomWithEntrance.DekuTree_FromKokiriForest;
+    assertEquals(RoomWithEntranceFromScene(scene), expectedRoomWithEntrance);
   },
 });

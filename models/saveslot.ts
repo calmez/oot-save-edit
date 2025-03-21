@@ -1,11 +1,28 @@
 import { toNumber, toUint8Array } from "../utils/conversions.ts";
 import { OotText } from "../utils/text.ts";
-import { Scene, Time } from "./scene.ts";
+import {
+  Entrance,
+  EntranceFromRoomWithEntrance,
+  EntranceFromScene,
+  Room,
+  RoomFromRoomWithEntrance,
+  RoomFromScene,
+  RoomWithEntrance,
+  Scene,
+  SceneFrom,
+  Time,
+} from "./scene.ts";
 
 export enum Age {
   Child = 0x00,
   Adult = 0x01,
   Invalid,
+}
+
+export enum MagicAmount {
+  Empty = 0x00,
+  Half = 0x30,
+  Full = 0x60,
 }
 
 export enum Sword {
@@ -398,11 +415,23 @@ export class SaveSlot {
     this.bytes.set(toUint8Array(value, 1), 0x0032);
   }
 
-  get currentMagic(): number {
-    return toNumber(this.bytes.slice(0x0033, 0x0033 + 1));
+  get currentMagic(): MagicAmount {
+    const amount = toNumber(this.bytes.slice(0x0033, 0x0033 + 1));
+    switch (amount) {
+      case 0x00:
+        return MagicAmount.Empty;
+      case 0x30:
+        return MagicAmount.Half;
+      case 0x60:
+        return MagicAmount.Full;
+      default:
+        throw Error(
+          `Magic amount contains corrupt value ${amount}. Can only be 0x00, 0x30, or 0x60.`,
+        );
+    }
   }
 
-  set currentMagic(value: number) {
+  set currentMagic(value: MagicAmount) {
     this.bytes.set(toUint8Array(value, 1), 0x0033);
   }
 
@@ -492,6 +521,33 @@ export class SaveSlot {
 
   set biggoronsSwordFlag2(value: boolean) {
     this.bytes.set(toUint8Array(value, 1), 0x003E);
+  }
+
+  set room(value: Room) {
+    const entrance = EntranceFromScene(this.savedSceneIndex);
+    // TODO figure out cutscene number
+    this.savedSceneIndex = SceneFrom(value, entrance, this.age, this.nightFlag);
+  }
+
+  get room(): Room {
+    return RoomFromScene(this.savedSceneIndex);
+  }
+
+  set entrance(value: Entrance) {
+    const room = RoomFromScene(this.savedSceneIndex);
+    // TODO figure out cutscene number
+    this.savedSceneIndex = SceneFrom(room, value, this.age, this.nightFlag);
+  }
+
+  get entrance(): Entrance {
+    return EntranceFromScene(this.savedSceneIndex);
+  }
+
+  set roomWithEntrance(value: RoomWithEntrance) {
+    const room = RoomFromRoomWithEntrance(value);
+    const entrance = EntranceFromRoomWithEntrance(value);
+    // TODO figure out cutscene number
+    this.savedSceneIndex = SceneFrom(room, entrance, this.age, this.nightFlag);
   }
 
   get savedSceneIndex(): Scene {

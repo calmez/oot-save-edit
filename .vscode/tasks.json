@@ -8,6 +8,12 @@
         "debug:tui",
         "./test-data/foo.srm"
       ],
+      "options": {
+        "env": {
+          // Can be set to "true" to enable support for react devtools
+          "DEV": "false"
+        }
+      },
       "problemMatcher": [
         "$deno"
       ],

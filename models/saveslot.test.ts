@@ -1,8 +1,15 @@
 import { assertInstanceOf } from "@std/assert/instance-of";
-import { Age, InventoryItems, Items, SaveSlot } from "./saveslot.ts";
+import {
+  Age,
+  InventoryItems,
+  Items,
+  MagicAmount,
+  SaveSlot,
+} from "./saveslot.ts";
 import { assertEquals, assertNotEquals, assertThrows } from "@std/assert";
 import { toUint8Array } from "../utils/conversions.ts";
 import { OotText } from "../utils/text.ts";
+import { Entrance, Room, RoomWithEntranceFor, Scene } from "./scene.ts";
 
 Deno.test({
   name: "should create",
@@ -275,7 +282,7 @@ Deno.test({
   name: "should provide the current magic",
   fn() {
     const testData = new Uint8Array(SaveSlot.requiredSize);
-    const expectedMagic = 1;
+    const expectedMagic = MagicAmount.Half;
     testData.set(toUint8Array(expectedMagic, 1), 0x0033);
     const instance = new SaveSlot(testData);
     assertEquals(instance.currentMagic, expectedMagic);
@@ -283,10 +290,22 @@ Deno.test({
 });
 
 Deno.test({
+  name: "should throw an error when current magic is invalid",
+  fn() {
+    const testData = new Uint8Array(SaveSlot.requiredSize);
+    const expectedMagic = 3;
+    testData.set(toUint8Array(expectedMagic, 1), 0x0033);
+    assertThrows(() => {
+      new SaveSlot(testData).currentMagic;
+    });
+  },
+});
+
+Deno.test({
   name: "should set the current magic",
   fn() {
     const testData = new Uint8Array(SaveSlot.requiredSize);
-    const expectedMagic = 2;
+    const expectedMagic = MagicAmount.Half;
     const instance = new SaveSlot(testData);
     instance.currentMagic = expectedMagic;
     assertEquals(instance.currentMagic, expectedMagic);
@@ -429,7 +448,7 @@ Deno.test({
   name: "should provide the saved scene index",
   fn() {
     const testData = new Uint8Array(SaveSlot.requiredSize);
-    const expectedIndex = 12;
+    const expectedIndex = Scene.KokiriForest_FromDekuTree_Adult_Day;
     testData.set(toUint8Array(expectedIndex, 2), 0x0066);
     const instance = new SaveSlot(testData);
     assertEquals(instance.savedSceneIndex, expectedIndex);
@@ -440,10 +459,88 @@ Deno.test({
   name: "should set the saved scene index",
   fn() {
     const testData = new Uint8Array(SaveSlot.requiredSize);
-    const expectedIndex = 12;
+    const expectedIndex = Scene.KokiriForest_FromDekuTree_Adult_Day;
     const instance = new SaveSlot(testData);
     instance.savedSceneIndex = expectedIndex;
     assertEquals(instance.savedSceneIndex, expectedIndex);
+  },
+});
+
+Deno.test({
+  name: "should provide the current room",
+  fn() {
+    const testData = new Uint8Array(SaveSlot.requiredSize);
+    testData.set(
+      toUint8Array(Scene.KokiriForest_FromDekuTree_Adult_Day, 2),
+      0x0066,
+    );
+    const expectedRoom = Room.KokiriForest;
+    const instance = new SaveSlot(testData);
+    assertEquals(instance.room, expectedRoom);
+  },
+});
+
+Deno.test({
+  name: "should set the current room",
+  fn() {
+    const testData = new Uint8Array(SaveSlot.requiredSize);
+    testData.set(
+      toUint8Array(Scene.ActionTestingRoom_Default_Adult_Day, 2),
+      0x0066,
+    );
+    const expectedRoom = Room.Beshitu;
+    const instance = new SaveSlot(testData);
+    instance.room = expectedRoom;
+    assertEquals(instance.room, expectedRoom);
+  },
+});
+
+Deno.test({
+  name: "should provide the current entrance",
+  fn() {
+    const testData = new Uint8Array(SaveSlot.requiredSize);
+    testData.set(
+      toUint8Array(Scene.KokiriForest_FromDekuTree_Adult_Day, 2),
+      0x0066,
+    );
+    const expectedEntrance = Entrance.FromDekuTree;
+    const instance = new SaveSlot(testData);
+    assertEquals(instance.entrance, expectedEntrance);
+  },
+});
+
+Deno.test({
+  name: "should set the current entrance",
+  fn() {
+    const testData = new Uint8Array(SaveSlot.requiredSize);
+    testData.set(
+      toUint8Array(Scene.BackAlley_FromBombchuShop_Adult_Day, 2),
+      0x0066,
+    );
+    const expectedEntrance = Entrance.FromPuppyWomansHouse;
+    const instance = new SaveSlot(testData);
+    instance.entrance = expectedEntrance;
+    assertEquals(instance.entrance, expectedEntrance);
+  },
+});
+
+Deno.test({
+  name: "should set the current room and entrance",
+  fn() {
+    const testData = new Uint8Array(SaveSlot.requiredSize);
+    testData.set(
+      toUint8Array(Scene.ActionTestingRoom_Default_Adult_Day, 2),
+      0x0066,
+    );
+    const expectedRoom = Room.BackAlley;
+    const expectedEntrance = Entrance.FromPuppyWomansHouse;
+    const instance = new SaveSlot(testData);
+    instance.roomWithEntrance = RoomWithEntranceFor(
+      expectedRoom,
+      expectedEntrance,
+    );
+    assertEquals(instance.room, expectedRoom);
+    assertEquals(instance.entrance, expectedEntrance);
   },
 });
 

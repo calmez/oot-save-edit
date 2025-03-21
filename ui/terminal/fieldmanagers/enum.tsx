@@ -1,13 +1,17 @@
 import React from "react";
 import { Box } from "ink";
 import SelectInput from "ink-select-input";
-import { AbstractFormField, SpecificFormFieldRendererProps } from "ink-form";
+import {
+  AbstractFormField,
+  FormFieldManager,
+  SpecificFormFieldRendererProps,
+} from "ink-form";
 
 type FormFieldEnum = AbstractFormField<"enum", number> & {
   enum: Record<number, string>;
 };
 
-export const EnumFieldManager = {
+export const EnumFormFieldManager = {
   type: "enum",
   renderValue: ({
     value,
@@ -46,4 +50,4 @@ export const EnumFieldManager = {
       </Box>
     );
   },
-};
+} as FormFieldManager<FormFieldEnum>;
