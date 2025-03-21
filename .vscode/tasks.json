@@ -10,7 +10,8 @@
       ],
       "options": {
         "env": {
-          "DEV": "true"
+          // Can be set to "true" to enable support for react devtools
+          "DEV": "false"
         }
       },
       "problemMatcher": [
