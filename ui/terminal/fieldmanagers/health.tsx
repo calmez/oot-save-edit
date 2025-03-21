@@ -13,16 +13,22 @@ export interface HealthData {
   doubleDefenseHearts: number;
 }
 
-type FormFieldHealth = AbstractFormField<"health", HealthData> & {
-  // TODO move these in renderer props
-  step?: number;
-  min?: number;
-  max?: number;
-};
+type FormFieldHealth = AbstractFormField<"health", HealthData>;
 
-export const HealthFieldRenderer: React.FC<
-  SubfieldRendererProps<FormFieldHealth, HealthData>
-> = (props: SubfieldRendererProps<FormFieldHealth, HealthData>) => {
+type HealthFieldRendererProps =
+  & SubfieldRendererProps<
+    FormFieldHealth,
+    HealthData
+  >
+  & {
+    step?: number;
+    min?: number;
+    max?: number;
+  };
+
+export const HealthFieldRenderer: React.FC<HealthFieldRendererProps> = (
+  props: HealthFieldRendererProps,
+) => {
   const { isFocused } = useFocus({ id: props.property });
   const regex = /^-?\d+$/;
 
@@ -37,9 +43,9 @@ export const HealthFieldRenderer: React.FC<
           doubleDefenseHearts: 0,
         };
       }
-      if (props.field.min !== undefined && props.field.min > newValue) {
+      if (props.min !== undefined && props.min > newValue) {
         props.onError(
-          `"${value}" too small, must be above or equal to ${props.field.min}.`,
+          `"${value}" too small, must be above or equal to ${props.min}.`,
         );
         props.onChange({
           ...{
@@ -51,9 +57,9 @@ export const HealthFieldRenderer: React.FC<
         });
         return;
       }
-      if (props.field.max !== undefined && props.field.max < newValue) {
+      if (props.max !== undefined && props.max < newValue) {
         props.onError(
-          `"${value}" too big, must be below or equal to ${props.field.max}.`,
+          `"${value}" too big, must be below or equal to ${props.max}.`,
         );
         props.onChange({
           ...{
@@ -89,13 +95,9 @@ export const HealthFieldRenderer: React.FC<
   useInput(
     (_, key) => {
       if (key.upArrow) {
-        change(
-          `${(props.value?.[props.property] ?? 0) + (props.field.step ?? 1)}`,
-        );
+        change(`${(props.value?.[props.property] ?? 0) + (props.step ?? 1)}`);
       } else if (key.downArrow) {
-        change(
-          `${(props.value?.[props.property] ?? 0) - (props.field.step ?? 1)}`,
-        );
+        change(`${(props.value?.[props.property] ?? 0) - (props.step ?? 1)}`);
       }
     },
     { isActive: isFocused },
