@@ -253,7 +253,9 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
                 },
                 // TODO make combined field for magic
                 {
-                  type: "enum",
+                  type: ((flag1) => `${flag1 ? "" : "readonly."}enum`)(
+                    formState.saveFile.slots[0].magicFlag1,
+                  ),
                   name: "slot_0_currentMagic",
                   label: "Current Magic",
                   enum: MagicAmount,
