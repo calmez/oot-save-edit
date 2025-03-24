@@ -4,7 +4,7 @@ import {
   FormFieldValueRendererProps,
   SpecificFormFieldRendererProps,
 } from "ink-form";
-import { Box, Text, useFocus, useFocusManager, useInput } from "ink";
+import { Box, Text, useFocusManager, useInput } from "ink";
 
 export type SubfieldRendererProps<
   F extends FormField,
