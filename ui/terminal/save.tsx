@@ -228,7 +228,7 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
                       props: {
                         label: "Current Health",
                         min: 0,
-                        max: 0xffff,
+                        max: formState.saveFile.slots[0].maxHealth / 16,
                       },
                     },
                     doubleDefenseHearts: {
@@ -236,7 +236,7 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
                       props: {
                         label: "Double Defense Hearts",
                         min: 0,
-                        max: 0xffff,
+                        max: formState.saveFile.slots[0].maxHealth / 16,
                       },
                     },
                   },
