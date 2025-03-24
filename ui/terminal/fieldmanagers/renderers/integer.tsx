@@ -14,7 +14,7 @@ export type IntegerRendererProps<F extends FormField, V> =
   };
 
 export function IntegerRendererChangeHandlerFactory<F extends FormField, V>(
-  initialValue: ValueOfField<F>
+  initialValue: ValueOfField<F>,
 ) {
   return (
     props: IntegerRendererProps<F, V>,

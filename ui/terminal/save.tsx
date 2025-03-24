@@ -15,7 +15,10 @@ import { ReadonlyEnumFormFieldManager } from "./fieldmanagers/readonlyenum.tsx";
 import { Entrance, Room, RoomWithEntranceFor } from "../../models/scene.ts";
 import { ValidEntrancesForRoom } from "../../index.ts";
 import { SelectionFormFieldManager } from "./fieldmanagers/selection.tsx";
-import { Point3DFieldRenderer, Point3DFormFieldManager } from "./fieldmanagers/3dpoint.tsx";
+import {
+  Point3DFieldRenderer,
+  Point3DFormFieldManager,
+} from "./fieldmanagers/3dpoint.tsx";
 import {
   HealthData,
   HealthFieldRenderer,

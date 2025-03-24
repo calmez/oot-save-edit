@@ -1,8 +1,6 @@
 import React from "react";
 import { AbstractFormField, SpecificFormFieldRendererProps } from "ink-form";
-import {
-  FormFieldManagerWithSubfieldsFactory,
-} from "./subfield.tsx";
+import { FormFieldManagerWithSubfieldsFactory } from "./subfield.tsx";
 import { IntegerFieldRendererFactory } from "./renderers/integer.tsx";
 
 export interface HealthData {
