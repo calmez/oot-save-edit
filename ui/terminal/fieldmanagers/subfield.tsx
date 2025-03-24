@@ -38,7 +38,6 @@ export function FormFieldManagerWithSubfieldsFactory<F extends FormField, V>(
         }
       >,
     ) => {
-      const { isFocused } = useFocus({});
       const focusManager = useFocusManager();
 
       useEffect(() => {
@@ -47,19 +46,13 @@ export function FormFieldManagerWithSubfieldsFactory<F extends FormField, V>(
 
       useInput((_, key) => {
         // TODO handle circling focus around
-        if (key.tab && !key.shift) {
-          focusManager.focusNext();
-        }
-        if (key.tab && key.shift) {
-          focusManager.focusPrevious();
-        }
         if (key.escape) {
           props.onCancel();
         }
         if (key.return) {
           props.onSave();
         }
-      }, { isActive: isFocused });
+      });
 
       return (
         <Box flexDirection="column" width="100%">
