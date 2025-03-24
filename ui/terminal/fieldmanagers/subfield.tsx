@@ -14,7 +14,7 @@ export type SubfieldRendererProps<
   label: string;
 };
 
-type SubfieldProps<F extends FormField, V> = {
+export type SubfieldProps<F extends FormField, V> = {
   renderer: React.FC<SubfieldRendererProps<F, V>>;
   props: SubfieldRendererProps<F, V>;
 };
