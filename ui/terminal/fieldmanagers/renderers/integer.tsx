@@ -2,7 +2,7 @@ import React from "react";
 import { FormField, ValueOfField } from "ink-form";
 import { SubfieldRendererProps } from "../subfield.tsx";
 import { InputRendererProps, SubfieldRendererFactory } from "./subfield.tsx";
-import { useInput } from "ink";
+import { Text, useInput } from "ink";
 import TextInput from "ink-text-input";
 
 export type IntegerRendererProps<F extends FormField, V> =
@@ -74,8 +74,11 @@ export function IntegerFieldRendererFactory<F extends FormField, V>(
 ) {
   const ChangeHandler = IntegerRendererChangeHandlerFactory<F, V>(initialValue);
   return SubfieldRendererFactory<F, V>(
-    (props: InputRendererProps<F, V>) => (
-      <TextInput
+    (props: InputRendererProps<F, V>) => {
+      if (props.readonly) {
+        return <Text>{props.value}</Text>;
+      }
+      return <TextInput
         placeholder={props.label}
         onChange={(input: string) =>
           ChangeHandler(
@@ -85,7 +88,7 @@ export function IntegerFieldRendererFactory<F extends FormField, V>(
         value={props.value}
         focus={props.isFocused}
       />
-    ),
+    },
     (props: IntegerRendererProps<F, V>, isFocused: boolean) => {
       useInput(
         (_, key) => {
@@ -101,7 +104,7 @@ export function IntegerFieldRendererFactory<F extends FormField, V>(
             );
           }
         },
-        { isActive: isFocused },
+        { isActive: isFocused && !props.readonly },
       );
     },
   );

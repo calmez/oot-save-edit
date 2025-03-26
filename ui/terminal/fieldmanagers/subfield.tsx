@@ -12,6 +12,7 @@ export type SubfieldRendererProps<
 > = SpecificFormFieldRendererProps<F> & {
   property: keyof V;
   label: string;
+  readonly?: boolean;
 };
 
 export type SubfieldProps<F extends FormField, V> = {

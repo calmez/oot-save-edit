@@ -8,6 +8,7 @@ export type InputRendererProps<F extends FormField, V> = {
   label: string;
   value: string;
   isFocused: boolean;
+  readonly: boolean;
 };
 
 export function SubfieldRendererFactory<F extends FormField, V>(
@@ -38,6 +39,7 @@ export function SubfieldRendererFactory<F extends FormField, V>(
             label: String(props.property),
             value: `${props.value?.[props.property]}`,
             isFocused: isFocused,
+            readonly: props.readonly ?? false,
           })}
         </Box>
       </Box>
