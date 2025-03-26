@@ -78,16 +78,18 @@ export function IntegerFieldRendererFactory<F extends FormField, V>(
       if (props.readonly) {
         return <Text>{props.value}</Text>;
       }
-      return <TextInput
-        placeholder={props.label}
-        onChange={(input: string) =>
-          ChangeHandler(
-            props.rendererProps as IntegerRendererProps<F, V>,
-            input,
-          )}
-        value={props.value}
-        focus={props.isFocused}
-      />
+      return (
+        <TextInput
+          placeholder={props.label}
+          onChange={(input: string) =>
+            ChangeHandler(
+              props.rendererProps as IntegerRendererProps<F, V>,
+              input,
+            )}
+          value={String(props.value)}
+          focus={props.isFocused}
+        />
+      );
     },
     (props: IntegerRendererProps<F, V>, isFocused: boolean) => {
       useInput(

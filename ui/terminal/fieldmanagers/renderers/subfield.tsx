@@ -6,7 +6,7 @@ import { SubfieldRendererProps } from "../subfield.tsx";
 export type InputRendererProps<F extends FormField, V> = {
   rendererProps: SubfieldRendererProps<F, V>;
   label: string;
-  value: string;
+  value: unknown;
   isFocused: boolean;
   readonly: boolean;
 };
@@ -37,7 +37,7 @@ export function SubfieldRendererFactory<F extends FormField, V>(
           {React.createElement(renderInput, {
             rendererProps: props,
             label: String(props.property),
-            value: `${props.value?.[props.property]}`,
+            value: props.value?.[props.property],
             isFocused: isFocused,
             readonly: props.readonly ?? false,
           })}

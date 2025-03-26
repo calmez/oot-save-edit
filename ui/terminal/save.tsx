@@ -24,6 +24,12 @@ import {
   HealthFieldRenderer,
   HealthFormFieldManager,
 } from "./fieldmanagers/health.tsx";
+import {
+  RoomData,
+  RoomFieldEnumRenderer,
+  RoomFieldSelectionRenderer,
+  RoomFormFieldManager,
+} from "./fieldmanagers/room.tsx";
 
 interface FormData {
   info_filename: string;
@@ -46,6 +52,7 @@ interface FormData {
   slot_0_rupees: number;
   slot_0_room: Room;
   slot_0_entrance: Entrance;
+  slot_0_roomwithentrance: RoomData;
   slot_0_magicBeans: number;
   slot_0_goldSkulltulaTokens: number;
   slot_0_bigPoePoints: number;
@@ -88,8 +95,10 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
       slot_0_magicFlag1: saveFile.slots[0].magicFlag1,
       slot_0_magicFlag2: saveFile.slots[0].magicFlag2,
       slot_0_rupees: saveFile.slots[0].rupees,
-      slot_0_room: saveFile.slots[0].room,
-      slot_0_entrance: saveFile.slots[0].entrance,
+      slot_0_roomwithentrance: {
+        room: saveFile.slots[0].room,
+        entrance: saveFile.slots[0].entrance,
+      },
       slot_0_magicBeans: saveFile.slots[0].magicBeans,
       slot_0_goldSkulltulaTokens: saveFile.slots[0].goldSkulltulaTokens,
     },
@@ -104,6 +113,7 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
           SelectionFormFieldManager,
           Point3DFormFieldManager,
           HealthFormFieldManager,
+          RoomFormFieldManager,
           ReadonlyStringFormFieldManager,
           ReadonlyBooleanFormFieldManager,
           ReadonlyEnumFormFieldManager,
@@ -283,24 +293,34 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
                   label: "Rupees",
                   initialValue: formState.saveFile.slots[0].rupees,
                 },
-                // TODO make combined field for room and entrance
                 {
-                  type: "enum",
-                  name: "slot_0_room",
-                  label: "Room",
-                  enum: Room,
-                  initialValue: formState.saveFile.slots[0].room,
-                },
-                {
-                  type: "selection",
-                  name: "slot_0_entrance",
-                  label: "Entrance",
-                  options: ValidEntrancesForRoom(
-                    formState.saveFile.slots[0].room,
-                  ).map((entrance) => {
-                    return { label: Entrance[entrance], value: entrance };
-                  }),
-                  initialValue: formState.saveFile.slots[0].entrance,
+                  type: "room",
+                  name: "slot_0_roomwithentrance",
+                  label: "Room and Entrance",
+                  initialValue: {
+                    room: formState.saveFile.slots[0].room,
+                    entrance: formState.saveFile.slots[0].entrance,
+                  },
+                  subfields: {
+                    room: {
+                      renderer: RoomFieldEnumRenderer,
+                      props: {
+                        label: "Room",
+                        enum: Room,
+                      },
+                    },
+                    entrance: {
+                      renderer: RoomFieldSelectionRenderer,
+                      props: {
+                        label: "Entrance",
+                        options: ValidEntrancesForRoom(
+                          formState.saveFile.slots[0].room,
+                        ).map((entrance) => {
+                          return { label: Entrance[entrance], value: entrance };
+                        }),
+                      },
+                    },
+                  },
                 },
                 // TODO look into how to handle the inventory
                 {
@@ -402,13 +422,22 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
             formState.saveFile.slots[0].magicFlag1,
             formState.saveFile.slots[0].magicFlag2,
           )), (formState.saveFile.slots[0].rupees = values.slot_0_rupees);
-          if (formState.saveFile.slots[0].room !== values.slot_0_room) {
+          if (
+            formState.saveFile.slots[0].room !==
+              values.slot_0_roomwithentrance.room
+          ) {
             formState.saveFile.slots[0].roomWithEntrance = RoomWithEntranceFor(
-              values.slot_0_room,
-              ValidEntrancesForRoom(values.slot_0_room)[0],
+              values.slot_0_roomwithentrance.room,
+              ValidEntrancesForRoom(values.slot_0_roomwithentrance.room)[0],
             );
-          } else {
-            formState.saveFile.slots[0].entrance = values.slot_0_entrance;
+          }
+          if (
+            ValidEntrancesForRoom(values.slot_0_roomwithentrance.room).includes(
+              values.slot_0_roomwithentrance.entrance,
+            )
+          ) {
+            formState.saveFile.slots[0].entrance =
+              values.slot_0_roomwithentrance.entrance;
           }
           formState.saveFile.slots[0].magicBeans = values.slot_0_magicBeans;
           formState.saveFile.slots[0].goldSkulltulaTokens =
@@ -421,7 +450,10 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
             ...formState,
             currentFormData: {
               ...values,
-              slot_0_entrance: formState.saveFile.slots[0].entrance,
+              slot_0_roomwithentrance: {
+                room: formState.saveFile.slots[0].room,
+                entrance: formState.saveFile.slots[0].entrance,
+              },
             },
           });
         }}
