@@ -59,6 +59,7 @@ export function SelectionFieldRendererFactory<F extends FormField, V>(
           (option) => option.value === props.value,
         ) ?? 0}
         isFocused={props.isFocused}
+        limit={10}
       />
     );
   });

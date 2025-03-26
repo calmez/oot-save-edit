@@ -27,7 +27,7 @@ export const ReadonlyBooleanFormFieldManager = {
   renderValue: (
     props: FormFieldValueRendererProps<FormFieldReadonlyBoolean>,
   ) => (
-    <Text>
+    <Text color={props.value ? "green" : "gray"}>
       {props.value === undefined
         ? "[Not set]"
         : props.value

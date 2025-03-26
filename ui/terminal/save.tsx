@@ -30,6 +30,12 @@ import {
   RoomFieldSelectionRenderer,
   RoomFormFieldManager,
 } from "./fieldmanagers/room.tsx";
+import {
+  MagicBooleanFieldRenderer,
+  MagicData,
+  MagicEnumFieldRenderer,
+  MagicFormFieldManager,
+} from "./fieldmanagers/magic.tsx";
 
 interface FormData {
   info_filename: string;
@@ -45,14 +51,11 @@ interface FormData {
   slot_0_deathCounter: number;
   slot_0_age: Age;
   slot_0_health: HealthData;
-  slot_0_currentMagic: number;
-  slot_0_maxMagic: number;
-  slot_0_magicFlag1: boolean;
-  slot_0_magicFlag2: boolean;
+  slot_0_magic: MagicData;
   slot_0_rupees: number;
   slot_0_room: Room;
   slot_0_entrance: Entrance;
-  slot_0_roomwithentrance: RoomData;
+  slot_0_roomWithEntrance: RoomData;
   slot_0_magicBeans: number;
   slot_0_goldSkulltulaTokens: number;
   slot_0_bigPoePoints: number;
@@ -90,12 +93,13 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
         currentHealth: saveFile.slots[0].currentHealth / 16,
         doubleDefenseHearts: saveFile.slots[0].doubleDefenseHearts,
       },
-      slot_0_currentMagic: saveFile.slots[0].currentMagic,
-      slot_0_maxMagic: saveFile.slots[0].maxMagic,
-      slot_0_magicFlag1: saveFile.slots[0].magicFlag1,
-      slot_0_magicFlag2: saveFile.slots[0].magicFlag2,
+      slot_0_magic: {
+        current: saveFile.slots[0].currentMagic,
+        flag1: saveFile.slots[0].magicFlag1,
+        flag2: saveFile.slots[0].magicFlag2,
+      },
       slot_0_rupees: saveFile.slots[0].rupees,
-      slot_0_roomwithentrance: {
+      slot_0_roomWithEntrance: {
         room: saveFile.slots[0].room,
         entrance: saveFile.slots[0].entrance,
       },
@@ -114,6 +118,7 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
           Point3DFormFieldManager,
           HealthFormFieldManager,
           RoomFormFieldManager,
+          MagicFormFieldManager,
           ReadonlyStringFormFieldManager,
           ReadonlyBooleanFormFieldManager,
           ReadonlyEnumFormFieldManager,
@@ -263,29 +268,40 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
                       formState.saveFile.slots[0].doubleDefenseHearts,
                   },
                 },
-                // TODO make combined field for magic
                 {
-                  type: ((flag1) => `${flag1 ? "" : "readonly."}enum`)(
-                    formState.saveFile.slots[0].magicFlag1,
-                  ),
-                  name: "slot_0_currentMagic",
-                  label: "Current Magic",
-                  enum: MagicAmount,
-                  initialValue: formState.saveFile.slots[0].currentMagic,
-                },
-                {
-                  type: "boolean",
-                  name: "slot_0_magicFlag1",
-                  label: "Magic Upgrade 1",
-                  initialValue: formState.saveFile.slots[0].magicFlag1,
-                },
-                {
-                  type: ((flag1) => `${flag1 ? "" : "readonly."}boolean`)(
-                    formState.saveFile.slots[0].magicFlag1,
-                  ),
-                  name: "slot_0_magicFlag2",
-                  label: "Magic Upgrade 2",
-                  initialValue: formState.saveFile.slots[0].magicFlag2,
+                  type: "magic",
+                  name: "slot_0_magic",
+                  label: "Magic",
+                  subfields: {
+                    current: {
+                      renderer: MagicEnumFieldRenderer,
+                      props: {
+                        label: "Bar",
+                        enum: MagicAmount,
+                        // TODO figure out why this flag seem to keep staying false
+                        readonly: !formState.saveFile.slots[0].flag1,
+                      },
+                    },
+                    flag1: {
+                      renderer: MagicBooleanFieldRenderer,
+                      props: {
+                        label: "Flag 1",
+                      },
+                    },
+                    flag2: {
+                      renderer: MagicBooleanFieldRenderer,
+                      props: {
+                        label: "Flag 2",
+                        // TODO figure out why this flag seem to keep staying false
+                        readonly: !formState.saveFile.slots[0].flag1,
+                      },
+                    },
+                  },
+                  initialValue: {
+                    current: formState.saveFile.slots[0].currentMagic,
+                    flag1: formState.saveFile.slots[0].magicFlag1,
+                    flag2: formState.saveFile.slots[0].magicFlag2,
+                  },
                 },
                 {
                   type: "integer",
@@ -297,7 +313,7 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
                 },
                 {
                   type: "room",
-                  name: "slot_0_roomwithentrance",
+                  name: "slot_0_roomWithEntrance",
                   label: "Room and Entrance",
                   initialValue: {
                     room: formState.saveFile.slots[0].room,
@@ -410,10 +426,11 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
             values.slot_0_health.maxHealth * 16;
           formState.saveFile.slots[0].doubleDefenseHearts =
             values.slot_0_health.doubleDefenseHearts;
-          formState.saveFile.slots[0].currentMagic = values.slot_0_currentMagic;
-          formState.saveFile.slots[0].magicFlag1 = values.slot_0_magicFlag1;
-          formState.saveFile.slots[0].magicFlag2 = values.slot_0_magicFlag2;
-          (formState.saveFile.slots[0].maxMagic = ((flag1, flag2) => {
+          formState.saveFile.slots[0].currentMagic =
+            values.slot_0_magic.current;
+          formState.saveFile.slots[0].magicFlag1 = values.slot_0_magic.flag1;
+          formState.saveFile.slots[0].magicFlag2 = values.slot_0_magic.flag2;
+          formState.saveFile.slots[0].maxMagic = ((flag1, flag2) => {
             if (flag1 && flag2) {
               return 2;
             } else if (flag1) {
@@ -423,23 +440,24 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
           })(
             formState.saveFile.slots[0].magicFlag1,
             formState.saveFile.slots[0].magicFlag2,
-          )), (formState.saveFile.slots[0].rupees = values.slot_0_rupees);
+          );
+          formState.saveFile.slots[0].rupees = values.slot_0_rupees;
           if (
             formState.saveFile.slots[0].room !==
-              values.slot_0_roomwithentrance.room
+              values.slot_0_roomWithEntrance.room
           ) {
             formState.saveFile.slots[0].roomWithEntrance = RoomWithEntranceFor(
-              values.slot_0_roomwithentrance.room,
-              ValidEntrancesForRoom(values.slot_0_roomwithentrance.room)[0],
+              values.slot_0_roomWithEntrance.room,
+              ValidEntrancesForRoom(values.slot_0_roomWithEntrance.room)[0],
             );
           }
           if (
-            ValidEntrancesForRoom(values.slot_0_roomwithentrance.room).includes(
-              values.slot_0_roomwithentrance.entrance,
+            ValidEntrancesForRoom(values.slot_0_roomWithEntrance.room).includes(
+              values.slot_0_roomWithEntrance.entrance,
             )
           ) {
             formState.saveFile.slots[0].entrance =
-              values.slot_0_roomwithentrance.entrance;
+              values.slot_0_roomWithEntrance.entrance;
           }
           formState.saveFile.slots[0].magicBeans = values.slot_0_magicBeans;
           formState.saveFile.slots[0].goldSkulltulaTokens =
@@ -452,7 +470,7 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
             ...formState,
             currentFormData: {
               ...values,
-              slot_0_roomwithentrance: {
+              slot_0_roomWithEntrance: {
                 room: formState.saveFile.slots[0].room,
                 entrance: formState.saveFile.slots[0].entrance,
               },
