@@ -1,7 +1,7 @@
 import React from "react";
 import { AbstractFormField, SpecificFormFieldRendererProps } from "ink-form";
 import { FormFieldManagerWithSubfieldsFactory } from "./subfield.tsx";
-import { IntegerFieldRendererFactory } from "./renderers/integer.tsx";
+import { NumberFieldRendererFactory } from "./renderers/number.tsx";
 
 export interface HealthData {
   maxHealth: number;
@@ -11,7 +11,7 @@ export interface HealthData {
 
 type FormFieldHealth = AbstractFormField<"health", HealthData>;
 
-export const HealthFieldRenderer = IntegerFieldRendererFactory<
+export const HealthFieldRenderer = NumberFieldRendererFactory<
   FormFieldHealth,
   HealthData
 >({

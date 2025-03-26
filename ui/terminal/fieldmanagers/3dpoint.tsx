@@ -5,11 +5,11 @@ import {
   FormFieldManagerWithSubfieldsFactory,
   SubfieldProps,
 } from "./subfield.tsx";
-import { IntegerFieldRendererFactory } from "./renderers/integer.tsx";
+import { NumberFieldRendererFactory } from "./renderers/number.tsx";
 
 type FormFieldPoint3D = AbstractFormField<"point3d", FaroresWindWarp>;
 
-export const Point3DFieldRenderer = IntegerFieldRendererFactory<
+export const Point3DFieldRenderer = NumberFieldRendererFactory<
   FormFieldPoint3D,
   FaroresWindWarp
 >({

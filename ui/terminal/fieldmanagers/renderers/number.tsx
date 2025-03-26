@@ -5,25 +5,28 @@ import { InputRendererProps, SubfieldRendererFactory } from "./subfield.tsx";
 import { Text, useInput } from "ink";
 import TextInput from "ink-text-input";
 
-export type IntegerRendererProps<F extends FormField, V> =
+export type NumberRendererProps<F extends FormField, V> =
   & SubfieldRendererProps<F, V>
   & {
-    step?: number;
     min?: number;
     max?: number;
+    step?: number;
+    isFloat?: boolean;
   };
 
-export function IntegerRendererChangeHandlerFactory<F extends FormField, V>(
+export function NumberRendererChangeHandlerFactory<F extends FormField, V>(
   initialValue: ValueOfField<F>,
 ) {
   return (
-    props: IntegerRendererProps<F, V>,
+    props: NumberRendererProps<F, V>,
     value: string,
   ) => {
-    const regex = /^-?\d+$/;
+    const regex = props.isFloat ?? false ? /^-?((\d+)|(\d*\.\d+))$/ : /^-?\d+$/;
     if (regex.test(value)) {
       props.onClearError();
-      const newValue = parseInt(value);
+      const newValue = props.isFloat ?? false
+        ? parseFloat(value)
+        : parseInt(value);
       if (props.value === undefined) {
         props.value = initialValue;
       }
@@ -57,7 +60,9 @@ export function IntegerRendererChangeHandlerFactory<F extends FormField, V>(
       }
     } else {
       props.onError(
-        `"${value}" in field "${String(props.property)}" is not an integer.`,
+        `"${value}" in field "${
+          String(props.property)
+        }" is not a valid number.`,
       );
       props.onChange({
         ...initialValue,
@@ -69,10 +74,10 @@ export function IntegerRendererChangeHandlerFactory<F extends FormField, V>(
   };
 }
 
-export function IntegerFieldRendererFactory<F extends FormField, V>(
+export function NumberFieldRendererFactory<F extends FormField, V>(
   initialValue: ValueOfField<F>,
 ) {
-  const ChangeHandler = IntegerRendererChangeHandlerFactory<F, V>(initialValue);
+  const ChangeHandler = NumberRendererChangeHandlerFactory<F, V>(initialValue);
   return SubfieldRendererFactory<F, V>(
     (props: InputRendererProps<F, V>) => {
       if (props.readonly) {
@@ -83,7 +88,7 @@ export function IntegerFieldRendererFactory<F extends FormField, V>(
           placeholder={props.label}
           onChange={(input: string) =>
             ChangeHandler(
-              props.rendererProps as IntegerRendererProps<F, V>,
+              props.rendererProps as NumberRendererProps<F, V>,
               input,
             )}
           value={String(props.value)}
@@ -91,7 +96,7 @@ export function IntegerFieldRendererFactory<F extends FormField, V>(
         />
       );
     },
-    (props: IntegerRendererProps<F, V>, isFocused: boolean) => {
+    (props: NumberRendererProps<F, V>, isFocused: boolean) => {
       useInput(
         (_, key) => {
           if (key.upArrow) {

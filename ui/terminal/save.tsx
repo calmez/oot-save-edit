@@ -242,6 +242,8 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
                         label: "Current Health",
                         min: 0,
                         max: formState.saveFile.slots[0].maxHealth / 16,
+                        step: 0.25,
+                        isFloat: true,
                       },
                     },
                     doubleDefenseHearts: {
