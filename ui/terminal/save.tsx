@@ -483,7 +483,7 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
             write: true,
             create: true,
           });
-          saveFile.write(outfile);
+          formState.saveFile.write(outfile);
           outfile.close();
         }}
       />
