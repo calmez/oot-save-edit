@@ -6,7 +6,7 @@
       "command": "task",
       "args": [
         "debug:tui",
-        "./test-data/foo.srm"
+        "./test-data/foo.sra"
       ],
       "options": {
         "env": {
