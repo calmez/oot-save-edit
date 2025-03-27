@@ -27,7 +27,10 @@ export function SubfieldRendererFactory<F extends FormField, V>(
 
     return (
       <Box width="100%" gap={0} flexDirection="column">
-        <Text>{props.label}{ props.readonly ?? false ? " (readonly)" : ""}:</Text>
+        <Text>
+          {props.label}
+          {props.readonly ?? false ? " (readonly)" : ""}:
+        </Text>
         <Box
           borderStyle="round"
           marginX={2}
