@@ -72,9 +72,9 @@ interface FormState {
 
 export const Save = ({ filename }: SaveProps): React.JSX.Element => {
   const file = Deno.openSync(filename);
-  const saveFile = new SaveFile(file);
+  const originalSaveFile = new SaveFile(file);
   const [formState, setFormState] = useState<FormState>({
-    saveFile: saveFile,
+    saveFile: originalSaveFile,
     currentFormData: {
       info_filename: filename,
       info_wordSwapped: false,
@@ -82,29 +82,29 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
       saveoptions_filename: filename,
       saveoptions_swapWords: false,
       saveoptions_fileFormat: FileFormat.SRA,
-      header_languageOption: saveFile.header.languageOption,
-      header_zTargetOption: saveFile.header.zTargetOption,
-      header_soundOption: saveFile.header.soundOption,
-      slot_0_playerName: saveFile.slots[0].playerName,
-      slot_0_deathCounter: saveFile.slots[0].deathCounter,
-      slot_0_age: saveFile.slots[0].age,
+      header_languageOption: originalSaveFile.header.languageOption,
+      header_zTargetOption: originalSaveFile.header.zTargetOption,
+      header_soundOption: originalSaveFile.header.soundOption,
+      slot_0_playerName: originalSaveFile.slots[0].playerName,
+      slot_0_deathCounter: originalSaveFile.slots[0].deathCounter,
+      slot_0_age: originalSaveFile.slots[0].age,
       slot_0_health: {
-        maxHealth: saveFile.slots[0].maxHealth / 16,
-        currentHealth: saveFile.slots[0].currentHealth / 16,
-        doubleDefenseHearts: saveFile.slots[0].doubleDefenseHearts,
+        maxHealth: originalSaveFile.slots[0].maxHealth / 16,
+        currentHealth: originalSaveFile.slots[0].currentHealth / 16,
+        doubleDefenseHearts: originalSaveFile.slots[0].doubleDefenseHearts,
       },
       slot_0_magic: {
-        current: saveFile.slots[0].currentMagic,
-        flag1: saveFile.slots[0].magicFlag1,
-        flag2: saveFile.slots[0].magicFlag2,
+        current: originalSaveFile.slots[0].currentMagic,
+        flag1: originalSaveFile.slots[0].magicFlag1,
+        flag2: originalSaveFile.slots[0].magicFlag2,
       },
-      slot_0_rupees: saveFile.slots[0].rupees,
+      slot_0_rupees: originalSaveFile.slots[0].rupees,
       slot_0_roomWithEntrance: {
-        room: saveFile.slots[0].room,
-        entrance: saveFile.slots[0].entrance,
+        room: originalSaveFile.slots[0].room,
+        entrance: originalSaveFile.slots[0].entrance,
       },
-      slot_0_magicBeans: saveFile.slots[0].magicBeans,
-      slot_0_goldSkulltulaTokens: saveFile.slots[0].goldSkulltulaTokens,
+      slot_0_magicBeans: originalSaveFile.slots[0].magicBeans,
+      slot_0_goldSkulltulaTokens: originalSaveFile.slots[0].goldSkulltulaTokens,
     },
   });
   file.close();
