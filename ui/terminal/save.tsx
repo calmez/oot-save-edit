@@ -278,8 +278,7 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
                       props: {
                         label: "Bar",
                         enum: MagicAmount,
-                        // TODO figure out why this flag seem to keep staying false
-                        readonly: !formState.saveFile.slots[0].flag1,
+                        readonly: !formState.saveFile.slots[0].magicFlag1,
                       },
                     },
                     flag1: {
@@ -292,8 +291,7 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
                       renderer: MagicBooleanFieldRenderer,
                       props: {
                         label: "Flag 2",
-                        // TODO figure out why this flag seem to keep staying false
-                        readonly: !formState.saveFile.slots[0].flag1,
+                        readonly: !formState.saveFile.slots[0].magicFlag1,
                       },
                     },
                   },
