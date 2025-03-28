@@ -2701,6 +2701,11 @@ export function ValidEntrancesForRoom(room: Room): Entrance[] {
       Entrance.BackTowerFromLonLonRanch,
       Entrance.TalonsHouseFromLoseWinCuccoGame,
     ]],
+    [Room.LonLonRanchBuildings, [
+      Entrance.TalonsHouseFromLonLonRanch,
+      Entrance.BackTowerFromLonLonRanch,
+      Entrance.TalonsHouseFromLoseWinCuccoGame,
+    ]],
     [Room.LostScene, [Entrance.Default]],
     [Room.LostWoods, [
       Entrance.FromKokiriForest,
@@ -2808,6 +2813,16 @@ export function ValidEntrancesForRoom(room: Room): Entrance[] {
       Entrance.FromTowerCollapseInteriorBossRoomFloorHigher,
       Entrance.FromTowerCollapseInteriorStalfosFightLower,
       Entrance.FromTowerCollapseInteriorStairs,
+      Entrance.BottomOfBossRoomFromTowerCollapseExteriorLower,
+      Entrance.BottomOfBossRoomFromTowerCollapseExteriorHigher,
+      Entrance.BurningRocksFromTowerCollapseExteriorHigher,
+      Entrance.BurningRocksFromTowerCollapseExteriorLower,
+      Entrance.StalfosFightRoomFromTowerCollapseExteriorHigher,
+      Entrance.StalfosFightRoomFromTowerCollapseExteriorLower,
+      Entrance.StaircaseDownFromTowerCollapseExteriorHigher,
+      Entrance.StaircaseDownFromTowerCollapseInteriorExit,
+    ]],
+    [Room.TowerCollapseInterior, [
       Entrance.BottomOfBossRoomFromTowerCollapseExteriorLower,
       Entrance.BottomOfBossRoomFromTowerCollapseExteriorHigher,
       Entrance.BurningRocksFromTowerCollapseExteriorHigher,

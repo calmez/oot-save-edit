@@ -246,8 +246,7 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
                       props: {
                         label: "Current Health",
                         min: 0,
-                        max: (value: HealthData) =>
-                          value.maxHealth ?? 0xffff,
+                        max: (value: HealthData) => value.maxHealth ?? 0xffff,
                         step: 0.25,
                         isFloat: true,
                       },
@@ -257,8 +256,7 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
                       props: {
                         label: "Double Defense Hearts",
                         min: 0,
-                        max: (value: HealthData) =>
-                          value.maxHealth ?? 0xffff,
+                        max: (value: HealthData) => value.maxHealth ?? 0xffff,
                       },
                     },
                   },
@@ -333,11 +331,16 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
                       renderer: RoomFieldSelectionRenderer,
                       props: {
                         label: "Entrance",
-                        options: ValidEntrancesForRoom(
-                          formState.saveFile.slots[0].room,
-                        ).map((entrance) => {
-                          return { label: Entrance[entrance], value: entrance };
-                        }),
+                        options: (value?: RoomData) => {
+                          if (value?.room) {
+                            return ValidEntrancesForRoom(
+                              value.room,
+                            ).map((entrance) => {
+                              return { label: Entrance[entrance], value: entrance };
+                            })
+                          }
+                          return [];
+                        },
                       },
                     },
                   },

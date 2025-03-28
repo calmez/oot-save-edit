@@ -9,7 +9,9 @@ export type SelectionRendererProps<
   F extends FormField,
   V,
 > = SubfieldRendererProps<F, V> & {
-  options: Array<{ label?: string; value: number }>;
+  options:
+    | Array<{ label?: string; value: number }>
+    | ((value?: ValueOfField<F>) => Array<{ label?: string; value: number }>);
 };
 
 export function SelectionRendererChangeHandlerFactory<F extends FormField, V>(
@@ -32,11 +34,14 @@ export function SelectionFieldRendererFactory<F extends FormField, V>(
   );
   return SubfieldRendererFactory<F, V>((props: InputRendererProps<F, V>) => {
     const rendererProps = props.rendererProps as SelectionRendererProps<F, V>;
+    const resolvedOptions = typeof rendererProps.options === "function"
+      ? rendererProps.options(rendererProps.value)
+      : rendererProps.options;
 
     if (props.readonly) {
       return (
         <Text>
-          {rendererProps.options.find((option) => option.value === props.value)
+          {resolvedOptions.find((option) => option.value === props.value)
             ?.label ??
             props.value ??
             "No value"}
@@ -46,7 +51,7 @@ export function SelectionFieldRendererFactory<F extends FormField, V>(
 
     return (
       <SelectInput
-        items={rendererProps.options.map((option) => ({
+        items={resolvedOptions.map((option) => ({
           value: option.value,
           label: option.label ?? String(option.value),
         }))}
@@ -55,7 +60,7 @@ export function SelectionFieldRendererFactory<F extends FormField, V>(
             props.rendererProps as SelectionRendererProps<F, V>,
             option.value,
           )}
-        initialIndex={rendererProps.options.findIndex(
+        initialIndex={resolvedOptions.findIndex(
           (option) => option.value === props.value,
         ) ?? 0}
         isFocused={props.isFocused}
