@@ -6,8 +6,14 @@
       "command": "task",
       "args": [
         "debug:tui",
-        "./test-data/foo.srm"
+        "./test-data/foo.sra"
       ],
+      "options": {
+        "env": {
+          // Can be set to "true" to enable support for react devtools
+          "DEV": "false"
+        }
+      },
       "problemMatcher": [
         "$deno"
       ],
