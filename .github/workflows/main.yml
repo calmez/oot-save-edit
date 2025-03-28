@@ -65,24 +65,28 @@ jobs:
             );
             return release.data.upload_url;
           result-encoding: string
+      - name: Zip release asset GUI MacOS ARM
+        run: zip -r ./build/aarch64-apple-darwin/oot-save-edit_gui_macos-apple-silicon.app.zip ./build/aarch64-apple-darwin/oot-save-edit_apple-silicon.app
       - name: Upload release asset GUI MacOS ARM
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.get_release_by_tag.outputs.result }}
-          asset_path: ./build/aarch64-apple-darwin/oot-save-edit_apple-silicon.app
-          asset_name: oot-save-edit_gui_macos-apple-silicon.app
-          asset_content_type: inode/directory
+          asset_path: ./build/aarch64-apple-darwin/oot-save-edit_apple-silicon.app.zip
+          asset_name: oot-save-edit_gui_macos-apple-silicon.app.zip
+          asset_content_type: application/zip
+      - name: Zip release asset GUI MacOS Intel
+        run: zip -r ./build/x86_64-apple-darwin/oot-save-edit_gui_macos-intel.app.zip ./build/x86_64-apple-darwin/oot-save-edit_intel.app
       - name: Upload release asset GUI MacOS Intel
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.get_release_by_tag.outputs.result }}
-          asset_path: ./build/x86_64-apple-darwin/oot-save-edit_intel.app
-          asset_name: oot-save-edit_gui_macos-intel.app
-          asset_content_type: inode/directory
+          asset_path: ./build/x86_64-apple-darwin/oot-save-edit_intel.app.zip
+          asset_name: oot-save-edit_gui_macos-intel.app.zip
+          asset_content_type: application/zip
       - name: Upload release asset GUI Linux ARM
         uses: actions/upload-release-asset@v1
         env:
