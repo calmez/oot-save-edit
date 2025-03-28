@@ -336,8 +336,11 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
                             return ValidEntrancesForRoom(
                               value.room,
                             ).map((entrance) => {
-                              return { label: Entrance[entrance], value: entrance };
-                            })
+                              return {
+                                label: Entrance[entrance],
+                                value: entrance,
+                              };
+                            });
                           }
                           return [];
                         },
