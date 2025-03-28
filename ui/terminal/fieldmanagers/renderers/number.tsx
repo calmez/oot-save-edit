@@ -8,9 +8,9 @@ import TextInput from "ink-text-input";
 export type NumberRendererProps<F extends FormField, V> =
   & SubfieldRendererProps<F, V>
   & {
-    min?: number;
-    max?: number;
-    step?: number;
+    min?: number | ((value?: ValueOfField<F>) => number);
+    max?: number | ((value?: ValueOfField<F>) => number);
+    step?: number | ((value?: ValueOfField<F>) => number);
     isFloat?: boolean;
   };
 
@@ -21,6 +21,13 @@ export function NumberRendererChangeHandlerFactory<F extends FormField, V>(
     props: NumberRendererProps<F, V>,
     value: string,
   ) => {
+    const resolvedMin = typeof props.min === "function"
+      ? props.min(props.value)
+      : props.min;
+    const resolvedMax = typeof props.max === "function"
+      ? props.max(props.value)
+      : props.max;
+
     const regex = props.isFloat ?? false ? /^-?((\d+)|(\d*\.\d+))$/ : /^-?\d+$/;
     if (regex.test(value)) {
       props.onClearError();
@@ -30,9 +37,9 @@ export function NumberRendererChangeHandlerFactory<F extends FormField, V>(
       if (props.value === undefined) {
         props.value = initialValue;
       }
-      if (props.min !== undefined && props.min > newValue) {
+      if (resolvedMin !== undefined && resolvedMin > newValue) {
         props.onError(
-          `"${value}" too small, must be above or equal to ${props.min}.`,
+          `"${value}" too small, must be above or equal to ${resolvedMin}.`,
         );
         props.onChange({
           ...initialValue,
@@ -41,9 +48,9 @@ export function NumberRendererChangeHandlerFactory<F extends FormField, V>(
         });
         return;
       }
-      if (props.max !== undefined && props.max < newValue) {
+      if (resolvedMax !== undefined && resolvedMax < newValue) {
         props.onError(
-          `"${value}" too big, must be below or equal to ${props.max}.`,
+          `"${value}" too big, must be below or equal to ${resolvedMax}.`,
         );
         props.onChange({
           ...initialValue,
@@ -97,17 +104,21 @@ export function NumberFieldRendererFactory<F extends FormField, V>(
       );
     },
     (props: NumberRendererProps<F, V>, isFocused: boolean) => {
+      const resolvedStep = typeof props.step === "function"
+        ? props.step(props.value)
+        : props.step ?? 1;
+
       useInput(
         (_, key) => {
           if (key.upArrow) {
             ChangeHandler(
               props,
-              `${(props.value?.[props.property] ?? 0) + (props.step ?? 1)}`,
+              `${(props.value?.[props.property] ?? 0) + resolvedStep}`,
             );
           } else if (key.downArrow) {
             ChangeHandler(
               props,
-              `${(props.value?.[props.property] ?? 0) - (props.step ?? 1)}`,
+              `${(props.value?.[props.property] ?? 0) - resolvedStep}`,
             );
           }
         },

@@ -246,7 +246,8 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
                       props: {
                         label: "Current Health",
                         min: 0,
-                        max: formState.saveFile.slots[0].maxHealth / 16,
+                        max: (value: HealthData) =>
+                          value.maxHealth ?? 0xffff,
                         step: 0.25,
                         isFloat: true,
                       },
@@ -256,7 +257,8 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
                       props: {
                         label: "Double Defense Hearts",
                         min: 0,
-                        max: formState.saveFile.slots[0].maxHealth / 16,
+                        max: (value: HealthData) =>
+                          value.maxHealth ?? 0xffff,
                       },
                     },
                   },
@@ -278,7 +280,8 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
                       props: {
                         label: "Bar",
                         enum: MagicAmount,
-                        readonly: (value?: MagicData) => !(value?.flag1 ?? false),
+                        readonly: (value?: MagicData) =>
+                          !(value?.flag1 ?? false),
                       },
                     },
                     flag1: {
@@ -291,7 +294,8 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
                       renderer: MagicBooleanFieldRenderer,
                       props: {
                         label: "Flag 2",
-                        readonly: (value?: MagicData) => !(value?.flag1 ?? false),
+                        readonly: (value?: MagicData) =>
+                          !(value?.flag1 ?? false),
                       },
                     },
                   },

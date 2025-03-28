@@ -25,7 +25,7 @@ export function SubfieldRendererFactory<F extends FormField, V>(
 
     const readonly = typeof props.readonly === "function"
       ? props.readonly(props.value)
-      : props.readonly;
+      : props.readonly ?? false;
 
     const resolvedProps = {
       ...props,
