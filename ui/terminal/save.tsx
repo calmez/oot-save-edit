@@ -278,7 +278,7 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
                       props: {
                         label: "Bar",
                         enum: MagicAmount,
-                        readonly: !formState.saveFile.slots[0].magicFlag1,
+                        readonly: (value?: MagicData) => !(value?.flag1 ?? false),
                       },
                     },
                     flag1: {
@@ -291,7 +291,7 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
                       renderer: MagicBooleanFieldRenderer,
                       props: {
                         label: "Flag 2",
-                        readonly: !formState.saveFile.slots[0].magicFlag1,
+                        readonly: (value?: MagicData) => !(value?.flag1 ?? false),
                       },
                     },
                   },

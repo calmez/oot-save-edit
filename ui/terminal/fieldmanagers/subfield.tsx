@@ -3,6 +3,7 @@ import {
   FormField,
   FormFieldValueRendererProps,
   SpecificFormFieldRendererProps,
+  ValueOfField,
 } from "ink-form";
 import { Box, Text, useFocusManager, useInput } from "ink";
 
@@ -12,7 +13,7 @@ export type SubfieldRendererProps<
 > = SpecificFormFieldRendererProps<F> & {
   property: keyof V;
   label: string;
-  readonly?: boolean;
+  readonly?: boolean | ((value?: ValueOfField<F>) => boolean);
 };
 
 export type SubfieldProps<F extends FormField, V> = {

@@ -23,13 +23,22 @@ export function SubfieldRendererFactory<F extends FormField, V>(
   ) => {
     const { isFocused } = useFocus({ id: String(props.property) });
 
-    renderBehavior?.(props, isFocused);
+    const readonly = typeof props.readonly === "function"
+      ? props.readonly(props.value)
+      : props.readonly;
+
+    const resolvedProps = {
+      ...props,
+      readonly: readonly,
+    };
+
+    renderBehavior?.(resolvedProps, isFocused);
 
     return (
       <Box width="100%" gap={0} flexDirection="column">
         <Text>
           {props.label}
-          {props.readonly ?? false ? " (readonly)" : ""}:
+          {readonly ? " (readonly)" : ""}:
         </Text>
         <Box
           borderStyle="round"
@@ -38,11 +47,11 @@ export function SubfieldRendererFactory<F extends FormField, V>(
           borderColor={isFocused ? "blue" : undefined}
         >
           {React.createElement(renderInput, {
-            rendererProps: props,
+            rendererProps: resolvedProps,
             label: String(props.property),
             value: props.value?.[props.property],
             isFocused: isFocused,
-            readonly: props.readonly ?? false,
+            readonly: readonly,
           })}
         </Box>
       </Box>
