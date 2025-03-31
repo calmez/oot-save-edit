@@ -10,6 +10,7 @@ export class SaveFile {
   header: SaveHeader;
   slots: [SaveSlot, SaveSlot, SaveSlot];
   backups: [SaveSlot, SaveSlot, SaveSlot];
+  private byteSwapped: boolean = false;
 
   private static get saveSlots(): number {
     return 3;
@@ -38,6 +39,8 @@ export class SaveFile {
       );
     }
 
+    this.ensureByteOrder(bytes);
+
     let currentOffset = 0x00;
 
     this.header = new SaveHeader(
@@ -62,7 +65,31 @@ export class SaveFile {
     return this;
   }
 
-  write(file: Deno.FsFile): void {
+  private ensureByteOrder(bytes: Uint8Array): Uint8Array {
+    if (
+      SaveHeader.validCheckPattern.some((value, index) => {
+        if (bytes[index + 0x03] === value) {
+          return false;
+        }
+        return true;
+      })
+    ) {
+      this.byteSwap(bytes);
+      this.byteSwapped = true;
+    }
+    return bytes;
+  }
+
+  private byteSwap(bytes: Uint8Array): Uint8Array {
+    for (let i = 0; i < bytes.length; i += 4) {
+      const temp = bytes.slice(i, i + 4);
+      temp.reverse();
+      bytes.set(temp, i);
+    }
+    return bytes;
+  }
+
+  write(file: Deno.FsFile, forceSwap: boolean = false): void {
     const bytes = new Uint8Array(SaveFile.requiredSize);
 
     let currentOffset = 0x00;
@@ -78,6 +105,10 @@ export class SaveFile {
     for (let i = 0; i < SaveFile.saveSlots; i++) {
       bytes.set(this.backups[i].data, currentOffset);
       currentOffset += SaveSlot.requiredSize;
+    }
+
+    if (this.byteSwapped || forceSwap) {
+      this.byteSwap(bytes);    
     }
 
     file.writeSync(bytes);

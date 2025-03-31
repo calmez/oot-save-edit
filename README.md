@@ -23,6 +23,8 @@ My idea was to make it more accessible to developers by rewriting this in
 Typescript. And it gave me a good excuse to try out Deno - spoiler alert: it's
 awesome.
 
+<https://github.com/libretro/parallel-n64/blob/master/tools/pj64tosrm.c> was very helpful to support libretro srm formats.
+
 ## How this all started
 
 I was playing OoT with my wife and we have been quite deep into the game when
