@@ -30,6 +30,10 @@ export class SaveFile {
     }
   }
 
+  get isByteSwapped(): boolean {
+    return this.byteSwapped;
+  }
+
   read(file: Deno.FsFile): SaveFile {
     const bytes = new Uint8Array(SaveFile.requiredSize);
     const readBytes = file.readSync(bytes);

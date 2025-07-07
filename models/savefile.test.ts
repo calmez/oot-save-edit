@@ -1,4 +1,4 @@
-import { assertInstanceOf, assertThrows } from "@std/assert";
+import { assert, assertFalse, assertInstanceOf, assertThrows } from "@std/assert";
 import {
   assertSpyCallArgs,
   assertSpyCalls,
@@ -70,5 +70,43 @@ Deno.test({
     assertSpyCallArgs(writeSyncStub, 0, 0, [
       new Uint8Array(SaveFile.requiredSize),
     ]);
+  },
+});
+
+Deno.test({
+  name: "should not be marked as byte-swapped for new SaveFile",
+  fn() {
+    const instance = new SaveFile();
+    assertFalse(instance.isByteSwapped);
+  },
+});
+
+Deno.test({
+  name: "should not be marked as byte-swapped after reading a file with regular header",
+  fn() {
+    const fakeBytes = new Uint8Array(SaveFile.requiredSize);
+    fakeBytes.set(SaveHeader.validCheckPattern, 0x03);
+    const testFile = {} as Deno.FsFile;
+    stub(testFile, "readSync", (buffer: Uint8Array) => {
+      buffer.set(fakeBytes);
+      return SaveFile.requiredSize;
+    });
+    const instance = new SaveFile(testFile);
+    assertFalse(instance.isByteSwapped);
+  },
+});
+
+Deno.test({
+  name: "should be marked as byte-swapped after reading a file with byte-swapped header",
+  fn() {
+    const fakeBytes = new Uint8Array(SaveFile.requiredSize);
+    fakeBytes.set(SaveHeader.validCheckPattern.toReversed(), 0x03);
+    const testFile = {} as Deno.FsFile;
+    stub(testFile, "readSync", (buffer: Uint8Array) => {
+      buffer.set(fakeBytes);
+      return SaveFile.requiredSize;
+    });
+    const instance = new SaveFile(testFile);
+    assert(instance.isByteSwapped);
   },
 });
