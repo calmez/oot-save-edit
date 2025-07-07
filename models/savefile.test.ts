@@ -132,6 +132,60 @@ Deno.test({
       return SaveFile.requiredSize;
     });
     const instance = new SaveFile(testFile);
-    assertEquals(instance.header.data.slice(0x03, 0x03 + 9), SaveHeader.validCheckPattern);
+    assertEquals(
+      instance.header.data.slice(0x03, 0x03 + 9),
+      SaveHeader.validCheckPattern
+    );
   }
+});
+
+Deno.test({
+  name: "should write byte-swapped bytes after having read a file with byte-swapped header",
+  fn() {
+    const fakeBytes = new Uint8Array(SaveFile.requiredSize);
+    fakeBytes.set(SaveHeader.validCheckPattern, 0x03);
+    for (let i = 0; i < SaveHeader.requiredSize; i += 4) {
+      const temp = fakeBytes.slice(i, i + 4);
+      temp.reverse();
+      fakeBytes.set(temp, i);
+    }
+    const testFile = {} as Deno.FsFile;
+    stub(testFile, "readSync", (buffer: Uint8Array) => {
+      buffer.set(fakeBytes);
+      return SaveFile.requiredSize;
+    });
+    const writeSyncStub = stub(testFile, "writeSync");
+    const instance = new SaveFile(testFile);
+    assert(instance.isByteSwapped);
+    instance.write(testFile);
+    assertSpyCallArgs(writeSyncStub, 0, 0, [
+      fakeBytes,
+    ]);
+  },
+});
+
+Deno.test({
+  name: "should write byte-swapped bytes after having read a file with regular header when forced",
+  fn() {
+    const fakeBytes = new Uint8Array(SaveFile.requiredSize);
+    fakeBytes.set(SaveHeader.validCheckPattern, 0x03);
+    const swappedBytes = new Uint8Array(SaveFile.requiredSize);
+    for (let i = 0; i < SaveFile.requiredSize; i += 4) {
+      const temp = fakeBytes.slice(i, i + 4);
+      temp.reverse();
+      swappedBytes.set(temp, i);
+    }
+    const testFile = {} as Deno.FsFile;
+    stub(testFile, "readSync", (buffer: Uint8Array) => {
+      buffer.set(fakeBytes);
+      return SaveFile.requiredSize;
+    });
+    const writeSyncStub = stub(testFile, "writeSync");
+    const instance = new SaveFile(testFile);
+    assertFalse(instance.isByteSwapped);
+    instance.write(testFile, true);
+    assertSpyCallArgs(writeSyncStub, 0, 0, [
+      swappedBytes,
+    ]);
+  },
 });
