@@ -33,7 +33,10 @@ async function runTheThing() {
   console.debug(`The current time is ${Time[slot.nightFlag]}`);
   console.debug(`The current cutscene number is ${slot.cutSceneNumber}`);
 
-  const outFile = await Deno.open(`${Deno.args[0]}_out`, { write: true, create: true });
+  const outFile = await Deno.open(`${Deno.args[0]}_out`, {
+    write: true,
+    create: true,
+  });
   save.write(outFile, true);
   outFile.close();
 }

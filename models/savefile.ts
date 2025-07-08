@@ -112,7 +112,7 @@ export class SaveFile {
     }
 
     if ((this.byteSwapped && !forceSwap) || (!this.byteSwapped && forceSwap)) {
-      this.byteSwap(bytes);
+      this.byteSwap(bytes);    
     }
 
     file.writeSync(bytes);
