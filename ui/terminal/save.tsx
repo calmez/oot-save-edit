@@ -400,7 +400,7 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
     saveFile: originalSaveFile,
     currentFormData: {
       info_filename: filename,
-      info_wordSwapped: false,
+      info_wordSwapped: originalSaveFile.isByteSwapped,
       info_fileFormat: FileFormat.SRA,
       saveoptions_filename: filename,
       saveoptions_swapWords: false,
@@ -444,8 +444,7 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
                   type: "readonly.boolean",
                   name: "info_wordSwapped",
                   label: "Word Swapped",
-                  // TODO set this when we have this info from the save file
-                  initialValue: false,
+                  initialValue: originalSaveFile.isByteSwapped,
                 },
                 {
                   type: "readonly.enum",
@@ -561,7 +560,7 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
             write: true,
             create: true,
           });
-          formState.saveFile.write(outfile);
+          formState.saveFile.write(outfile, values.saveoptions_swapWords);
           outfile.close();
         }}
       />

@@ -1,4 +1,10 @@
-import { assert, assertEquals, assertFalse, assertInstanceOf, assertThrows } from "@std/assert";
+import {
+  assert,
+  assertEquals,
+  assertFalse,
+  assertInstanceOf,
+  assertThrows,
+} from "@std/assert";
 import {
   assertSpyCallArgs,
   assertSpyCalls,
@@ -82,7 +88,8 @@ Deno.test({
 });
 
 Deno.test({
-  name: "should not be marked as byte-swapped after reading a file with regular header",
+  name:
+    "should not be marked as byte-swapped after reading a file with regular header",
   fn() {
     const fakeBytes = new Uint8Array(SaveFile.requiredSize);
     fakeBytes.set(SaveHeader.validCheckPattern, 0x03);
@@ -97,7 +104,8 @@ Deno.test({
 });
 
 Deno.test({
-  name: "should be marked as byte-swapped after reading a file with byte-swapped header",
+  name:
+    "should be marked as byte-swapped after reading a file with byte-swapped header",
   fn() {
     const fakeBytes = new Uint8Array(SaveFile.requiredSize);
     fakeBytes.set(SaveHeader.validCheckPattern, 0x03);
@@ -134,13 +142,14 @@ Deno.test({
     const instance = new SaveFile(testFile);
     assertEquals(
       instance.header.data.slice(0x03, 0x03 + 9),
-      SaveHeader.validCheckPattern
+      SaveHeader.validCheckPattern,
     );
-  }
+  },
 });
 
 Deno.test({
-  name: "should write byte-swapped bytes after having read a file with byte-swapped header",
+  name:
+    "should write byte-swapped bytes after having read a file with byte-swapped header",
   fn() {
     const fakeBytes = new Uint8Array(SaveFile.requiredSize);
     fakeBytes.set(SaveHeader.validCheckPattern, 0x03);
@@ -165,7 +174,8 @@ Deno.test({
 });
 
 Deno.test({
-  name: "should write byte-swapped bytes after having read a file with regular header when forced",
+  name:
+    "should write byte-swapped bytes after having read a file with regular header when forced",
   fn() {
     const fakeBytes = new Uint8Array(SaveFile.requiredSize);
     fakeBytes.set(SaveHeader.validCheckPattern, 0x03);
