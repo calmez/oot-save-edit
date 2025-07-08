@@ -111,8 +111,8 @@ export class SaveFile {
       currentOffset += SaveSlot.requiredSize;
     }
 
-    if (this.byteSwapped || forceSwap) {
-      this.byteSwap(bytes);    
+    if ((this.byteSwapped && !forceSwap) || (!this.byteSwapped && forceSwap)) {
+      this.byteSwap(bytes);
     }
 
     file.writeSync(bytes);
