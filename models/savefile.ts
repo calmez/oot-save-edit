@@ -21,12 +21,12 @@ export class SaveFile {
       this.saveSlots * SaveSlot.requiredSize;
   }
 
-  constructor(file?: Deno.FsFile) {
+  constructor(source?: Deno.FsFile | Uint8Array) {
     this.header = new SaveHeader();
     this.slots = [new SaveSlot(), new SaveSlot(), new SaveSlot()];
     this.backups = [new SaveSlot(), new SaveSlot(), new SaveSlot()];
-    if (file) {
-      this.read(file);
+    if (source) {
+      this.read(source);
     }
   }
 
@@ -34,13 +34,23 @@ export class SaveFile {
     return this.byteSwapped;
   }
 
-  read(file: Deno.FsFile): SaveFile {
-    const bytes = new Uint8Array(SaveFile.requiredSize);
-    const readBytes = file.readSync(bytes);
-    if (SaveFile.requiredSize !== readBytes) {
-      throw Error(
-        `Incorrect file size, cannot read save file. Expected ${SaveFile.requiredSize} bytes, got ${readBytes}.`,
-      );
+  read(source: Deno.FsFile | Uint8Array): SaveFile {
+    let bytes: Uint8Array;
+    if (source instanceof Uint8Array) {
+      bytes = source;
+      if (bytes.length !== SaveFile.requiredSize) {
+        throw Error(
+          `Incorrect data size, cannot read save file. Expected ${SaveFile.requiredSize} bytes, got ${bytes.length}.`,
+        );
+      }
+    } else {
+      bytes = new Uint8Array(SaveFile.requiredSize);
+      const readBytes = source.readSync(bytes);
+      if (SaveFile.requiredSize !== readBytes) {
+        throw Error(
+          `Incorrect file size, cannot read save file. Expected ${SaveFile.requiredSize} bytes, got ${readBytes}.`,
+        );
+      }
     }
 
     this.ensureByteOrder(bytes);
@@ -112,7 +122,7 @@ export class SaveFile {
     }
 
     if ((this.byteSwapped && !forceSwap) || (!this.byteSwapped && forceSwap)) {
-      this.byteSwap(bytes);    
+      this.byteSwap(bytes);
     }
 
     file.writeSync(bytes);
