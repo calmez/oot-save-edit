@@ -1,18 +1,16 @@
 import { join } from "@std/path";
 import { Application } from "jsr:@oak/oak/application";
 import { Router } from "jsr:@oak/oak/router";
-import { SaveFile } from "../models/savefile.ts";
 import { Scene, Time } from "../models/scene.ts";
 import { LanguageOption, SoundOption } from "../models/saveheader.ts";
+import { FileUtil } from "../utils/fileutil.ts";
 
 function buildOutput(filename?: string): string {
   if (!filename) {
     throw new Error("No filename provided");
   }
   const basePath = join(Deno.cwd(), "test-data"); // TODO: let user set this in UI
-  const file = Deno.openSync(`${basePath}/${filename}`);
-  const save = new SaveFile(file);
-  file.close();
+  const save = FileUtil.loadFile(`${basePath}/${filename}`);
 
   return `
     <html>
