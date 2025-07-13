@@ -1,3 +1,4 @@
+import { FileUtil } from "../utils/fileutil.ts";
 import { SaveHeader } from "./saveheader.ts";
 import { SaveSlot } from "./saveslot.ts";
 
@@ -103,17 +104,8 @@ export class SaveFile {
         return true;
       })
     ) {
-      this.byteSwap(bytes);
+      FileUtil.byteSwap(bytes);
       this.byteSwapped = true;
-    }
-    return bytes;
-  }
-
-  private byteSwap(bytes: Uint8Array): Uint8Array {
-    for (let i = 0; i < bytes.length; i += 4) {
-      const temp = bytes.slice(i, i + 4);
-      temp.reverse();
-      bytes.set(temp, i);
     }
     return bytes;
   }
@@ -137,7 +129,7 @@ export class SaveFile {
     }
 
     if ((this.byteSwapped && !forceSwap) || (!this.byteSwapped && forceSwap)) {
-      this.byteSwap(bytes);
+      FileUtil.byteSwap(bytes);
     }
 
     file.writeSync(bytes);
