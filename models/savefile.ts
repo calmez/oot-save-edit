@@ -1,11 +1,6 @@
 import { SaveHeader } from "./saveheader.ts";
 import { SaveSlot } from "./saveslot.ts";
 
-export enum FileFormat {
-  SRA,
-  SRM,
-}
-
 export class SaveFile {
   header: SaveHeader;
   slots: [SaveSlot, SaveSlot, SaveSlot];
@@ -19,6 +14,10 @@ export class SaveFile {
   static get requiredSize(): number {
     return SaveHeader.requiredSize + this.saveSlots * SaveSlot.requiredSize +
       this.saveSlots * SaveSlot.requiredSize;
+  }
+
+  static get acceptedSize(): number {
+    return 0x8000;
   }
 
   constructor(source?: Deno.FsFile | Uint8Array) {
@@ -37,12 +36,12 @@ export class SaveFile {
   read(source: Deno.FsFile | Uint8Array): SaveFile {
     let bytes: Uint8Array;
     if (source instanceof Uint8Array) {
-      bytes = source;
-      if (bytes.length !== SaveFile.requiredSize) {
+      if (source.length < SaveFile.requiredSize) {
         throw Error(
-          `Incorrect data size, cannot read save file. Expected ${SaveFile.requiredSize} bytes, got ${bytes.length}.`,
+          `Incorrect data size, cannot read save file. Expected at least ${SaveFile.requiredSize} bytes, got ${source.length}.`,
         );
       }
+      bytes = source.slice(0, SaveFile.requiredSize);
     } else {
       bytes = new Uint8Array(SaveFile.requiredSize);
       const readBytes = source.readSync(bytes);

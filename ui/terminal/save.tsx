@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { FileFormat, SaveFile } from "../../models/savefile.ts";
+import { SaveFile } from "../../models/savefile.ts";
 import { Box } from "ink";
 import { Form } from "ink-form";
 import {
@@ -36,6 +36,7 @@ import {
   MagicEnumFieldRenderer,
   MagicFormFieldManager,
 } from "./fieldmanagers/magic.tsx";
+import { FileFormat, FileUtil } from "../../utils/fileutil.ts";
 
 interface FormData {
   info_filename: string;
@@ -94,10 +95,8 @@ interface FormState {
   currentFormData: FormData;
 }
 
-export const Save = ({ filename }: SaveProps): React.JSX.Element => {
-  const file = Deno.openSync(filename);
-  const originalSaveFile = new SaveFile(file);
-  file.close();
+export const Save = ({ filename }: SaveProps): Promise<React.JSX.Element> => {
+  const originalSaveFile = FileUtil.loadFile(filename);
 
   function makeSlotForm(index: 0 | 1 | 2) {
     return {
@@ -401,10 +400,10 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
     currentFormData: {
       info_filename: filename,
       info_wordSwapped: originalSaveFile.isByteSwapped,
-      info_fileFormat: FileFormat.SRA,
+      info_fileFormat: FileUtil.detectFileFormatByExtension(filename),
       saveoptions_filename: filename,
       saveoptions_swapWords: false,
-      saveoptions_fileFormat: FileFormat.SRA,
+      saveoptions_fileFormat: FileUtil.detectFileFormatByExtension(filename),
       header_languageOption: originalSaveFile.header.languageOption,
       header_zTargetOption: originalSaveFile.header.zTargetOption,
       header_soundOption: originalSaveFile.header.soundOption,
@@ -556,12 +555,12 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
         }}
         value={formState.currentFormData}
         onSubmit={(values: FormData) => {
-          const outfile = Deno.openSync(values.saveoptions_filename, {
-            write: true,
-            create: true,
-          });
-          formState.saveFile.write(outfile, values.saveoptions_swapWords);
-          outfile.close();
+          FileUtil.saveFile(
+            values.saveoptions_filename,
+            values.saveoptions_fileFormat,
+            formState.saveFile,
+            values.saveoptions_swapWords
+          );
         }}
       />
     </Box>
