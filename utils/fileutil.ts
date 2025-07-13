@@ -29,6 +29,15 @@ export class FileUtil {
     }
   }
 
+  static byteSwap(bytes: Uint8Array): Uint8Array {
+    for (let i = 0; i < bytes.length; i += 4) {
+      const temp = bytes.slice(i, i + 4);
+      temp.reverse();
+      bytes.set(temp, i);
+    }
+    return bytes;
+  }
+
   static detectFileFormatByExtension(path: string): FileFormat {
     const ext = path.toLowerCase().split('.').pop();
     

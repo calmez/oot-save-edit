@@ -1,3 +1,4 @@
+import { FileUtil } from "../utils/fileutil.ts";
 import { SaveFile } from "./savefile.ts";
 
 /**
@@ -45,18 +46,9 @@ export class SrmFile {
     }
   }
   
-  private static byteSwap(bytes: Uint8Array): Uint8Array {
-    for (let i = 0; i < bytes.length; i += 4) {
-      const temp = bytes.slice(i, i + 4);
-      temp.reverse();
-      bytes.set(temp, i);
-    }
-    return bytes;
-  }
-  
   static fromSaveFile(save: SaveFile): SrmFile {
     const srm = new SrmFile();
-    srm.sram.set(this.byteSwap(save.data), 0);
+    srm.sram.set(FileUtil.byteSwap(save.data), 0);
 
     return srm;
   }
@@ -126,7 +118,7 @@ export class SrmFile {
     currentOffset += SrmFile.FLASHRAM_SIZE;
 
     if (forceSwap) {
-      SrmFile.byteSwap(bytes);
+      FileUtil.byteSwap(bytes);
     }
 
     file.writeSync(bytes);
