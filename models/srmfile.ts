@@ -25,6 +25,10 @@ export class SrmFile {
     );
   }
 
+  static get acceptedSize(): number {
+    return SrmFile.requiredSize;
+  }
+
   constructor(file?: Deno.FsFile) {
     this.eeprom = new Uint8Array(SrmFile.EEPROM_SIZE);
     this.mempacks = [
