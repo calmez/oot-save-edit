@@ -94,7 +94,6 @@ export class SrmFile {
       currentOffset += SrmFile.MEMPACK_SIZE;
     }
 
-    // Extract SRAM section and wrap with SaveFile
     this.sram = allBytes.slice(
       currentOffset,
       currentOffset + SrmFile.SRAM_SIZE,
@@ -127,9 +126,7 @@ export class SrmFile {
     currentOffset += SrmFile.FLASHRAM_SIZE;
 
     if (forceSwap) {
-      // Implement byte order swapping if necessary
-      // This is a placeholder for actual byte order handling
-      throw new Error("Byte order swapping not implemented yet.");
+      SrmFile.byteSwap(bytes);
     }
 
     file.writeSync(bytes);
