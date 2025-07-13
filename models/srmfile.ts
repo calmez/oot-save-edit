@@ -7,7 +7,7 @@ import { SaveFile } from "./savefile.ts";
 export class SrmFile {
   eeprom: Uint8Array;
   mempacks: [Uint8Array, Uint8Array, Uint8Array, Uint8Array];
-  sram: SaveFile;
+  sram: Uint8Array;
   flashram: Uint8Array;
 
   static EEPROM_SIZE = 0x800; // 2 KiB
@@ -37,12 +37,32 @@ export class SrmFile {
       new Uint8Array(SrmFile.MEMPACK_SIZE),
       new Uint8Array(SrmFile.MEMPACK_SIZE),
     ];
-    this.sram = new SaveFile();
+    this.sram = new Uint8Array(SrmFile.SRAM_SIZE);
     this.flashram = new Uint8Array(SrmFile.FLASHRAM_SIZE);
 
     if (file) {
       this.read(file);
     }
+  }
+  
+  private static byteSwap(bytes: Uint8Array): Uint8Array {
+    for (let i = 0; i < bytes.length; i += 4) {
+      const temp = bytes.slice(i, i + 4);
+      temp.reverse();
+      bytes.set(temp, i);
+    }
+    return bytes;
+  }
+  
+  static fromSaveFile(save: SaveFile): SrmFile {
+    const srm = new SrmFile();
+    srm.sram.set(this.byteSwap(save.data), 0);
+
+    return srm;
+  }
+
+  get saveFile(): SaveFile {
+    return new SaveFile(this.sram);
   }
 
   read(file: Deno.FsFile) {
@@ -75,17 +95,43 @@ export class SrmFile {
     }
 
     // Extract SRAM section and wrap with SaveFile
-    const sramBytes = allBytes.slice(
+    this.sram = allBytes.slice(
       currentOffset,
       currentOffset + SrmFile.SRAM_SIZE,
     );
     currentOffset += SrmFile.SRAM_SIZE;
-    this.sram = new SaveFile(sramBytes);
 
     this.flashram = allBytes.slice(
       currentOffset,
       currentOffset + SrmFile.FLASHRAM_SIZE,
     );
     currentOffset += SrmFile.FLASHRAM_SIZE;
+  }
+
+  write(file: Deno.FsFile, forceSwap = false) {
+    const bytes = new Uint8Array(SrmFile.requiredSize);
+    let currentOffset = 0x00;
+
+    bytes.set(this.eeprom, currentOffset);
+    currentOffset += SrmFile.EEPROM_SIZE;
+
+    for (let i = 0; i < SrmFile.MEMPACK_COUNT; i++) {
+      bytes.set(this.mempacks[i], currentOffset);
+      currentOffset += SrmFile.MEMPACK_SIZE;
+    }
+
+    bytes.set(this.sram, currentOffset);
+    currentOffset += SrmFile.SRAM_SIZE;
+
+    bytes.set(this.flashram, currentOffset);
+    currentOffset += SrmFile.FLASHRAM_SIZE;
+
+    if (forceSwap) {
+      // Implement byte order swapping if necessary
+      // This is a placeholder for actual byte order handling
+      throw new Error("Byte order swapping not implemented yet.");
+    }
+
+    file.writeSync(bytes);
   }
 }
