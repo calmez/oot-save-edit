@@ -33,6 +33,22 @@ export class SaveFile {
     return this.byteSwapped;
   }
 
+  get data(): Uint8Array {
+    const bytes = new Uint8Array(SaveFile.requiredSize);
+    let currentOffset = 0x00;
+    bytes.set(this.header.data, currentOffset);
+    currentOffset += SaveHeader.requiredSize;
+    for (let i = 0; i < SaveFile.saveSlots; i++) {
+      bytes.set(this.slots[i].data, currentOffset);
+      currentOffset += SaveSlot.requiredSize;
+    }
+    for (let i = 0; i < SaveFile.saveSlots; i++) {
+      bytes.set(this.backups[i].data, currentOffset);
+      currentOffset += SaveSlot.requiredSize;
+    }
+    return bytes;
+  }
+
   read(source: Deno.FsFile | Uint8Array): SaveFile {
     let bytes: Uint8Array;
     if (source instanceof Uint8Array) {

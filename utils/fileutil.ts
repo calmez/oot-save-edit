@@ -62,7 +62,7 @@ export class FileUtil {
           return new SaveFile(file);
         
         case FileFormat.SRM:
-          return new SrmFile(file).sram;
+          return new SrmFile(file).saveFile;
         
         default:
           throw new Error(`Unknown or unsupported save file format: ${path}`);
@@ -79,9 +79,11 @@ export class FileUtil {
       case FileFormat.SRA:
         save.write(file, forceSwap);
         break;
-      case FileFormat.SRM:
-        // TODO pack save in SRM format
-        throw new Error("Writing SrmFile not implemented yet");
+      case FileFormat.SRM: {
+        const srm = SrmFile.fromSaveFile(save);
+        srm.write(file, forceSwap);
+        break;
+      }
       default:
         throw new Error(`Unsupported save format for writing: ${format}`);
     }
