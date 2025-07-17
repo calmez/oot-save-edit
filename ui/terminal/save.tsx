@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { SaveFile } from "../../models/savefile.ts";
+import { SraSaveFile } from "../../models/srasavefile.ts";
 import { Box } from "ink";
 import { Form } from "ink-form";
 import {
@@ -91,7 +91,7 @@ interface SaveProps {
 }
 
 interface FormState {
-  saveFile: SaveFile;
+  saveFile: SraSaveFile;
   currentFormData: FormData;
 }
 
@@ -313,10 +313,10 @@ export const Save = ({ filename }: SaveProps): Promise<React.JSX.Element> => {
   }
 
   function readFormData(
-    saveFile: SaveFile,
+    saveFile: SraSaveFile,
     values: FormData,
     index: 0 | 1 | 2,
-  ): SaveFile {
+  ): SraSaveFile {
     saveFile.slots[index].playerName = values[`slot_${index}_playerName`];
     saveFile.slots[index].deathCounter = values[`slot_${index}_deathCounter`];
     saveFile.slots[index].age = values[`slot_${index}_age`];
@@ -367,7 +367,7 @@ export const Save = ({ filename }: SaveProps): Promise<React.JSX.Element> => {
   }
 
   function makeFormData(
-    saveFile: SaveFile,
+    saveFile: SraSaveFile,
     index: 0 | 1 | 2,
   ): Partial<FormData> {
     return {
