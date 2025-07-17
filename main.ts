@@ -1,4 +1,4 @@
-import { SaveFile } from "./models/savefile.ts";
+import { SraSaveFile } from "./models/srasavefile.ts";
 import { LanguageOption, SoundOption } from "./models/saveheader.ts";
 import { Age } from "./models/saveslot.ts";
 import { Scene, Time } from "./models/scene.ts";
@@ -12,7 +12,7 @@ async function runTheThing() {
   console.log(`>>> OoT Save Edit <<<`);
 
   const file = await Deno.open(Deno.args[0]);
-  const save = new SaveFile(file);
+  const save = new SraSaveFile(file);
   file.close();
 
   console.debug(`Successfully read the file: ${Deno.args[0]}`);

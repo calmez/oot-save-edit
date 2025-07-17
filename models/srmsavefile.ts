@@ -1,11 +1,12 @@
 import { FileUtil } from "../utils/fileutil.ts";
 import { SaveFile } from "./savefile.ts";
+import { SraSaveFile } from "./srasavefile.ts";
 
 /**
  * SRM file wrapper that extracts SRAM, EEPROM, MemPak, and FlashRAM sections.
  * Offsets and sizes are typical but may need adjustment for specific emulators.
  */
-export class SrmFile {
+export class SrmSaveFile implements SaveFile {
   eeprom: Uint8Array;
   mempacks: [Uint8Array, Uint8Array, Uint8Array, Uint8Array];
   sram: Uint8Array;
@@ -19,54 +20,54 @@ export class SrmFile {
 
   static get requiredSize(): number {
     return (
-      SrmFile.EEPROM_SIZE +
-      SrmFile.MEMPACK_COUNT * SrmFile.MEMPACK_SIZE +
-      SrmFile.SRAM_SIZE +
-      SrmFile.FLASHRAM_SIZE
+      SrmSaveFile.EEPROM_SIZE +
+      SrmSaveFile.MEMPACK_COUNT * SrmSaveFile.MEMPACK_SIZE +
+      SrmSaveFile.SRAM_SIZE +
+      SrmSaveFile.FLASHRAM_SIZE
     );
   }
 
   static get acceptedSize(): number {
-    return SrmFile.requiredSize;
+    return SrmSaveFile.requiredSize;
   }
 
   constructor(file?: Deno.FsFile) {
-    this.eeprom = new Uint8Array(SrmFile.EEPROM_SIZE);
+    this.eeprom = new Uint8Array(SrmSaveFile.EEPROM_SIZE);
     this.mempacks = [
-      new Uint8Array(SrmFile.MEMPACK_SIZE),
-      new Uint8Array(SrmFile.MEMPACK_SIZE),
-      new Uint8Array(SrmFile.MEMPACK_SIZE),
-      new Uint8Array(SrmFile.MEMPACK_SIZE),
+      new Uint8Array(SrmSaveFile.MEMPACK_SIZE),
+      new Uint8Array(SrmSaveFile.MEMPACK_SIZE),
+      new Uint8Array(SrmSaveFile.MEMPACK_SIZE),
+      new Uint8Array(SrmSaveFile.MEMPACK_SIZE),
     ];
-    this.sram = new Uint8Array(SrmFile.SRAM_SIZE);
-    this.flashram = new Uint8Array(SrmFile.FLASHRAM_SIZE);
+    this.sram = new Uint8Array(SrmSaveFile.SRAM_SIZE);
+    this.flashram = new Uint8Array(SrmSaveFile.FLASHRAM_SIZE);
 
     if (file) {
       this.read(file);
     }
   }
   
-  static fromSaveFile(save: SaveFile): SrmFile {
-    const srm = new SrmFile();
+  static fromSaveFile(save: SraSaveFile): SrmSaveFile {
+    const srm = new SrmSaveFile();
     srm.sram.set(FileUtil.byteSwap(save.data), 0);
 
     return srm;
   }
 
-  get saveFile(): SaveFile {
-    return new SaveFile(this.sram);
+  get saveFile(): SraSaveFile {
+    return new SraSaveFile(this.sram);
   }
 
-  read(file: Deno.FsFile) {
+  read(file: Deno.FsFile): this {
     const stat = file.statSync();
     const allBytes = new Uint8Array(stat.size);
     const readBytes = file.readSync(allBytes);
     if (readBytes !== stat.size) {
       throw new Error("Failed to read entire SRM file.");
     }
-    if (SrmFile.requiredSize !== readBytes) {
+    if (SrmSaveFile.requiredSize !== readBytes) {
       throw new Error(
-        `Incorrect file size, cannot read save file. Expected ${SrmFile.requiredSize} bytes, got ${readBytes}.`,
+        `Incorrect file size, cannot read save file. Expected ${SrmSaveFile.requiredSize} bytes, got ${readBytes}.`,
       );
     }
 
@@ -74,48 +75,50 @@ export class SrmFile {
 
     this.eeprom = allBytes.slice(
       currentOffset,
-      currentOffset + SrmFile.EEPROM_SIZE,
+      currentOffset + SrmSaveFile.EEPROM_SIZE,
     );
-    currentOffset += SrmFile.EEPROM_SIZE;
+    currentOffset += SrmSaveFile.EEPROM_SIZE;
 
-    for (let i = 0; i < SrmFile.MEMPACK_COUNT; i++) {
+    for (let i = 0; i < SrmSaveFile.MEMPACK_COUNT; i++) {
       this.mempacks[i] = allBytes.slice(
         currentOffset,
-        currentOffset + SrmFile.MEMPACK_SIZE,
+        currentOffset + SrmSaveFile.MEMPACK_SIZE,
       );
-      currentOffset += SrmFile.MEMPACK_SIZE;
+      currentOffset += SrmSaveFile.MEMPACK_SIZE;
     }
 
     this.sram = allBytes.slice(
       currentOffset,
-      currentOffset + SrmFile.SRAM_SIZE,
+      currentOffset + SrmSaveFile.SRAM_SIZE,
     );
-    currentOffset += SrmFile.SRAM_SIZE;
+    currentOffset += SrmSaveFile.SRAM_SIZE;
 
     this.flashram = allBytes.slice(
       currentOffset,
-      currentOffset + SrmFile.FLASHRAM_SIZE,
+      currentOffset + SrmSaveFile.FLASHRAM_SIZE,
     );
-    currentOffset += SrmFile.FLASHRAM_SIZE;
+    currentOffset += SrmSaveFile.FLASHRAM_SIZE;
+
+    return this;
   }
 
   write(file: Deno.FsFile, forceSwap = false) {
-    const bytes = new Uint8Array(SrmFile.requiredSize);
+    const bytes = new Uint8Array(SrmSaveFile.requiredSize);
     let currentOffset = 0x00;
 
     bytes.set(this.eeprom, currentOffset);
-    currentOffset += SrmFile.EEPROM_SIZE;
+    currentOffset += SrmSaveFile.EEPROM_SIZE;
 
-    for (let i = 0; i < SrmFile.MEMPACK_COUNT; i++) {
+    for (let i = 0; i < SrmSaveFile.MEMPACK_COUNT; i++) {
       bytes.set(this.mempacks[i], currentOffset);
-      currentOffset += SrmFile.MEMPACK_SIZE;
+      currentOffset += SrmSaveFile.MEMPACK_SIZE;
     }
 
     bytes.set(this.sram, currentOffset);
-    currentOffset += SrmFile.SRAM_SIZE;
+    currentOffset += SrmSaveFile.SRAM_SIZE;
 
     bytes.set(this.flashram, currentOffset);
-    currentOffset += SrmFile.FLASHRAM_SIZE;
+    currentOffset += SrmSaveFile.FLASHRAM_SIZE;
 
     if (forceSwap) {
       FileUtil.byteSwap(bytes);

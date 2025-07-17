@@ -11,22 +11,22 @@ import {
   returnsNext,
   stub,
 } from "@std/testing/mock";
-import { SaveFile } from "./savefile.ts";
+import { SraSaveFile } from "./srasavefile.ts";
 import { SaveHeader } from "./saveheader.ts";
 import { SaveSlot } from "./saveslot.ts";
 
 Deno.test({
   name: "should create",
   fn() {
-    const instance = new SaveFile();
-    assertInstanceOf(instance, SaveFile);
+    const instance = new SraSaveFile();
+    assertInstanceOf(instance, SraSaveFile);
   },
 });
 
 Deno.test({
   name: "should initialize empty",
   fn() {
-    const instance = new SaveFile();
+    const instance = new SraSaveFile();
     assertInstanceOf(instance.header, SaveHeader);
     instance.slots.forEach((slot) => {
       assertInstanceOf(slot, SaveSlot);
@@ -47,7 +47,7 @@ Deno.test({
       "readSync",
       returnsNext([expectedFileSize]),
     );
-    new SaveFile(testFile);
+    new SraSaveFile(testFile);
     assertSpyCalls(readSyncStub, 1);
   },
 });
@@ -62,7 +62,7 @@ Deno.test({
       "readSync",
       returnsNext([wrongFileSize]),
     );
-    assertThrows(() => new SaveFile(testFile));
+    assertThrows(() => new SraSaveFile(testFile));
   },
 });
 
@@ -71,10 +71,10 @@ Deno.test({
   fn() {
     const testFile = {} as Deno.FsFile;
     const writeSyncStub = stub(testFile, "writeSync");
-    const instance = new SaveFile();
+    const instance = new SraSaveFile();
     instance.write(testFile);
     assertSpyCallArgs(writeSyncStub, 0, 0, [
-      new Uint8Array(SaveFile.requiredSize),
+      new Uint8Array(SraSaveFile.requiredSize),
     ]);
   },
 });
@@ -82,7 +82,7 @@ Deno.test({
 Deno.test({
   name: "should not be marked as byte-swapped for new SaveFile",
   fn() {
-    const instance = new SaveFile();
+    const instance = new SraSaveFile();
     assertFalse(instance.isByteSwapped);
   },
 });
@@ -91,14 +91,14 @@ Deno.test({
   name:
     "should not be marked as byte-swapped after reading a file with regular header",
   fn() {
-    const fakeBytes = new Uint8Array(SaveFile.requiredSize);
+    const fakeBytes = new Uint8Array(SraSaveFile.requiredSize);
     fakeBytes.set(SaveHeader.validCheckPattern, 0x03);
     const testFile = {} as Deno.FsFile;
     stub(testFile, "readSync", (buffer: Uint8Array) => {
       buffer.set(fakeBytes);
-      return SaveFile.requiredSize;
+      return SraSaveFile.requiredSize;
     });
-    const instance = new SaveFile(testFile);
+    const instance = new SraSaveFile(testFile);
     assertFalse(instance.isByteSwapped);
   },
 });
@@ -107,7 +107,7 @@ Deno.test({
   name:
     "should be marked as byte-swapped after reading a file with byte-swapped header",
   fn() {
-    const fakeBytes = new Uint8Array(SaveFile.requiredSize);
+    const fakeBytes = new Uint8Array(SraSaveFile.requiredSize);
     fakeBytes.set(SaveHeader.validCheckPattern, 0x03);
     for (let i = 0; i < SaveHeader.requiredSize; i += 4) {
       const temp = fakeBytes.slice(i, i + 4);
@@ -117,9 +117,9 @@ Deno.test({
     const testFile = {} as Deno.FsFile;
     stub(testFile, "readSync", (buffer: Uint8Array) => {
       buffer.set(fakeBytes);
-      return SaveFile.requiredSize;
+      return SraSaveFile.requiredSize;
     });
-    const instance = new SaveFile(testFile);
+    const instance = new SraSaveFile(testFile);
     assert(instance.isByteSwapped);
   },
 });
@@ -127,7 +127,7 @@ Deno.test({
 Deno.test({
   name: "should byte-swap bytes when reading a file with byte-swapped header",
   fn() {
-    const fakeBytes = new Uint8Array(SaveFile.requiredSize);
+    const fakeBytes = new Uint8Array(SraSaveFile.requiredSize);
     fakeBytes.set(SaveHeader.validCheckPattern, 0x03);
     for (let i = 0; i < SaveHeader.requiredSize; i += 4) {
       const temp = fakeBytes.slice(i, i + 4);
@@ -137,9 +137,9 @@ Deno.test({
     const testFile = {} as Deno.FsFile;
     stub(testFile, "readSync", (buffer: Uint8Array) => {
       buffer.set(fakeBytes);
-      return SaveFile.requiredSize;
+      return SraSaveFile.requiredSize;
     });
-    const instance = new SaveFile(testFile);
+    const instance = new SraSaveFile(testFile);
     assertEquals(
       instance.header.data.slice(0x03, 0x03 + 9),
       SaveHeader.validCheckPattern,
@@ -151,7 +151,7 @@ Deno.test({
   name:
     "should write byte-swapped bytes after having read a file with byte-swapped header",
   fn() {
-    const fakeBytes = new Uint8Array(SaveFile.requiredSize);
+    const fakeBytes = new Uint8Array(SraSaveFile.requiredSize);
     fakeBytes.set(SaveHeader.validCheckPattern, 0x03);
     for (let i = 0; i < SaveHeader.requiredSize; i += 4) {
       const temp = fakeBytes.slice(i, i + 4);
@@ -161,10 +161,10 @@ Deno.test({
     const testFile = {} as Deno.FsFile;
     stub(testFile, "readSync", (buffer: Uint8Array) => {
       buffer.set(fakeBytes);
-      return SaveFile.requiredSize;
+      return SraSaveFile.requiredSize;
     });
     const writeSyncStub = stub(testFile, "writeSync");
-    const instance = new SaveFile(testFile);
+    const instance = new SraSaveFile(testFile);
     assert(instance.isByteSwapped);
     instance.write(testFile);
     assertSpyCallArgs(writeSyncStub, 0, 0, [
@@ -177,10 +177,10 @@ Deno.test({
   name:
     "should write byte-swapped bytes after having read a file with regular header when forced",
   fn() {
-    const fakeBytes = new Uint8Array(SaveFile.requiredSize);
+    const fakeBytes = new Uint8Array(SraSaveFile.requiredSize);
     fakeBytes.set(SaveHeader.validCheckPattern, 0x03);
-    const swappedBytes = new Uint8Array(SaveFile.requiredSize);
-    for (let i = 0; i < SaveFile.requiredSize; i += 4) {
+    const swappedBytes = new Uint8Array(SraSaveFile.requiredSize);
+    for (let i = 0; i < SraSaveFile.requiredSize; i += 4) {
       const temp = fakeBytes.slice(i, i + 4);
       temp.reverse();
       swappedBytes.set(temp, i);
@@ -188,10 +188,10 @@ Deno.test({
     const testFile = {} as Deno.FsFile;
     stub(testFile, "readSync", (buffer: Uint8Array) => {
       buffer.set(fakeBytes);
-      return SaveFile.requiredSize;
+      return SraSaveFile.requiredSize;
     });
     const writeSyncStub = stub(testFile, "writeSync");
-    const instance = new SaveFile(testFile);
+    const instance = new SraSaveFile(testFile);
     assertFalse(instance.isByteSwapped);
     instance.write(testFile, true);
     assertSpyCallArgs(writeSyncStub, 0, 0, [
