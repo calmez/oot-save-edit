@@ -1,5 +1,5 @@
-import { SaveFile } from "../models/savefile.ts";
-import { SrmFile } from "../models/srmfile.ts";
+import { SraSaveFile } from "../models/srasavefile.ts";
+import { SrmSaveFile } from "../models/srmsavefile.ts";
 
 export enum FileFormat {
   SRA,
@@ -20,9 +20,9 @@ export class FileUtil {
     const stat = file.statSync();
     file.seekSync(0, Deno.SeekMode.Start);
     
-    if (stat.size === SaveFile.acceptedSize) {
+    if (stat.size === SraSaveFile.acceptedSize) {
       return FileFormat.SRA;
-    } else if (stat.size === SrmFile.acceptedSize) {
+    } else if (stat.size === SrmSaveFile.acceptedSize) {
       return FileFormat.SRM;
     } else {
       throw new Error(`Cannot detect file type by size. Unknown file size: ${stat.size}.`);
@@ -54,7 +54,7 @@ export class FileUtil {
   /**
    * Load save file and return appropriate instance based on detected type
    */
-  static loadFile(path: string): SaveFile {
+  static loadFile(path: string): SraSaveFile {
     const file = Deno.openSync(path, { read: true });
     
     try {
@@ -68,10 +68,10 @@ export class FileUtil {
       
       switch (fileType) {
         case FileFormat.SRA:
-          return new SaveFile(file);
+          return new SraSaveFile(file);
         
         case FileFormat.SRM:
-          return new SrmFile(file).saveFile;
+          return new SrmSaveFile(file).saveFile;
         
         default:
           throw new Error(`Unknown or unsupported save file format: ${path}`);
@@ -81,7 +81,7 @@ export class FileUtil {
     }
   }
 
-  static saveFile(path: string, format: FileFormat, save: SaveFile, forceSwap: boolean = false): void {
+  static saveFile(path: string, format: FileFormat, save: SraSaveFile, forceSwap: boolean = false): void {
     const file = Deno.openSync(path, { write: true, create: true });
     
     switch (format) {
@@ -89,7 +89,7 @@ export class FileUtil {
         save.write(file, forceSwap);
         break;
       case FileFormat.SRM: {
-        const srm = SrmFile.fromSaveFile(save);
+        const srm = SrmSaveFile.fromSaveFile(save);
         srm.write(file, forceSwap);
         break;
       }
