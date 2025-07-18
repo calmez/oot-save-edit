@@ -3,7 +3,7 @@ import { SaveFile } from "./savefile.ts";
 import { SaveHeader } from "./saveheader.ts";
 import { SaveSlot } from "./saveslot.ts";
 
-export class SraSaveFile implements SaveFile {
+export class SraSaveFile extends SaveFile {
   header: SaveHeader;
   slots: [SaveSlot, SaveSlot, SaveSlot];
   backups: [SaveSlot, SaveSlot, SaveSlot];
@@ -23,6 +23,7 @@ export class SraSaveFile implements SaveFile {
   }
 
   constructor(source?: Deno.FsFile | Uint8Array) {
+    super();
     this.header = new SaveHeader();
     this.slots = [new SaveSlot(), new SaveSlot(), new SaveSlot()];
     this.backups = [new SaveSlot(), new SaveSlot(), new SaveSlot()];
