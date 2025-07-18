@@ -53,20 +53,19 @@ export class SraSaveFile extends SaveFile {
   }
 
   read(source: Deno.FsFile | Uint8Array): this {
-    let bytes: Uint8Array;
+    const bytes = new Uint8Array(SraSaveFile.requiredSize);
     if (source instanceof Uint8Array) {
       if (source.length < SraSaveFile.requiredSize) {
         throw Error(
           `Incorrect data size, cannot read save file. Expected at least ${SraSaveFile.requiredSize} bytes, got ${source.length}.`,
         );
       }
-      bytes = source.slice(0, SraSaveFile.requiredSize);
+      bytes.set(source.slice(0, SraSaveFile.requiredSize), 0);
     } else {
-      bytes = new Uint8Array(SraSaveFile.requiredSize);
       const readBytes = source.readSync(bytes);
-      if (SraSaveFile.requiredSize !== readBytes) {
+      if ((readBytes ?? 0) < SraSaveFile.requiredSize) {
         throw Error(
-          `Incorrect file size, cannot read save file. Expected ${SraSaveFile.requiredSize} bytes, got ${readBytes}.`,
+          `Incorrect file size, cannot read save file. Expected at least ${SraSaveFile.requiredSize} bytes, got ${readBytes}.`,
         );
       }
     }
