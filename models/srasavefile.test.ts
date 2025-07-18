@@ -53,6 +53,16 @@ Deno.test({
 });
 
 Deno.test({
+  name: "should read contents of a Uint8Array",
+  fn() {
+    const expectedFileSize = 31232;
+    const testBytes = new Uint8Array(expectedFileSize);
+    const instance = new SraSaveFile(testBytes);
+    assertEquals(instance.data.length, expectedFileSize);
+  }
+});
+
+Deno.test({
   name: "should raise an error when file has incorrect size",
   fn() {
     const wrongFileSize = 42;
