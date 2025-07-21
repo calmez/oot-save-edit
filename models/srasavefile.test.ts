@@ -47,7 +47,8 @@ Deno.test({
       "readSync",
       returnsNext([expectedFileSize]),
     );
-    new SraSaveFile(testFile);
+    const instance = new SraSaveFile();
+    instance.read(testFile);
     assertSpyCalls(readSyncStub, 1);
   },
 });
@@ -72,7 +73,8 @@ Deno.test({
       "readSync",
       returnsNext([wrongFileSize]),
     );
-    assertThrows(() => new SraSaveFile(testFile));
+    const instance = new SraSaveFile();
+    assertThrows(() => instance.read(testFile));
   },
 });
 
@@ -129,7 +131,8 @@ Deno.test({
       buffer.set(fakeBytes);
       return SraSaveFile.requiredSize;
     });
-    const instance = new SraSaveFile(testFile);
+    const instance = new SraSaveFile();
+    instance.read(testFile);
     assert(instance.isByteSwapped);
   },
 });
@@ -149,7 +152,8 @@ Deno.test({
       buffer.set(fakeBytes);
       return SraSaveFile.requiredSize;
     });
-    const instance = new SraSaveFile(testFile);
+    const instance = new SraSaveFile();
+    instance.read(testFile);
     assertEquals(
       instance.header.data.slice(0x03, 0x03 + 9),
       SaveHeader.validCheckPattern,
@@ -174,7 +178,8 @@ Deno.test({
       return SraSaveFile.requiredSize;
     });
     const writeSyncStub = stub(testFile, "writeSync");
-    const instance = new SraSaveFile(testFile);
+    const instance = new SraSaveFile();
+    instance.read(testFile);
     assert(instance.isByteSwapped);
     instance.write(testFile);
     assertSpyCallArgs(writeSyncStub, 0, 0, [
@@ -201,7 +206,8 @@ Deno.test({
       return SraSaveFile.requiredSize;
     });
     const writeSyncStub = stub(testFile, "writeSync");
-    const instance = new SraSaveFile(testFile);
+    const instance = new SraSaveFile();
+    instance.read(testFile);
     assertFalse(instance.isByteSwapped);
     instance.write(testFile, true);
     assertSpyCallArgs(writeSyncStub, 0, 0, [
