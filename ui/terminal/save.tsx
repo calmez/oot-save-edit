@@ -450,8 +450,7 @@ export const Save = ({ filename }: SaveProps): Promise<React.JSX.Element> => {
                   name: "info_fileFormat",
                   label: "File Format",
                   enum: FileFormat,
-                  // TODO set this when we have this info from the save file
-                  initialValue: FileFormat.SRA,
+                  initialValue: FileUtil.detectFileFormatByExtension(filename),
                 },
               ],
             },
@@ -475,8 +474,7 @@ export const Save = ({ filename }: SaveProps): Promise<React.JSX.Element> => {
                   name: "saveoptions_fileFormat",
                   label: "File Format",
                   enum: FileFormat,
-                  // TODO set this to the input file format
-                  initialValue: FileFormat.SRA,
+                  initialValue: FileUtil.detectFileFormatByExtension(filename),
                 },
               ],
             },
