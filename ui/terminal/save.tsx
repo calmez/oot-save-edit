@@ -569,7 +569,7 @@ export const Save = ({ filename }: SaveProps): Promise<React.JSX.Element> => {
             values.saveoptions_filename,
             values.saveoptions_fileFormat,
             formState.saveFile,
-            values.saveoptions_swapWords
+            values.saveoptions_swapWords,
           );
         }}
       />

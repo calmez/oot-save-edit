@@ -61,7 +61,7 @@ Deno.test({
     const instance = new SraSaveFile();
     instance.read(testBytes);
     assertEquals(instance.data.length, expectedFileSize);
-  }
+  },
 });
 
 Deno.test({

@@ -20,13 +20,15 @@ export class FileUtil {
   static detectFileFormatBySize(file: Deno.FsFile): FileFormat {
     const stat = file.statSync();
     file.seekSync(0, Deno.SeekMode.Start);
-    
+
     if (stat.size === SraSaveFile.acceptedSize) {
       return FileFormat.SRA;
     } else if (stat.size === SrmSaveFile.acceptedSize) {
       return FileFormat.SRM;
     } else {
-      throw new Error(`Cannot detect file type by size. Unknown file size: ${stat.size}.`);
+      throw new Error(
+        `Cannot detect file type by size. Unknown file size: ${stat.size}.`,
+      );
     }
   }
 
@@ -40,24 +42,26 @@ export class FileUtil {
   }
 
   static detectFileFormatByExtension(path: string): FileFormat {
-    const ext = path.toLowerCase().split('.').pop();
-    
+    const ext = path.toLowerCase().split(".").pop();
+
     switch (ext) {
       case "sra":
         return FileFormat.SRA;
       case "srm":
         return FileFormat.SRM;
       default:
-        throw new Error(`Cannot detect file type by extension. Unknown extension: ${ext}.`);
+        throw new Error(
+          `Cannot detect file type by extension. Unknown extension: ${ext}.`,
+        );
     }
   }
-  
+
   /**
    * Load save file and return appropriate instance based on detected type
    */
   static loadFile(path: string): SraSaveFile {
     const file = Deno.openSync(path, { read: true });
-    
+
     try {
       const fileType = this.detectFileFormatBySize(file);
       const fileTypeByExtension = this.detectFileFormatByExtension(path);
@@ -68,14 +72,14 @@ export class FileUtil {
           } - try renaming the file.`,
         );
       }
-      
+
       file.seekSync(0, Deno.SeekMode.Start);
       let save: SaveFile;
-      
+
       switch (fileType) {
         case FileFormat.SRA:
           save = new SraSaveFile();
-          break
+          break;
         case FileFormat.SRM:
           save = new SrmSaveFile();
           break;
@@ -90,9 +94,14 @@ export class FileUtil {
     }
   }
 
-  static saveFile(path: string, format: FileFormat, save: SraSaveFile, forceSwap: boolean = false): void {
+  static saveFile(
+    path: string,
+    format: FileFormat,
+    save: SraSaveFile,
+    forceSwap: boolean = false,
+  ): void {
     const file = Deno.openSync(path, { write: true, create: true });
-    
+
     switch (format) {
       case FileFormat.SRA:
         save.write(file, forceSwap);

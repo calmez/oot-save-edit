@@ -2,11 +2,16 @@ import { SrmSaveFile } from "./srmsavefile.ts";
 import { SraSaveFile } from "./srasavefile.ts";
 import { assertEquals } from "@std/assert/equals";
 import { assertInstanceOf } from "@std/assert/instance-of";
-import { assertSpyCallArgs, assertSpyCalls, returnsNext, stub } from "@std/testing/mock";
+import {
+  assertSpyCallArgs,
+  assertSpyCalls,
+  returnsNext,
+  stub,
+} from "@std/testing/mock";
 import { assertThrows } from "@std/assert/throws";
 
 Deno.test({
-  name: "should create", 
+  name: "should create",
   fn() {
     const srm = new SrmSaveFile();
     assertInstanceOf(srm, SrmSaveFile);
@@ -17,7 +22,7 @@ Deno.test({
     });
     assertEquals(srm.sram.length, SrmSaveFile.SRAM_SIZE);
     assertEquals(srm.flashram.length, SrmSaveFile.FLASHRAM_SIZE);
-  }
+  },
 });
 
 Deno.test({
@@ -32,7 +37,7 @@ Deno.test({
     assertEquals(srm.sram.length, SrmSaveFile.SRAM_SIZE);
     assertInstanceOf(srm.saveFile, SraSaveFile);
     assertEquals(srm.flashram.length, SrmSaveFile.FLASHRAM_SIZE);
-  }
+  },
 });
 
 Deno.test({
@@ -59,21 +64,20 @@ Deno.test({
     const instance = new SrmSaveFile();
     instance.read(testBytes);
     assertEquals(instance.data.length, expectedFileSize);
-  }
+  },
 });
-
 
 Deno.test({
   name: "should raise an error when file has incorrect size",
   fn() {
     const wrongFileSize = 1234;
     const testFile = {
-      statSync: () => ({ size: wrongFileSize }), 
+      statSync: () => ({ size: wrongFileSize }),
       readSync: (_: Uint8Array) => wrongFileSize,
     } as Deno.FsFile;
     const instance = new SrmSaveFile();
     assertThrows(() => instance.read(testFile));
-  }
+  },
 });
 
 Deno.test({
@@ -98,7 +102,7 @@ Deno.test({
     sra.read(sraData);
     const srm = SrmSaveFile.fromSaveFile(sra);
     assertEquals(srm.sram.slice(0, SraSaveFile.requiredSize), sra.data);
-  }
+  },
 });
 
 Deno.test("should return correct SraSaveFile from saveFile getter", () => {
