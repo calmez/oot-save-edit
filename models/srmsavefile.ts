@@ -43,7 +43,7 @@ export class SrmSaveFile extends SaveFile {
     return srm;
   }
 
-  getData(forceSwap = false): Uint8Array {
+  override getData(forceSwap = false): Uint8Array {
     const bytes = new Uint8Array(SrmSaveFile.requiredSize);
     let currentOffset = 0x00;
 
@@ -68,34 +68,11 @@ export class SrmSaveFile extends SaveFile {
     return bytes;
   }
 
-  get data(): Uint8Array {
-    return this.getData();
+  override get data(): Uint8Array {
+    return super.data;
   }
 
-  get saveFile(): SraSaveFile {
-    const sra = new SraSaveFile();
-    return sra.read(this.sram);
-  }
-
-  read(source: Deno.FsFile | Uint8Array): this {
-    let bytes: Uint8Array;
-    if (source instanceof Uint8Array) {
-      if (source.length < SrmSaveFile.requiredSize) {
-        throw Error(
-          `Incorrect data size, cannot read save file. Expected at least ${SrmSaveFile.requiredSize} bytes, got ${source.length}.`,
-        );
-      }
-      bytes = source.slice(0, SrmSaveFile.requiredSize);
-    } else {
-      bytes = new Uint8Array(SrmSaveFile.requiredSize);
-      const readBytes = source.readSync(bytes);
-      if (SrmSaveFile.requiredSize !== readBytes) {
-        throw Error(
-          `Incorrect file size, cannot read save file. Expected ${SrmSaveFile.requiredSize} bytes, got ${readBytes}.`,
-        );
-      }
-    }
-
+  override set data(bytes: Uint8Array) {
     let currentOffset = 0x00;
 
     this.eeprom = bytes.slice(
@@ -123,7 +100,10 @@ export class SrmSaveFile extends SaveFile {
       currentOffset + SrmSaveFile.FLASHRAM_SIZE,
     );
     currentOffset += SrmSaveFile.FLASHRAM_SIZE;
+  }
 
-    return this;
+  get saveFile(): SraSaveFile {
+    const sra = new SraSaveFile();
+    return sra.read(this.sram);
   }
 }

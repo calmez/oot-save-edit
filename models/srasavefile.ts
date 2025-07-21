@@ -34,7 +34,7 @@ export class SraSaveFile extends SaveFile {
     return this.byteSwapped;
   }
 
-  getData(forceSwap = false): Uint8Array {
+  override getData(forceSwap = false): Uint8Array {
     const bytes = new Uint8Array(SraSaveFile.requiredSize);
 
     let currentOffset = 0x00;
@@ -59,30 +59,11 @@ export class SraSaveFile extends SaveFile {
     return bytes;
   }
 
-  get data(): Uint8Array {
-    return this.getData();
+  override get data(): Uint8Array {
+    return super.data;
   }
 
-  read(source: Deno.FsFile | Uint8Array): this {
-    const bytes = new Uint8Array(SraSaveFile.requiredSize);
-    if (source instanceof Uint8Array) {
-      if (source.length < SraSaveFile.requiredSize) {
-        throw Error(
-          `Incorrect data size, cannot read save file. Expected at least ${SraSaveFile.requiredSize} bytes, got ${source.length}.`,
-        );
-      }
-      bytes.set(source.slice(0, SraSaveFile.requiredSize), 0);
-    } else {
-      const readBytes = source.readSync(bytes);
-      if ((readBytes ?? 0) < SraSaveFile.requiredSize) {
-        throw Error(
-          `Incorrect file size, cannot read save file. Expected at least ${SraSaveFile.requiredSize} bytes, got ${readBytes}.`,
-        );
-      }
-    }
-
-    this.ensureByteOrder(bytes);
-
+  override set data(bytes: Uint8Array) {
     let currentOffset = 0x00;
 
     this.header = new SaveHeader(
@@ -103,8 +84,10 @@ export class SraSaveFile extends SaveFile {
       );
       currentOffset += SaveSlot.requiredSize;
     }
+  }
 
-    return this;
+  protected override checkDataOnRead(bytes: Uint8Array): Uint8Array {
+    return this.ensureByteOrder(bytes);
   }
 
   private ensureByteOrder(bytes: Uint8Array): Uint8Array {
