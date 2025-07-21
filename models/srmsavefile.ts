@@ -43,7 +43,7 @@ export class SrmSaveFile extends SaveFile {
     return srm;
   }
 
-  get data(): Uint8Array {
+  getData(forceSwap = false): Uint8Array {
     const bytes = new Uint8Array(SrmSaveFile.requiredSize);
     let currentOffset = 0x00;
 
@@ -61,7 +61,15 @@ export class SrmSaveFile extends SaveFile {
     bytes.set(this.flashram, currentOffset);
     currentOffset += SrmSaveFile.FLASHRAM_SIZE;
 
+    if (forceSwap) {
+      FileUtil.byteSwap(bytes);
+    }
+
     return bytes;
+  }
+
+  get data(): Uint8Array {
+    return this.getData();
   }
 
   get saveFile(): SraSaveFile {
@@ -117,30 +125,5 @@ export class SrmSaveFile extends SaveFile {
     currentOffset += SrmSaveFile.FLASHRAM_SIZE;
 
     return this;
-  }
-
-  write(file: Deno.FsFile, forceSwap = false) {
-    const bytes = new Uint8Array(SrmSaveFile.requiredSize);
-    let currentOffset = 0x00;
-
-    bytes.set(this.eeprom, currentOffset);
-    currentOffset += SrmSaveFile.EEPROM_SIZE;
-
-    for (let i = 0; i < SrmSaveFile.MEMPACK_COUNT; i++) {
-      bytes.set(this.mempacks[i], currentOffset);
-      currentOffset += SrmSaveFile.MEMPACK_SIZE;
-    }
-
-    bytes.set(this.sram, currentOffset);
-    currentOffset += SrmSaveFile.SRAM_SIZE;
-
-    bytes.set(this.flashram, currentOffset);
-    currentOffset += SrmSaveFile.FLASHRAM_SIZE;
-
-    if (forceSwap) {
-      FileUtil.byteSwap(bytes);
-    }
-
-    file.writeSync(bytes);
   }
 }
