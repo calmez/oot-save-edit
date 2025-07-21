@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { SraSaveFile } from "../../models/srasavefile.ts";
-import { Box } from "ink";
+import { Box, Text } from "ink";
 import { Form } from "ink-form";
 import {
   LanguageOption,
@@ -96,7 +96,19 @@ interface FormState {
 }
 
 export const Save = ({ filename }: SaveProps): Promise<React.JSX.Element> => {
-  const originalSaveFile = FileUtil.loadFile(filename);
+  let originalSaveFile: SraSaveFile;
+  try {
+    originalSaveFile = FileUtil.loadFile(filename);
+  } catch (error) {
+    const errorMessage = error instanceof Error
+      ? error.message
+      : "Unknown error";
+    return (
+      <Box flexDirection="column">
+        <Text color="red">Error loading save file: {errorMessage}</Text>
+      </Box>
+    );
+  }
 
   function makeSlotForm(index: 0 | 1 | 2) {
     return {
