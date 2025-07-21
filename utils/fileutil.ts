@@ -1,3 +1,4 @@
+import { SaveFile } from "../models/savefile.ts";
 import { SraSaveFile } from "../models/srasavefile.ts";
 import { SrmSaveFile } from "../models/srmsavefile.ts";
 
@@ -65,17 +66,21 @@ export class FileUtil {
       }
       
       file.seekSync(0, Deno.SeekMode.Start);
+      let save: SaveFile;
       
       switch (fileType) {
         case FileFormat.SRA:
-          return new SraSaveFile(file);
-        
+          save = new SraSaveFile();
+          break
         case FileFormat.SRM:
-          return new SrmSaveFile(file).saveFile;
-        
+          save = new SrmSaveFile();
+          break;
         default:
           throw new Error(`Unknown or unsupported save file format: ${path}`);
       }
+
+      save.read(file);
+      return save instanceof SrmSaveFile ? save.saveFile : save as SraSaveFile;
     } finally {
       file.close();
     }

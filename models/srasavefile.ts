@@ -4,32 +4,30 @@ import { SaveHeader } from "./saveheader.ts";
 import { SaveSlot } from "./saveslot.ts";
 
 export class SraSaveFile extends SaveFile {
-  header: SaveHeader;
-  slots: [SaveSlot, SaveSlot, SaveSlot];
-  backups: [SaveSlot, SaveSlot, SaveSlot];
+  header = new SaveHeader();
+  slots: [SaveSlot, SaveSlot, SaveSlot] = [
+    new SaveSlot(),
+    new SaveSlot(),
+    new SaveSlot(),
+  ];
+  backups: [SaveSlot, SaveSlot, SaveSlot] = [
+    new SaveSlot(),
+    new SaveSlot(),
+    new SaveSlot(),
+  ];
   private byteSwapped: boolean = false;
 
   private static get saveSlots(): number {
     return 3;
   }
 
-  static get requiredSize(): number {
+  static override get requiredSize(): number {
     return SaveHeader.requiredSize + this.saveSlots * SaveSlot.requiredSize +
       this.saveSlots * SaveSlot.requiredSize;
   }
 
-  static get acceptedSize(): number {
+  static override get acceptedSize(): number {
     return 0x8000;
-  }
-
-  constructor(source?: Deno.FsFile | Uint8Array) {
-    super();
-    this.header = new SaveHeader();
-    this.slots = [new SaveSlot(), new SaveSlot(), new SaveSlot()];
-    this.backups = [new SaveSlot(), new SaveSlot(), new SaveSlot()];
-    if (source) {
-      this.read(source);
-    }
   }
 
   get isByteSwapped(): boolean {
