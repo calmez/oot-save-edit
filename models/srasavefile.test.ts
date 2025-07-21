@@ -58,7 +58,8 @@ Deno.test({
   fn() {
     const expectedFileSize = 31232;
     const testBytes = new Uint8Array(expectedFileSize);
-    const instance = new SraSaveFile(testBytes);
+    const instance = new SraSaveFile();
+    instance.read(testBytes);
     assertEquals(instance.data.length, expectedFileSize);
   }
 });
@@ -110,7 +111,8 @@ Deno.test({
       buffer.set(fakeBytes);
       return SraSaveFile.requiredSize;
     });
-    const instance = new SraSaveFile(testFile);
+    const instance = new SraSaveFile();
+    instance.read(testFile);
     assertFalse(instance.isByteSwapped);
   },
 });
