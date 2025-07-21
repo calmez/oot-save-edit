@@ -6,7 +6,9 @@ export abstract class SaveFile {
     throw new Error("Method not implemented.");
   }
 
-  abstract get data(): Uint8Array;
+  abstract getData(forceSwap: boolean): Uint8Array;
   abstract read(source: Deno.FsFile | Uint8Array): this;
-  abstract write(file: Deno.FsFile, forceSwap: boolean): void;
+  write(file: Deno.FsFile, forceSwap: boolean): void {
+    file.writeSync(this.getData(forceSwap));
+  }
 }
