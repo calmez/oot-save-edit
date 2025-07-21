@@ -34,20 +34,33 @@ export class SraSaveFile extends SaveFile {
     return this.byteSwapped;
   }
 
-  get data(): Uint8Array {
+  getData(forceSwap = false): Uint8Array {
     const bytes = new Uint8Array(SraSaveFile.requiredSize);
+
     let currentOffset = 0x00;
+
     bytes.set(this.header.data, currentOffset);
     currentOffset += SaveHeader.requiredSize;
+
     for (let i = 0; i < SraSaveFile.saveSlots; i++) {
       bytes.set(this.slots[i].data, currentOffset);
       currentOffset += SaveSlot.requiredSize;
     }
+
     for (let i = 0; i < SraSaveFile.saveSlots; i++) {
       bytes.set(this.backups[i].data, currentOffset);
       currentOffset += SaveSlot.requiredSize;
     }
+
+    if ((this.byteSwapped && !forceSwap) || (!this.byteSwapped && forceSwap)) {
+      FileUtil.byteSwap(bytes);
+    }
+
     return bytes;
+  }
+
+  get data(): Uint8Array {
+    return this.getData();
   }
 
   read(source: Deno.FsFile | Uint8Array): this {
@@ -107,30 +120,5 @@ export class SraSaveFile extends SaveFile {
       this.byteSwapped = true;
     }
     return bytes;
-  }
-
-  write(file: Deno.FsFile, forceSwap: boolean = false): void {
-    const bytes = new Uint8Array(SraSaveFile.requiredSize);
-
-    let currentOffset = 0x00;
-
-    bytes.set(this.header.data, currentOffset);
-    currentOffset += SaveHeader.requiredSize;
-
-    for (let i = 0; i < SraSaveFile.saveSlots; i++) {
-      bytes.set(this.slots[i].data, currentOffset);
-      currentOffset += SaveSlot.requiredSize;
-    }
-
-    for (let i = 0; i < SraSaveFile.saveSlots; i++) {
-      bytes.set(this.backups[i].data, currentOffset);
-      currentOffset += SaveSlot.requiredSize;
-    }
-
-    if ((this.byteSwapped && !forceSwap) || (!this.byteSwapped && forceSwap)) {
-      FileUtil.byteSwap(bytes);
-    }
-
-    file.writeSync(bytes);
   }
 }
