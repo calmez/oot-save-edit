@@ -62,7 +62,11 @@ export class FileUtil {
       const fileType = this.detectFileFormatBySize(file);
       const fileTypeByExtension = this.detectFileFormatByExtension(path);
       if (fileType !== fileTypeByExtension) {
-        throw new Error(`File format mismatch: detected ${fileType}, expected ${fileTypeByExtension}`);
+        throw new Error(
+          `File format mismatch: detected ${FileFormat[fileType]}, expected ${
+            FileFormat[fileTypeByExtension]
+          } - try renaming the file.`,
+        );
       }
       
       file.seekSync(0, Deno.SeekMode.Start);
