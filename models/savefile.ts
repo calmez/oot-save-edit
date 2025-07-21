@@ -18,7 +18,7 @@ export class SaveFile {
   set data(_bytes: Uint8Array) {
     throw new Error("Method not implemented.");
   }
-  
+
   protected checkDataOnRead(bytes: Uint8Array): Uint8Array {
     return bytes;
   }

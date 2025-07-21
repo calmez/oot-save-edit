@@ -1,7 +1,7 @@
-import { FileUtil, FileFormat } from "./fileutil.ts";
+import { FileFormat, FileUtil } from "./fileutil.ts";
 import { SraSaveFile } from "../models/srasavefile.ts";
 import { SrmSaveFile } from "../models/srmsavefile.ts";
-import { assertEquals, assertThrows, assertInstanceOf } from "@std/assert";
+import { assertEquals, assertInstanceOf, assertThrows } from "@std/assert";
 
 Deno.test({
   name: "should detect SRA file format by size",
@@ -11,7 +11,7 @@ Deno.test({
       seekSync: () => {},
     } as unknown as Deno.FsFile;
     assertEquals(FileUtil.detectFileFormatBySize(file), FileFormat.SRA);
-  }
+  },
 });
 
 Deno.test({
@@ -22,7 +22,7 @@ Deno.test({
       seekSync: () => {},
     } as unknown as Deno.FsFile;
     assertEquals(FileUtil.detectFileFormatBySize(file), FileFormat.SRM);
-  }
+  },
 });
 
 Deno.test({
@@ -33,22 +33,28 @@ Deno.test({
       seekSync: () => {},
     } as unknown as Deno.FsFile;
     assertThrows(() => FileUtil.detectFileFormatBySize(file));
-  }
+  },
 });
 
 Deno.test({
   name: "should detect file format by extension",
   fn() {
-    assertEquals(FileUtil.detectFileFormatByExtension("save.sra"), FileFormat.SRA);
-    assertEquals(FileUtil.detectFileFormatByExtension("save.srm"), FileFormat.SRM);
-  }
+    assertEquals(
+      FileUtil.detectFileFormatByExtension("save.sra"),
+      FileFormat.SRA,
+    );
+    assertEquals(
+      FileUtil.detectFileFormatByExtension("save.srm"),
+      FileFormat.SRM,
+    );
+  },
 });
 
 Deno.test({
   name: "should throw on unknown extension",
   fn() {
     assertThrows(() => FileUtil.detectFileFormatByExtension("save.bin"));
-  }
+  },
 });
 
 Deno.test({
@@ -57,7 +63,7 @@ Deno.test({
     const arr = new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8]);
     const swapped = FileUtil.byteSwap(arr.slice());
     assertEquals(Array.from(swapped), [4, 3, 2, 1, 8, 7, 6, 5]);
-  }
+  },
 });
 
 Deno.test({
@@ -83,7 +89,7 @@ Deno.test({
     } finally {
       (Deno as any).openSync = origOpenSync;
     }
-  }
+  },
 });
 
 Deno.test({
@@ -109,7 +115,7 @@ Deno.test({
     } finally {
       (Deno as any).openSync = origOpenSync;
     }
-  }
+  },
 });
 
 Deno.test({
@@ -129,5 +135,5 @@ Deno.test({
     } finally {
       (Deno as any).openSync = origOpenSync;
     }
-  }
+  },
 });
