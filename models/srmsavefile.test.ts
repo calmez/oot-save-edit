@@ -45,7 +45,8 @@ Deno.test({
       "readSync",
       returnsNext([expectedFileSize]),
     );
-    new SrmSaveFile(testFile);
+    const instance = new SrmSaveFile();
+    instance.read(testFile);
     assertSpyCalls(readSyncStub, 1);
   },
 });
@@ -55,7 +56,8 @@ Deno.test({
   fn() {
     const expectedFileSize = 296960;
     const testBytes = new Uint8Array(expectedFileSize);
-    const instance = new SrmSaveFile(testBytes);
+    const instance = new SrmSaveFile();
+    instance.read(testBytes);
     assertEquals(instance.data.length, expectedFileSize);
   }
 });
@@ -69,7 +71,8 @@ Deno.test({
       statSync: () => ({ size: wrongFileSize }), 
       readSync: (_: Uint8Array) => wrongFileSize,
     } as Deno.FsFile;
-    assertThrows(() => new SrmSaveFile(testFile));
+    const instance = new SrmSaveFile();
+    assertThrows(() => instance.read(testFile));
   }
 });
 
@@ -91,7 +94,8 @@ Deno.test({
   fn() {
     const sraData = new Uint8Array(SraSaveFile.requiredSize);
     sraData.fill(0x33);
-    const sra = new SraSaveFile(sraData);
+    const sra = new SraSaveFile();
+    sra.read(sraData);
     const srm = SrmSaveFile.fromSaveFile(sra);
     assertEquals(srm.sram.slice(0, SraSaveFile.requiredSize), sra.data);
   }
