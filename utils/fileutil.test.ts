@@ -81,12 +81,14 @@ Deno.test({
     } as unknown as Deno.FsFile;
 
     const origOpenSync = Deno.openSync;
+    // deno-lint-ignore no-explicit-any
     (Deno as any).openSync = () => file;
     try {
       const save = FileUtil.loadFile("save.sra");
       assertInstanceOf(save, SraSaveFile);
       if (!readCalled) throw new Error("readSync not called");
     } finally {
+      // deno-lint-ignore no-explicit-any
       (Deno as any).openSync = origOpenSync;
     }
   },
@@ -107,12 +109,14 @@ Deno.test({
     } as unknown as Deno.FsFile;
 
     const origOpenSync = Deno.openSync;
+    // deno-lint-ignore no-explicit-any
     (Deno as any).openSync = () => file;
     try {
       const save = FileUtil.loadFile("save.srm");
       assertInstanceOf(save, SraSaveFile);
       if (!readCalled) throw new Error("readSync not called");
     } finally {
+      // deno-lint-ignore no-explicit-any
       (Deno as any).openSync = origOpenSync;
     }
   },
@@ -129,10 +133,12 @@ Deno.test({
     } as unknown as Deno.FsFile;
 
     const origOpenSync = Deno.openSync;
+    // deno-lint-ignore no-explicit-any
     (Deno as any).openSync = () => file;
     try {
       assertThrows(() => FileUtil.loadFile("save.srm"));
     } finally {
+      // deno-lint-ignore no-explicit-any
       (Deno as any).openSync = origOpenSync;
     }
   },
