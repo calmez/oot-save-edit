@@ -104,6 +104,6 @@ export class SrmSaveFile extends SaveFile {
 
   get saveFile(): SraSaveFile {
     const sra = new SraSaveFile();
-    return sra.read(this.sram.slice(0, SrmSaveFile.SRAM_SIZE));
+    return sra.read(this.sram);
   }
 }
