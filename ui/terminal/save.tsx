@@ -95,7 +95,7 @@ interface FormState {
   currentFormData: FormData;
 }
 
-export const Save = ({ filename }: SaveProps): Promise<React.JSX.Element> => {
+export const Save = ({ filename }: SaveProps): React.JSX.Element => {
   let originalSaveFile: SraSaveFile;
   try {
     originalSaveFile = FileUtil.loadFile(filename);
