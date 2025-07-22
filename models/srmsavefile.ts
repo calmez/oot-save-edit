@@ -38,7 +38,7 @@ export class SrmSaveFile extends SaveFile {
 
   static fromSaveFile(save: SraSaveFile): SrmSaveFile {
     const srm = new SrmSaveFile();
-    srm.sram.set(FileUtil.byteSwap(save.data), 0);
+    srm.sram.set(save.getData(true), 0);
 
     return srm;
   }
@@ -104,6 +104,6 @@ export class SrmSaveFile extends SaveFile {
 
   get saveFile(): SraSaveFile {
     const sra = new SraSaveFile();
-    return sra.read(this.sram);
+    return sra.read(this.sram.slice(0, SrmSaveFile.SRAM_SIZE));
   }
 }
