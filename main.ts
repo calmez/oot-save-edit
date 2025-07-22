@@ -1,21 +1,20 @@
-import { SraSaveFile } from "./models/srasavefile.ts";
 import { LanguageOption, SoundOption } from "./models/saveheader.ts";
 import { Age } from "./models/saveslot.ts";
 import { Scene, Time } from "./models/scene.ts";
+import { FileUtil } from "./utils/fileutil.ts";
 
-async function runTheThing() {
+function runTheThing() {
   if (Deno.args.length < 1) {
     console.error(`You need to provide a filename to open.`);
     return;
   }
+  const filename = Deno.args[0];
 
   console.log(`>>> OoT Save Edit <<<`);
 
-  const file = await Deno.open(Deno.args[0]);
-  const save = new SraSaveFile(file);
-  file.close();
+  const save = FileUtil.loadFile(filename);
 
-  console.debug(`Successfully read the file: ${Deno.args[0]}`);
+  console.debug(`Successfully read the file: ${filename}`);
   console.debug(
     `Save has sound option ${SoundOption[save.header.soundOption]}`,
   );
@@ -33,12 +32,11 @@ async function runTheThing() {
   console.debug(`The current time is ${Time[slot.nightFlag]}`);
   console.debug(`The current cutscene number is ${slot.cutSceneNumber}`);
 
-  const outFile = await Deno.open(`${Deno.args[0]}_out`, {
-    write: true,
-    create: true,
-  });
-  save.write(outFile, true);
-  outFile.close();
+  FileUtil.saveFile(
+    `${Deno.args[0]}_out`,
+    FileUtil.detectFileFormatByExtension(filename),
+    save,
+  );
 }
 
 if (import.meta.main) {
