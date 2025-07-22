@@ -2,18 +2,23 @@ import { SaveFile } from "../models/savefile.ts";
 import { SraSaveFile } from "../models/srasavefile.ts";
 import { SrmSaveFile } from "../models/srmsavefile.ts";
 
+/**
+ * Supported file formats for save files
+ * SRA is the core format used by the cartridge
+ * SRM is used by emulators such as through libretro
+ */
 export enum FileFormat {
   SRA,
   SRM,
 }
 
 /**
- * Detects the type of save file (SRA or SRM) based on file size
+ * Detects the {@link FileType} of save file (SRA or SRM) based on file size
  * and returns the appropriate SaveFile instance.
  */
 export class FileUtil {
   /**
-   * Detect file type based on size
+   * Detect the {@link FileType} based on size
    * SRA: < 0x8000 bytes (32KB)
    * SRM: 0x48800 (contains EEPROM, MemPak, SRAM, FlashRAM sections)
    */
@@ -32,15 +37,9 @@ export class FileUtil {
     }
   }
 
-  static byteSwap(bytes: Uint8Array): Uint8Array {
-    for (let i = 0; i < bytes.length; i += 4) {
-      const temp = bytes.slice(i, i + 4);
-      temp.reverse();
-      bytes.set(temp, i);
-    }
-    return bytes;
-  }
-
+  /**
+   * Detect {@link FileType} based on file extension used
+   */
   static detectFileFormatByExtension(path: string): FileFormat {
     const ext = path.toLowerCase().split(".").pop();
 
@@ -56,8 +55,19 @@ export class FileUtil {
     }
   }
 
+  static byteSwap(bytes: Uint8Array): Uint8Array {
+    for (let i = 0; i < bytes.length; i += 4) {
+      const temp = bytes.slice(i, i + 4);
+      temp.reverse();
+      bytes.set(temp, i);
+    }
+    return bytes;
+  }
+
   /**
-   * Load save file and return appropriate instance based on detected type
+   * Load a save file from either format and always return the core SRA save
+   * @param path to load the save file data from, is also used for automatic
+   * format detection
    */
   static loadFile(path: string): SraSaveFile {
     const file = Deno.openSync(path, { read: true });
@@ -88,12 +98,24 @@ export class FileUtil {
       }
 
       save.read(file);
-      return save instanceof SrmSaveFile ? save.saveFile : save as SraSaveFile;
+      if (save instanceof SrmSaveFile) {
+        return save.saveFile;
+      }
+      return save as SraSaveFile;
     } finally {
       file.close();
     }
   }
 
+  /**
+   * Writes the savefile to disk in the desired file format
+   * @param path to write the file to
+   * @param format save file format to write
+   * @param save savefile data to write
+   * @param forceSwap force a byte swap before writing (when converting from SRA
+   * to SRM the swap will be done automatically, force swapping will reverse the
+   * effect in that case)
+   */
   static saveFile(
     path: string,
     format: FileFormat,
