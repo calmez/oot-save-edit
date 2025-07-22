@@ -1,3 +1,5 @@
+import { FileUtil } from "../utils/fileutil.ts";
+
 export class SaveFile {
   static get requiredSize(): number {
     throw new Error("Method not implemented.");
@@ -50,7 +52,15 @@ export class SaveFile {
     return this;
   }
 
+  getDataForWrite(): Uint8Array {
+    return this.getData();
+  }
+
   write(file: Deno.FsFile, forceSwap: boolean = false): void {
-    file.writeSync(this.getData(forceSwap));
+    const data = this.getDataForWrite();
+    if (forceSwap) {
+      FileUtil.byteSwap(data, true);
+    }
+    file.writeSync(data);
   }
 }

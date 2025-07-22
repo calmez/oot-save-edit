@@ -55,7 +55,19 @@ export class FileUtil {
     }
   }
 
-  static byteSwap(bytes: Uint8Array): Uint8Array {
+  /**
+   * Swaps bytes in a Uint8Array.
+   * @param input Uint8Array to swap bytes in
+   * @param inPlace Determine if the input array should be modified in place
+   * (default: false, returns a new Uint8Array)
+   * @returns Swapped bytes Uint8Array
+   */
+  static byteSwap(input: Uint8Array, inPlace = false): Uint8Array {
+    const bytes = inPlace ? input : new Uint8Array(input);
+    return this.byteSwapInPlace(bytes);
+  }
+
+  private static byteSwapInPlace(bytes: Uint8Array): Uint8Array {
     for (let i = 0; i < bytes.length; i += 4) {
       const temp = bytes.slice(i, i + 4);
       temp.reverse();
