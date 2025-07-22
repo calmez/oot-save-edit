@@ -13,12 +13,12 @@ export enum FileFormat {
 }
 
 /**
- * Detects the {@link FileType} of save file (SRA or SRM) based on file size
+ * Detects the {@link FileFormat} of save file (SRA or SRM) based on file size
  * and returns the appropriate SaveFile instance.
  */
 export class FileUtil {
   /**
-   * Detect the {@link FileType} based on size
+   * Detect the {@link FileFormat} based on size
    * SRA: < 0x8000 bytes (32KB)
    * SRM: 0x48800 (contains EEPROM, MemPak, SRAM, FlashRAM sections)
    */
@@ -38,7 +38,7 @@ export class FileUtil {
   }
 
   /**
-   * Detect {@link FileType} based on file extension used
+   * Detect {@link FileFormat} based on file extension used
    */
   static detectFileFormatByExtension(path: string): FileFormat {
     const ext = path.toLowerCase().split(".").pop();
