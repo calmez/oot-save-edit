@@ -58,11 +58,21 @@ Deno.test({
 });
 
 Deno.test({
-  name: "should swap bytes in byteSwap",
+  name: "should swap bytes",
   fn() {
     const arr = new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8]);
     const swapped = FileUtil.byteSwap(arr.slice());
     assertEquals(Array.from(swapped), [4, 3, 2, 1, 8, 7, 6, 5]);
+  },
+});
+
+Deno.test({
+  name: "should swap bytes in place",
+  fn() {
+    const arr = new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8]);
+    const swapped = FileUtil.byteSwap(arr, true);
+    assertEquals(Array.from(swapped), [4, 3, 2, 1, 8, 7, 6, 5]);
+    assertEquals(arr, swapped); // should modify original array
   },
 });
 
