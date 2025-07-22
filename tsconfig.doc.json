@@ -1,12 +1,21 @@
 {
   "compilerOptions": {
-    "target": "ESNext",
+    "allowImportingTsExtensions": true,
+    "allowJs": true,
+    "esModuleInterop": true,
+    "experimentalDecorators": true,
+    "inlineSourceMap": true,
+    "isolatedModules": true,
+    "jsx": "react",
+    "module": "esnext",
+    "moduleDetection": "force",
+    "strict": true,
+    "target": "esnext",
+    "useDefineForClassFields": true,
     "lib": ["ESNext"],
     "paths": {
       "@std/*": ["doc.modulestub.ts"]
     },
-    "allowImportingTsExtensions": true,
-    "jsx": "react",
     "baseUrl": "."
   },
   "exclude": ["**/*.test.ts", "ui/**", "main.ts"]
