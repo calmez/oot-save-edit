@@ -90,6 +90,14 @@ export class SraSaveFile extends SaveFile {
     return this.ensureByteOrder(bytes);
   }
 
+  override getDataForWrite(): Uint8Array {
+    const data = super.getDataForWrite();
+    if (this.byteSwapped) {
+      FileUtil.byteSwap(data, true);
+    }
+    return data;
+  }
+
   private ensureByteOrder(bytes: Uint8Array): Uint8Array {
     if (
       SaveHeader.validCheckPattern.some((value, index) => {
@@ -99,7 +107,7 @@ export class SraSaveFile extends SaveFile {
         return true;
       })
     ) {
-      FileUtil.byteSwap(bytes);
+      bytes = FileUtil.byteSwap(bytes);
       this.byteSwapped = true;
     }
     return bytes;
