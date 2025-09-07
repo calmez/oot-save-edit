@@ -1,6 +1,5 @@
 import { FileFormat, FileUtil } from "./fileutil.ts";
-import { SraSaveFile } from "../models/srasavefile.ts";
-import { SrmSaveFile } from "../models/srmsavefile.ts";
+import { SraSaveFile, SrmSaveFile } from "../models/savefile.ts";
 import { assertEquals, assertInstanceOf, assertThrows } from "@std/assert";
 
 Deno.test({
