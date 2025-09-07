@@ -23,7 +23,6 @@
       "runtimeExecutable": "deno",
       "runtimeArgs": [
         "run",
-        "--unstable",
         "--inspect-wait",
         "--allow-all"
       ],
@@ -40,7 +39,6 @@
       "runtimeExecutable": "deno",
       "runtimeArgs": [
         "run",
-        "--unstable",
         "--inspect-wait",
         "--allow-all"
       ],
@@ -57,7 +55,6 @@
       "runtimeExecutable": "deno",
       "runtimeArgs": [
         "run",
-        "--unstable",
         "--inspect-wait",
         "--allow-all"
       ],
