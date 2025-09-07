@@ -1,6 +1,5 @@
 import { SaveFile } from "../models/savefile.ts";
-import { SraSaveFile } from "../models/srasavefile.ts";
-import { SrmSaveFile } from "../models/srmsavefile.ts";
+import { SraSaveFile, SrmSaveFile } from "../models/savefile.ts";
 
 /**
  * Supported file formats for save files

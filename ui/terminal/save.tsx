@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { SraSaveFile } from "../../models/srasavefile.ts";
+import { SraSaveFile } from "../../models/savefile.ts";
 import { Box, Text } from "ink";
 import { Form } from "ink-form";
 import {
