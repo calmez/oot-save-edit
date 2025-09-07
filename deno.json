@@ -1,10 +1,10 @@
 {
   "tasks": {
+    "dev": "deno run --inspect-wait --allow-read ./main.ts",
     "template:tui": "deno $COMMAND --allow-env --allow-read --allow-write $ARGS ./ui/terminal/main.tsx",
     "template:gui": "deno $COMMAND --allow-env --allow-read --allow-write --allow-net --allow-ffi $ARGS ./ui/main.ts",
     "run:tui": "COMMAND=run deno task template:tui",
     "run:gui": "COMMAND=run deno task template:gui",
-    "dev": "deno run --inspect-wait --allow-read ./main.ts",
     "debug:tui": "COMMAND=run ARGS=--inspect-wait deno task template:tui",
     "debug:gui": "COMMAND=run ARGS=--inspect-wait deno task template:gui",
     "build:tui": "COMMAND=compile ARGS=\"--no-prompt --output=./build/$PLATFORM/tui --target $PLATFORM\" deno task template:tui",
