@@ -1,6 +1,7 @@
 {
   "recommendations": [
     "denoland.vscode-deno",
-    "ms-vscode.hexeditor"
+    "ms-vscode.hexeditor",
+    "bradlc.vscode-tailwindcss"
   ]
 }
