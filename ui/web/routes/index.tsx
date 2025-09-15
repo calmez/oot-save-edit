@@ -11,20 +11,19 @@ export default define.page(function Home(ctx) {
   return (
     <div class="px-4 py-8 mx-auto fresh-gradient min-h-screen">
       <Head>
-        <title>Fresh counter</title>
+        <title>OOT Save Edit</title>
       </Head>
       <div class="max-w-screen-md mx-auto flex flex-col items-center justify-center">
         <img
           class="my-6"
-          src="/logo.svg"
+          src="/ocarina.png"
           width="128"
           height="128"
-          alt="the Fresh logo: a sliced lemon dripping with juice"
+          alt="the OOT Save Edit logo: an ocarina from the game"
         />
-        <h1 class="text-4xl font-bold">Welcome to Fresh</h1>
+        <h1 class="text-4xl font-bold">OOT Save Edit</h1>
         <p class="my-4">
-          Try updating this message in the
-          <code class="mx-2">./routes/index.tsx</code> file, and refresh.
+          Web interface for editing Ocarina of Time save files
         </p>
         <Counter count={count} />
       </div>
