@@ -1,6 +1,6 @@
 import { join } from "@std/path";
-import { Application } from "jsr:@oak/oak/application";
-import { Router } from "jsr:@oak/oak/router";
+import { Application } from "@oak/oak/application";
+import { Router } from "@oak/oak/router";
 import { Scene, Time } from "../models/scene.ts";
 import { LanguageOption, SoundOption } from "../models/saveheader.ts";
 import { FileUtil } from "../utils/fileutil.ts";

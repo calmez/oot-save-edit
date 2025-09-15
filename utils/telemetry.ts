@@ -1,4 +1,4 @@
-import { metrics, trace, ValueType } from "npm:@opentelemetry/api@1";
+import { metrics, trace, ValueType } from "@opentelemetry/api";
 
 const appName = "oot-save-edit";
 
