@@ -3,6 +3,7 @@
   "specifiers": {
     "jsr:@denosaurs/plug@1": "1.0.6",
     "jsr:@oak/commons@1": "1.0.0",
+    "jsr:@oak/oak@*": "17.1.4",
     "jsr:@oak/oak@17": "17.1.4",
     "jsr:@std/assert@0.221": "0.221.0",
     "jsr:@std/assert@1": "1.0.11",
@@ -25,6 +26,8 @@
     "jsr:@std/path@^1.0.8": "1.0.8",
     "jsr:@std/testing@1": "1.0.9",
     "jsr:@webview/webview@*": "0.9.0",
+    "npm:@opentelemetry/api@1": "1.9.0",
+    "npm:@opentelemetry/api@^1.9.0": "1.9.0",
     "npm:@types/node@*": "22.13.9",
     "npm:ink-big-text@2": "2.0.0_ink@5.1.1__react@18.3.1_react@18.3.1",
     "npm:ink-form@2": "2.0.1_ink@5.1.1__react@18.3.1_react@18.3.1",
@@ -167,6 +170,9 @@
         "@shikijs/types",
         "@shikijs/vscode-textmate"
       ]
+    },
+    "@opentelemetry/api@1.9.0": {
+      "integrity": "sha512-3giAOQvZiH5F9bMlMiv8+GSPMeqg0dbaeo58/0SlA9sxSqZhnUtxzX9/2FzyhS9sWQf5S0GJE0AKBrFqjpeYcg=="
     },
     "@shikijs/engine-oniguruma@1.29.2": {
       "integrity": "sha512-7iiOx3SG8+g1MnlzZVDYiaeHe7Ez2Kf2HrJzdmGwkRisT7r4rak0e655AcM/tF9JG/kg5fMNYlLLKglbN7gBqA==",
@@ -849,6 +855,7 @@
       "jsr:@std/path@1",
       "jsr:@std/testing@1",
       "jsr:@webview/webview@*",
+      "npm:@opentelemetry/api@^1.9.0",
       "npm:ink-big-text@2",
       "npm:ink-form@2",
       "npm:ink-gradient@3",

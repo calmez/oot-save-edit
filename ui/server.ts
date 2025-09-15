@@ -10,6 +10,7 @@ function buildOutput(filename?: string): string {
     throw new Error("No filename provided");
   }
   const basePath = join(Deno.cwd(), "test-data"); // TODO: let user set this in UI
+
   const save = FileUtil.loadFile(`${basePath}/${filename}`);
 
   return `

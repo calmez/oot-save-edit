@@ -1,5 +1,6 @@
 import { SaveFile } from "../models/savefile.ts";
 import { SraSaveFile, SrmSaveFile } from "../models/savefile.ts";
+import { Metric, Span } from "./telemetry.ts";
 
 /**
  * Supported file formats for save files
@@ -81,6 +82,9 @@ export class FileUtil {
    * format detection
    */
   static loadFile(path: string): SraSaveFile {
+    const span = Span.loadFile(path);
+    const startTime = new Date().getTime();
+
     const file = Deno.openSync(path, { read: true });
 
     try {
@@ -115,6 +119,11 @@ export class FileUtil {
       return save as SraSaveFile;
     } finally {
       file.close();
+
+      const endTime = new Date().getTime();
+      span.setAttributes({ "file.readDuration": endTime - startTime });
+      Metric.loadFileDuration.record(endTime - startTime);
+      span.end();
     }
   }
 
@@ -133,21 +142,31 @@ export class FileUtil {
     save: SraSaveFile,
     forceSwap: boolean = false,
   ): void {
+    const span = Span.saveFile(path, format, forceSwap);
+    const startTime = new Date().getTime();
+
     const file = Deno.openSync(path, { write: true, create: true });
 
-    switch (format) {
-      case FileFormat.SRA:
-        save.write(file, forceSwap);
-        break;
-      case FileFormat.SRM: {
-        const srm = SrmSaveFile.fromSaveFile(save);
-        srm.write(file, forceSwap);
-        break;
+    try {
+      switch (format) {
+        case FileFormat.SRA:
+          save.write(file, forceSwap);
+          break;
+        case FileFormat.SRM: {
+          const srm = SrmSaveFile.fromSaveFile(save);
+          srm.write(file, forceSwap);
+          break;
+        }
+        default:
+          throw new Error(`Unsupported save format for writing: ${format}`);
       }
-      default:
-        throw new Error(`Unsupported save format for writing: ${format}`);
-    }
+    } finally {
+      file.close();
 
-    file.close();
+      const endTime = new Date().getTime();
+      span.setAttributes({ "file.writeDuration": endTime - startTime });
+      Metric.saveFileDuration.record(endTime - startTime);
+      span.end();
+    }
   }
 }
