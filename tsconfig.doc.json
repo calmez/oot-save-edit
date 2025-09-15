@@ -14,7 +14,8 @@
     "useDefineForClassFields": true,
     "lib": ["ESNext"],
     "paths": {
-      "@std/*": ["doc.modulestub.ts"]
+      "@std/*": ["doc.modulestub.ts"],
+      "@opentelemetry/api": ["doc.modulestub.ts"]
     },
     "baseUrl": "."
   },
