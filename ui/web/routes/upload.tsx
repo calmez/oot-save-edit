@@ -4,7 +4,7 @@ import { define } from "../utils.ts";
 import Save from "../islands/Save.tsx";
 
 export const handler = define.handlers({
-  async GET(ctx) {
+  GET(_ctx) {
     return { data: { message: null } };
   },
   async POST(ctx) {
@@ -41,7 +41,9 @@ export default define.page<typeof handler>(function Upload(props) {
           className="w-full flex flex-col items-center gap-4 bg-white/80 rounded-lg shadow-md p-6"
         >
           <label className="w-full flex flex-col items-center cursor-pointer">
-            <span className="mb-2 text-lg font-medium text-gray-700">Select Save File</span>
+            <span className="mb-2 text-lg font-medium text-gray-700">
+              Select Save File
+            </span>
             <input
               type="file"
               accept=".sra,.srm"
