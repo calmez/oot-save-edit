@@ -2,6 +2,7 @@ import type { ComponentChildren } from "preact";
 
 export interface ButtonProps {
   id?: string;
+  type?: "button" | "submit" | "reset";
   onClick?: () => void;
   children?: ComponentChildren;
   disabled?: boolean;

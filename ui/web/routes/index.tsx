@@ -1,11 +1,7 @@
-import { useSignal } from "@preact/signals";
 import { Head } from "fresh/runtime";
 import { define } from "../utils.ts";
-import Counter from "../islands/Counter.tsx";
 
 export default define.page(function Home(ctx) {
-  const count = useSignal(3);
-
   console.log("Shared value " + ctx.state.shared);
 
   return (
@@ -25,7 +21,7 @@ export default define.page(function Home(ctx) {
         <p class="my-4">
           Web interface for editing Ocarina of Time save files
         </p>
-        <Counter count={count} />
+        <a class="underline" href="/upload">Upload a save file to get started</a>
       </div>
     </div>
   );
