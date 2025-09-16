@@ -36,7 +36,7 @@ export default define.page<typeof handler>(function Upload(props) {
       </Head>
       <div class="max-w-screen-md mx-auto flex flex-col items-center justify-center">
         <form method="post" encType="multipart/form-data">
-          <input type="file" name="save" />
+          <input type="file" accept=".sra,.srm" name="save" />
           <Button type="submit">Upload</Button>
         </form>
         {message ? <p>{message}</p> : null}
