@@ -2,8 +2,9 @@
   "nodeModulesDir": "auto",
   "tasks": {
     "check": "deno fmt --check . && deno lint . && deno check",
+    "install-deps": "deno install --allow-scripts",
     "dev": "vite",
-    "build": "vite build",
+    "build": "deno task install-deps && vite build",
     "start": "deno serve -A _fresh/server.js",
     "update": "deno run -A -r jsr:@fresh/update ."
   },
