@@ -4,7 +4,7 @@
     "check": "deno fmt --check . && deno lint . && deno check",
     "install-deps": "deno install --allow-scripts",
     "dev": "vite",
-    "build": "deno task install-deps && vite build",
+    "build": "vite build",
     "start": "deno serve -A _fresh/server.js",
     "update": "deno run -A -r jsr:@fresh/update ."
   },
