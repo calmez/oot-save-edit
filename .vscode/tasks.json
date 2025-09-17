@@ -46,12 +46,12 @@
       "command": "${command:workbench.action.debug.start}"
     },
     {
-      "label": "web:build",
+      "label": "build:web",
       "detail": "Build web assets",
       "type": "deno",
       "command": "task",
       "args": [
-        "web:build"
+        "build:web"
       ]
     },
     {
@@ -78,7 +78,7 @@
       "label": "debug:gui",
       "type": "shell",
       "dependsOn": [
-        "web:build",
+        "build:web",
         "run:gui",
         "attach"
       ]

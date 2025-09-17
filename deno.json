@@ -6,7 +6,7 @@
     "web:update": "deno task --cwd ./ui/web update",
     "build:web": "deno task --cwd ./ui/web build",
     "template:tui": "deno $COMMAND --allow-env --allow-read --allow-write $ARGS ./ui/terminal/main.tsx",
-    "template:gui": "deno task web:build && deno $COMMAND --allow-env --allow-read --allow-write --allow-net --allow-ffi --include ./ui/web/_fresh $ARGS ./ui/main.ts",
+    "template:gui": "deno task build:web && deno $COMMAND --allow-env --allow-read --allow-write --allow-net --allow-ffi --include ./ui/web/_fresh $ARGS ./ui/main.ts",
     "run:tui": "COMMAND=run deno task template:tui",
     "run:gui": "COMMAND=run deno task template:gui",
     "debug:tui": "COMMAND=run ARGS=--inspect-wait deno task template:tui",
