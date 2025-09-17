@@ -26,7 +26,10 @@
         "build:tui:win"
       ]
     },
-    "build:gui": "COMMAND=compile ARGS=\"--no-prompt --output=./build/$PLATFORM/gui --target $PLATFORM\" deno task template:gui",
+    "build:gui": {
+      "command": "COMMAND=compile ARGS=\"--no-prompt --output=./build/$PLATFORM/gui --target $PLATFORM\" deno task template:gui",
+      "dependencies": ["build:web"]
+    },
     "build:gui:linux-x86": "PLATFORM=x86_64-unknown-linux-gnu deno task build:gui",
     "build:gui:linux-aarch64": "PLATFORM=aarch64-unknown-linux-gnu deno task build:gui",
     "build:gui:mac-x86": "export PLATFORM=x86_64-apple-darwin && deno task build:gui && cp -R ./build-template/oot-save-edit_intel.app ./build/$PLATFORM && cp ./build/$PLATFORM/gui ./build/$PLATFORM/oot-save-edit_intel.app/Contents/MacOS/oot && rm ./build/$PLATFORM/oot-save-edit_intel.app/Contents/MacOS/.gitkeep",
