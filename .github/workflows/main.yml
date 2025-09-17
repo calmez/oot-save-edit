@@ -23,7 +23,7 @@ jobs:
       - name: Install
         run: deno install --lock
       - name: Install web dependencies
-        run: deno install --cwd ./ui/web --allow-scripts --lock
+        run: cd ./ui/web && deno install --allow-scripts --lock
       - name: Linting
         run: deno lint
       - name: Formatting
