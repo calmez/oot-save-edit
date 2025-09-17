@@ -1,6 +1,4 @@
 .DS_Store
-node_modules/*
 build/*
 docs/*
 lgtm/*
-ui/web/_fresh/*
