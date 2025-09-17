@@ -1,4 +1,3 @@
-
 import { useState } from "preact/hooks";
 import { SaveSlot } from "../../../models/saveslot.ts";
 import { Entrance, Room } from "../../../models/scene.ts";
@@ -15,7 +14,15 @@ export default function Slot(props: SlotProps) {
   const [expanded, setExpanded] = useState(false);
 
   return (
-    <div key={index} className={`border rounded p-4 ${expanded ? "bg-blue-300/90 shadow-lg h-max" : "bg-gray-50 h-min"} hover:cursor-pointer`} onClick={() => {setExpanded(!expanded)}}>
+    <div
+      key={index}
+      className={`border rounded p-4 ${
+        expanded ? "bg-blue-300/90 shadow-lg h-max" : "bg-gray-50 h-min"
+      } hover:cursor-pointer`}
+      onClick={() => {
+        setExpanded(!expanded);
+      }}
+    >
       <h3 className="text-xl font-semibold mb-2">File {index + 1}</h3>
       <div className="grid grid-cols-3 gap-4">
         <div>
