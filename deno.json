@@ -6,7 +6,7 @@
     "web:start": "deno task --cwd ./ui/web start",
     "web:update": "deno task --cwd ./ui/web update",
     "template:tui": "deno $COMMAND --allow-env --allow-read --allow-write $ARGS ./ui/terminal/main.tsx",
-    "template:gui": "deno $COMMAND --allow-env --allow-read --allow-write --allow-net --allow-ffi --include ./ui/web/_fresh $ARGS ./ui/main.ts",
+    "template:gui": "deno task web:build && deno $COMMAND --allow-env --allow-read --allow-write --allow-net --allow-ffi --include ./ui/web/_fresh $ARGS ./ui/main.ts",
     "run:tui": "COMMAND=run deno task template:tui",
     "run:gui": "COMMAND=run deno task template:gui",
     "debug:tui": "COMMAND=run ARGS=--inspect-wait deno task template:tui",
@@ -34,7 +34,6 @@
     "build:gui:win": "PLATFORM=x86_64-pc-windows-msvc deno task build:gui",
     "build:gui:all": {
       "dependencies": [
-        "web:build",
         "build:gui:linux-x86",
         "build:gui:linux-aarch64",
         "build:gui:mac-x86",
