@@ -29,10 +29,11 @@ jobs:
         run: deno lint
       - name: Formatting
         run: deno fmt --check
-      - name: Run tests
+      - name: Run Tests
         run: deno test
-      - name: Build web
-        run: deno task build:web
+      - name: Build Web
+        working-directory: ./ui/web
+        run: deno task build
       - name: Build Linux
         run: |
           deno task build:tui:linux-x86
