@@ -34,9 +34,9 @@ jobs:
       - name: Build Web
         working-directory: ./ui/web
         run: |
-          lsof +D .
+          lsof +D . || true
           deno task build
-          lsof +D .
+          lsof +D . || true
       - name: Build Linux
         run: |
           deno task build:tui:linux-x86
