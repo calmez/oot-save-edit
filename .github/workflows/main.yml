@@ -34,9 +34,9 @@ jobs:
       - name: Build Web
         working-directory: ./ui/web
         run: |
-          lsof +D . | grep vite.config.ts
+          lsof +D . | grep vite.config.ts || true
           deno task build
-          lsof +D . | grep vite.config.ts
+          lsof +D . | grep vite.config.ts || true
       - name: Build Linux
         run: |
           deno task build:tui:linux-x86
