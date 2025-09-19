@@ -34,7 +34,7 @@ jobs:
       - name: Build Web
         working-directory: ./ui/web
         run: |
-          vite build -d -l info
+          vite build -d -l info -c vite.config.prod.ts
       - name: Build Linux
         run: |
           deno task build:tui:linux-x86
