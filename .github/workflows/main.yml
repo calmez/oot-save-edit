@@ -34,7 +34,7 @@ jobs:
       - name: Build Web
         working-directory: ./ui/web
         run: |
-          deno run -A npm:vite build --configLoader runner -c vite.config.ts
+          deno run -A npm:vite build --configLoader native -c vite.config.ts
       - name: Build Linux
         run: |
           deno task build:tui:linux-x86
