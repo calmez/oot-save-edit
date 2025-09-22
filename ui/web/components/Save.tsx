@@ -1,9 +1,12 @@
-import { LanguageOption, SoundOption, ZTargetOption } from "../../../models/saveheader.ts";
+import {
+  LanguageOption,
+  SoundOption,
+  ZTargetOption,
+} from "../../../models/saveheader.ts";
 import { SaveSlot } from "../../../models/saveslot.ts";
 import { FileFormat, FileUtil } from "../../../utils/fileutil.ts";
 import { DownloadButton } from "../islands/DownloadButton.tsx";
 import Slot from "../islands/Slot.tsx";
-import save from "../routes/save.tsx";
 
 interface SaveProps {
   filename: string;
@@ -41,7 +44,11 @@ export default function Save(props: SaveProps) {
               </div>
               <div>
                 <span className="font-medium">File format:</span>
-                <span>{FileFormat[FileUtil.detectFileFormatByBufferSize(props.save)]}</span>
+                <span>
+                  {FileFormat[
+                    FileUtil.detectFileFormatByBufferSize(props.save)
+                  ]}
+                </span>
               </div>
             </div>
           </div>
@@ -59,7 +66,11 @@ export default function Save(props: SaveProps) {
               </div>
               <div>
                 <span className="font-medium">File format:</span>
-                <span>{FileFormat[FileUtil.detectFileFormatByBufferSize(props.save)]}</span>
+                <span>
+                  {FileFormat[
+                    FileUtil.detectFileFormatByBufferSize(props.save)
+                  ]}
+                </span>
               </div>
             </div>
           </div>
