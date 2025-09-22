@@ -3,7 +3,7 @@ import { Box, render, Text, useFocus } from "ink";
 import Gradient from "ink-gradient";
 import { Save } from "./save.tsx";
 
-const App = () => {
+const App = (): React.JSX.Element => {
   useFocus();
   const width = Deno.consoleSize().columns;
   const height = Deno.consoleSize().rows;

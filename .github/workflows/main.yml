@@ -19,17 +19,38 @@ jobs:
         uses: actions/checkout@v2
       - uses: denoland/setup-deno@v2
         with:
-          deno-version: "~2.4"
+          deno-version: "v2.x"
       - name: Install
         run: deno install --lock
+      - name: Install web dependencies
+        working-directory: ./ui/web
+        run: deno install --allow-scripts --lock
       - name: Linting
         run: deno lint
       - name: Formatting
         run: deno fmt --check
-      - name: Run tests
+      - name: Run Tests
         run: deno test
-      - name: Build
-        run: deno task build:all
+      - name: Build Web
+        working-directory: ./ui/web
+        run: |
+          deno task build
+      - name: Build Linux
+        run: |
+          deno task build:tui:linux-x86
+          deno task build:tui:linux-aarch64
+          deno task build:gui:linux-x86
+          deno task build:gui:linux-aarch64
+      - name: Build MacOS
+        run: |
+          deno task build:tui:mac-x86
+          deno task build:tui:mac-aarch64
+          deno task build:gui:mac-x86
+          deno task build:gui:mac-aarch64
+      - name: Build Windows
+        run: |
+          deno task build:tui:win
+          deno task build:gui:win
   release:
     name: Build and Release
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'

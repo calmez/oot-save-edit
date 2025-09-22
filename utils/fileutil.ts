@@ -22,7 +22,7 @@ export class FileUtil {
    * SRA: < 0x8000 bytes (32KB)
    * SRM: 0x48800 (contains EEPROM, MemPak, SRAM, FlashRAM sections)
    */
-  static detectFileFormatBySize(file: Deno.FsFile): FileFormat {
+  static detectFileFormatByFileSize(file: Deno.FsFile): FileFormat {
     const stat = file.statSync();
     file.seekSync(0, Deno.SeekMode.Start);
 
@@ -33,6 +33,18 @@ export class FileUtil {
     } else {
       throw new Error(
         `Cannot detect file type by size. Unknown file size: ${stat.size}.`,
+      );
+    }
+  }
+
+  static detectFileFormatByBufferSize(buffer: Uint8Array): FileFormat {
+    if (buffer.byteLength === SraSaveFile.acceptedSize) {
+      return FileFormat.SRA;
+    } else if (buffer.byteLength === SrmSaveFile.acceptedSize) {
+      return FileFormat.SRM;
+    } else {
+      throw new Error(
+        `Cannot detect file type by size. Unknown buffer size: ${buffer.byteLength}.`,
       );
     }
   }
@@ -88,7 +100,7 @@ export class FileUtil {
     const file = Deno.openSync(path, { read: true });
 
     try {
-      const fileType = this.detectFileFormatBySize(file);
+      const fileType = this.detectFileFormatByFileSize(file);
       const fileTypeByExtension = this.detectFileFormatByExtension(path);
       if (fileType !== fileTypeByExtension) {
         throw new Error(
@@ -120,6 +132,38 @@ export class FileUtil {
     } finally {
       file.close();
 
+      const endTime = new Date().getTime();
+      span.setAttributes({ "file.readDuration": endTime - startTime });
+      Metric.loadFileDuration.record(endTime - startTime);
+      span.end();
+    }
+  }
+
+  static loadFileFromBuffer(buffer: Uint8Array): SraSaveFile {
+    const span = Span.loadFile("buffer");
+    const startTime = new Date().getTime();
+
+    try {
+      const fileType = this.detectFileFormatByBufferSize(buffer);
+      let save: SaveFile;
+
+      switch (fileType) {
+        case FileFormat.SRA:
+          save = new SraSaveFile();
+          break;
+        case FileFormat.SRM:
+          save = new SrmSaveFile();
+          break;
+        default:
+          throw new Error(`Unknown or unsupported save file format`);
+      }
+
+      save.read(buffer);
+      if (save instanceof SrmSaveFile) {
+        return save.saveFile;
+      }
+      return save as SraSaveFile;
+    } finally {
       const endTime = new Date().getTime();
       span.setAttributes({ "file.readDuration": endTime - startTime });
       Metric.loadFileDuration.record(endTime - startTime);
