@@ -19,7 +19,11 @@ export default define.page(function Home(_ctx) {
         <p class="my-4">
           Web interface for editing Ocarina of Time save files
         </p>
-        <a class="underline" href="/save">
+        <p class="my-4">
+          ⚠️ This project is still very much work in progress and not fully
+          usable at this moment. ⚠️
+        </p>
+        <a class="rounded-full bg-blue-500 text-white py-2 px-4" href="/save">
           Upload a save file to get started
         </a>
       </div>
