@@ -9,7 +9,7 @@ export default define.page(function App({ Component }) {
         <title>oot-save-edit</title>
       </head>
       <body>
-        <div class="px-4 py-8 mx-auto fresh-gradient min-h-screen">
+        <div class="px-4 py-8 mx-auto ocarina-gradient min-h-screen">
           <Component />
         </div>
       </body>
