@@ -9,7 +9,7 @@ Deno.test({
       statSync: () => ({ size: SraSaveFile.acceptedSize }),
       seekSync: () => {},
     } as unknown as Deno.FsFile;
-    assertEquals(FileUtil.detectFileFormatBySize(file), FileFormat.SRA);
+    assertEquals(FileUtil.detectFileFormatByFileSize(file), FileFormat.SRA);
   },
 });
 
@@ -20,7 +20,7 @@ Deno.test({
       statSync: () => ({ size: SrmSaveFile.acceptedSize }),
       seekSync: () => {},
     } as unknown as Deno.FsFile;
-    assertEquals(FileUtil.detectFileFormatBySize(file), FileFormat.SRM);
+    assertEquals(FileUtil.detectFileFormatByFileSize(file), FileFormat.SRM);
   },
 });
 
@@ -31,7 +31,31 @@ Deno.test({
       statSync: () => ({ size: 12345 }),
       seekSync: () => {},
     } as unknown as Deno.FsFile;
-    assertThrows(() => FileUtil.detectFileFormatBySize(file));
+    assertThrows(() => FileUtil.detectFileFormatByFileSize(file));
+  },
+});
+
+Deno.test({
+  name: "should detect SRA file format by buffer size",
+  fn() {
+    const buffer = new Uint8Array(SraSaveFile.acceptedSize);
+    assertEquals(FileUtil.detectFileFormatByBufferSize(buffer), FileFormat.SRA);
+  },
+});
+
+Deno.test({
+  name: "should detect SRM file format by buffer size",
+  fn() {
+    const buffer = new Uint8Array(SrmSaveFile.acceptedSize);
+    assertEquals(FileUtil.detectFileFormatByBufferSize(buffer), FileFormat.SRM);
+  },
+});
+
+Deno.test({
+  name: "should throw on unknown buffer size",
+  fn() {
+    const buffer = new Uint8Array(12345);
+    assertThrows(() => FileUtil.detectFileFormatByBufferSize(buffer));
   },
 });
 

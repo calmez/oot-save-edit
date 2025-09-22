@@ -2,6 +2,8 @@
   "version": "2.0.0",
   "tasks": [
     {
+      "label": "run:tui",
+      "detail": "Run TUI",
       "type": "deno",
       "command": "task",
       "args": [
@@ -18,11 +20,11 @@
       },
       "problemMatcher": [
         "$deno"
-      ],
-      "label": "run:tui",
-      "detail": "Run TUI"
+      ]
     },
     {
+      "label": "run:gui",
+      "detail": "Run GUI",
       "type": "deno",
       "command": "task",
       "args": [
@@ -36,14 +38,30 @@
       },
       "problemMatcher": [
         "$deno"
-      ],
-      "label": "run:gui",
-      "detail": "Run GUI"
+      ]
     },
     {
       "label": "attach",
       "type": "shell",
       "command": "${command:workbench.action.debug.start}"
+    },
+    {
+      "label": "build:web",
+      "detail": "Build web assets",
+      "type": "deno",
+      "command": "task",
+      "args": [
+        "build:web"
+      ]
+    },
+    {
+      "label": "web:dev",
+      "detail": "Start web development server",
+      "type": "deno",
+      "command": "task",
+      "args": [
+        "web:dev"
+      ]
     },
     {
       "label": "debug:tui",
@@ -60,6 +78,7 @@
       "label": "debug:gui",
       "type": "shell",
       "dependsOn": [
+        "build:web",
         "run:gui",
         "attach"
       ]

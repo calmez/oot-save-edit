@@ -1,0 +1,10 @@
+@import "tailwindcss";
+.ocarina-gradient {
+  background-color: rgb(21, 35, 238);
+  background-image: linear-gradient(
+    to right bottom,
+    rgb(138, 189, 255),
+    rgb(131, 223, 246),
+    rgb(254, 195, 222)
+  );
+}

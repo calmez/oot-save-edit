@@ -1,7 +1,7 @@
 import { Webview } from "@webview/webview";
 
 const worker = new Worker(
-  import.meta.resolve("./server.ts"),
+  import.meta.resolve("./web/_fresh/compiled-entry.js"),
   { type: "module" },
 );
 

@@ -1,8 +1,12 @@
 {
   "tasks": {
-    "dev": "deno run --inspect-wait --allow-read ./main.ts",
+    "check": "deno fmt --check . && deno lint . && deno check",
+    "web:dev": "deno task --cwd ./ui/web dev",
+    "web:start": "deno task --cwd ./ui/web start",
+    "web:update": "deno task --cwd ./ui/web update",
+    "build:web": "deno task --cwd ./ui/web build",
     "template:tui": "deno $COMMAND --allow-env --allow-read --allow-write $ARGS ./ui/terminal/main.tsx",
-    "template:gui": "deno $COMMAND --allow-env --allow-read --allow-write --allow-net --allow-ffi $ARGS ./ui/main.ts",
+    "template:gui": "deno $COMMAND --allow-env --allow-read --allow-write --allow-net --allow-ffi --include ./ui/web/_fresh $ARGS ./ui/main.ts",
     "run:tui": "COMMAND=run deno task template:tui",
     "run:gui": "COMMAND=run deno task template:gui",
     "debug:tui": "COMMAND=run ARGS=--inspect-wait deno task template:tui",
@@ -22,7 +26,10 @@
         "build:tui:win"
       ]
     },
-    "build:gui": "COMMAND=compile ARGS=\"--no-prompt --output=./build/$PLATFORM/gui --target $PLATFORM --include ./ui/server.ts\" deno task template:gui",
+    "build:gui": {
+      "command": "COMMAND=compile ARGS=\"--no-prompt --output=./build/$PLATFORM/gui --target $PLATFORM\" deno task template:gui",
+      "dependencies": ["build:web"]
+    },
     "build:gui:linux-x86": "PLATFORM=x86_64-unknown-linux-gnu deno task build:gui",
     "build:gui:linux-aarch64": "PLATFORM=aarch64-unknown-linux-gnu deno task build:gui",
     "build:gui:mac-x86": "export PLATFORM=x86_64-apple-darwin && deno task build:gui && cp -R ./build-template/oot-save-edit_intel.app ./build/$PLATFORM && cp ./build/$PLATFORM/gui ./build/$PLATFORM/oot-save-edit_intel.app/Contents/MacOS/oot && rm ./build/$PLATFORM/oot-save-edit_intel.app/Contents/MacOS/.gitkeep",
@@ -41,17 +48,18 @@
     "build:all": {
       "dependencies": [
         "build:tui:all",
+        "build:web",
         "build:gui:all",
         "build:docs"
       ]
     }
   },
   "imports": {
-    "@opentelemetry/api": "npm:@opentelemetry/api@^1.9.0",
     "@std/assert": "jsr:@std/assert@1",
     "@std/path": "jsr:@std/path@1",
     "@std/testing": "jsr:@std/testing@1",
-    "@oak/oak": "jsr:@oak/oak@17",
+    "@opentelemetry/api": "npm:@opentelemetry/api@^1.9.0",
+
     "@webview/webview": "jsr:@webview/webview",
     "react": "npm:react@18",
     "ink": "npm:ink@5",
@@ -61,5 +69,17 @@
     "ink-form": "npm:ink-form@2",
     "ink-select-input": "npm:ink-select-input@6",
     "ink-text-input": "npm:ink-text-input@6"
-  }
+  },
+  "lint": {
+    "rules": {
+      "tags": [
+        "fresh",
+        "recommended"
+      ]
+    }
+  },
+  "exclude": [
+    "**/_fresh/*",
+    "deno.d.ts"
+  ]
 }
