@@ -5,6 +5,7 @@
     "web:start": "deno task --cwd ./ui/web start",
     "web:update": "deno task --cwd ./ui/web update",
     "build:web": "deno task --cwd ./ui/web build",
+    "build:web:production": "deno task --cwd ./ui/web build && cp -R ./ui/web/_fresh _fresh",
     "template:tui": "deno $COMMAND --allow-env --allow-read --allow-write $ARGS ./ui/terminal/main.tsx",
     "template:gui": "deno $COMMAND --allow-env --allow-read --allow-write --allow-net --allow-ffi --include ./ui/web/_fresh $ARGS ./ui/main.ts",
     "run:tui": "COMMAND=run deno task template:tui",
