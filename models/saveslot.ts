@@ -443,6 +443,8 @@ export class SaveSlot {
     this.bytes.set(toUint8Array(value, 2), 0x0034);
   }
 
+  // TODO needs to be tested assuming previous rupees at 0x0034 with size
+  // uint16_t is correct this should start here
   get biggoronsSwordFlag1(): boolean {
     const value = toNumber(this.bytes.slice(0x0036, 0x0036 + 1));
     switch (value) {
