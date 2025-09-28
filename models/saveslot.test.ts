@@ -4,7 +4,6 @@ import {
   ButtonEquips,
   FaroresWindWarp,
   InventoryItems,
-  Items,
   MagicAmount,
   SaveSlot,
 } from "./saveslot.ts";
@@ -687,7 +686,7 @@ Deno.test({
   name: "should provide the inventory",
   fn() {
     const testData = new Uint8Array(SaveSlot.requiredSize);
-    const expectedItem = Items.Bomb;
+    const expectedItem = InventoryItems.Bomb;
     const testInventory = new Uint8Array(24);
     testInventory.set(toUint8Array(expectedItem, 1), 0);
     testData.set(testInventory, 0x0074);
@@ -701,7 +700,7 @@ Deno.test({
   fn() {
     const testData = new Uint8Array(SaveSlot.requiredSize);
     const expectedInventory = new Array<InventoryItems>(24).fill(
-      InventoryItems.Empty,
+      InventoryItems.DekuStick,
     );
     const instance = new SaveSlot(testData);
     instance.inventory = expectedInventory;
