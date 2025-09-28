@@ -25,42 +25,7 @@ export enum MagicAmount {
   Full = 0x60,
 }
 
-export interface ButtonEquips {
-  bButton: number; // TODO what's the correct data type here?
-  cLeftButton: number; // TODO what's the correct data type here?
-  cDownButton: number; // TODO what's the correct data type here?
-  cRightButton: number; // TODO what's the correct data type here?
-  cLeftOffset: number; // TODO what's the correct data type here?
-  cDownOffset: number; // TODO what's the correct data type here?
-  cRightOffset: number; // TODO what's the correct data type here?
-}
-
-export enum Sword {
-  Kokiri = 0x3B,
-  Master = 0x3C,
-  GiantKnife = 0x3D,
-}
-
-export enum Shield {
-  Kokiri = 0x3E,
-  Hylian = 0x3F,
-  Mirror = 0x40,
-}
-
-export enum Tunic {
-  Kokiri = 0x41,
-  Goron = 0x42,
-  Zora = 0x43,
-}
-
-export enum Boots {
-  Kokiri = 0x44,
-  Iron = 0x45,
-  Hover = 0x46,
-}
-
-// TODO consider breaking this up further
-export enum Items {
+export enum InventoryItems {
   DekuStick = 0x01,
   DekuNut = 0x02,
   Bomb = 0x03,
@@ -120,15 +85,51 @@ export enum Items {
   FireArrowPoweredUp = 0x38,
   IceArrowPoweredUp = 0x39,
   LightArrowPoweredUp = 0x3A,
+}
+
+export enum Sword {
+  Kokiri = 0x3B,
+  Master = 0x3C,
+  GiantKnife = 0x3D,
+}
+
+export enum Shield {
+  Kokiri = 0x3E,
+  Hylian = 0x3F,
+  Mirror = 0x40,
+}
+
+export enum Tunic {
+  Kokiri = 0x41,
+  Goron = 0x42,
+  Zora = 0x43,
+}
+
+export enum Boots {
+  Kokiri = 0x44,
+  Iron = 0x45,
+  Hover = 0x46,
+}
+
+export enum BulletBag {
   BulletBagHolds30 = 0x47,
   BulletBagHolds40 = 0x48,
   BulletBagHolds50 = 0x49,
+}
+
+export enum Quiver {
   QuiverHolds30 = 0x4A,
   QuiverHolds40 = 0x4B,
   QuiverHolds50 = 0x4C,
+}
+
+export enum BombBag {
   BombBagHolds20 = 0x4D,
   BombBagHolds30 = 0x4E,
   BombBagHolds40 = 0x4F,
+}
+
+export enum OtherEquipment {
   GoronsBracelet = 0x50,
   SilverGauntlets = 0x51,
   GoldenGauntlets = 0x52,
@@ -139,6 +140,29 @@ export enum Items {
   BombBag2JapaneseName = 0x57,
   SlingShotBulletsJapaneseName = 0x58,
   FishingRodJapaneseName = 0x59,
+}
+
+export type EquippableItems =
+  | Sword
+  | Shield
+  | Tunic
+  | Boots
+  | BulletBag
+  | Quiver
+  | BombBag
+  | OtherEquipment;
+export const EquippableItems = {
+  ...Sword,
+  ...Shield,
+  ...Tunic,
+  ...Boots,
+  ...BulletBag,
+  ...Quiver,
+  ...BombBag,
+  ...OtherEquipment,
+};
+
+export enum QuestItems {
   MinuetofForest = 0x5A,
   BoleroofFire = 0x5B,
   SerenadeofWater = 0x5C,
@@ -163,111 +187,72 @@ export enum Items {
   StoneofAgony = 0x6F,
   GerudosCard = 0x70,
   GoldSkulltula = 0x71,
-  PieceofHeart = 0x72,
-  JapaneseName = 0x73,
+  HeartContainer = 0x72,
+  PieceofHeart = 0x73,
+}
+
+export enum DungeonItems {
   BigKey = 0x74,
   Compass = 0x75,
   DungeonMap = 0x76,
-  JapaneseName2 = 0x77,
-  JapaneseName3 = 0x78,
-  JapaneseName4 = 0x79,
-  BiggoronsSwordGlitchedupGraphic = 0x7A,
-  DekuRodGlitchedUpGraphics = 0x7B,
-  DekuNutGlitchedUpGraphics = 0x7C,
-  JapaneseName5 = 0x7D,
-  JapaneseName6 = 0x7E,
-  JapaneseName7 = 0x7F,
-  JapaneseName8 = 0x80,
-  JapaneseName9 = 0x81,
-  JapaneseName10 = 0x82,
-  LetterinaBottlewBlueShadeJapaneseName = 0x83,
-  QuiverHolds20wRedHueJapaneseName = 0x84,
-  JapaneseName11 = 0x85,
-  JapaneseName12 = 0x86,
-  JapaneseName13 = 0x87,
-  JapaneseName14 = 0x88,
-  HauntedWastelandFPSDropto17fromhere = 0x89,
-  GerudosFortress = 0x8A,
-  GerudoValley = 0x8B,
-  LakeHylia = 0x8C,
-  LonLonRanch = 0x8D,
-  MarketToHere = 0x8E,
-  HyruleField = 0x8F,
-  DeathMountain = 0x90,
-  KakarikoVillage = 0x91,
-  LostWoods = 0x92,
-  KokiriForest = 0x93,
-  ZorasDomain = 0x94,
-  MilkGlitchedUpGraphics = 0x95,
-  LetterGlitchedUpGraphics = 0x96,
-  BlueFireGlitchedUpGraphics = 0x97,
-  BugGlitchedUpGraphics = 0x98,
-  NightSwarmGlitchedUpGraphics = 0x99,
-  Milk12GlitchedUpGraphics = 0x9A,
-  LightGlitchedUpGraphic = 0x9B,
-  StrangeEggGlitchedUpGraphics = 0x9C,
-  ChickenGlitchedUpGraphic = 0x9D,
-  ZeldasLetterGlitchedUpGraphic = 0x9E,
-  FoxMaskGlitchedUpGraphic = 0x9F,
-  SkullMaskGlitchedUpGraphic = 0xA0,
-  RabbitHonorGlitchedUpGraphic = 0xA1,
-  GoronMaskGlitchedUpGraphic = 0xA2,
-  GoronMaskAgainGlitchedUpGraphic = 0xA3,
-  ZoraMaskGlitchedUpGraphic = 0xA4,
-  GerudoMaskGlitchedUpGraphic = 0xA5,
-  MaskoftheKnowledgeGlitchedUpGraphic = 0xA6,
-  SellsGlitchedUpGraphic = 0xA7,
-  EggGlitchedUpGraphic = 0xA8,
-  KikiGlitchedUpGraphic = 0xA9,
-  WhinniedGlitchedUpGraphic = 0xAA,
-  MoldGlitchedUpGraphic = 0xAB,
-  MoldDrankGlitchedUpFlashingGraphic = 0xAC,
-  WouldSawGlitchedUpFlashingGraphic = 0xAD,
-  GoronSwordBrokenGlitchedUpFlashingGraphic = 0xAE,
-  PrescriptionGlitchedUpGraphic = 0xAF,
-  GlotzFrogGlitchedUpGraphic = 0xB0,
-  EyedropGlitchedUpGraphic = 0xB1,
-  CertificateGlitchedUpGraphic = 0xB2,
-  JapTextGlitchedUpGraphic = 0xB3,
-  JapTextGlitchedUpGraphic2 = 0xB4,
-  KokiriswordGlitchedUpGraphicName = 0xB5,
-  KokiriSwordAgainGlitchedUpGraphic = 0xB6,
-  MasterSwordGlitchedUpGraphic = 0xB7,
-  LongSwordGlitchedUpGraphic = 0xB8,
-  DekusignGlitchedUpGraphic = 0xB9,
-  HyliasignGlitchedUpGraphic = 0xBA,
-  Unknown = 0xBB,
-  KokiriarmamentGlitchedUpGraphic = 0xBC,
-  GoronarmamentGlitchedUpGraphic = 0xBD,
-  ZoraarmamentGlitchedUpGraphic = 0xBE,
-  LeatherbootGlitchedUpGraphic = 0xBF,
-  IronbootGlitchedUpGraphic = 0xC0,
-  HoverbootGlitchedUpGraphic = 0xC1,
-  Ammunitionpocket30GlitchedUpFlashingGraphic = 0xC2,
-  Ammunitionpocket40GlitchedUpGraphic = 0xC3,
-  Ammunitionpocket50GlitchedUpGraphic = 0xC4,
-  Cooks30GlitchedUpFlashingGraphic = 0xC5,
-  Cooks40GlitchedUpFlashingGraphic = 0xC6,
-  Cooks50ItLookslikeanTVwithnoreception = 0xC7,
-  Bombspocket20GlitchedUpGraphic = 0xC8,
-  Bombspocket30GlitchedUpGraphic = 0xC9,
-  Bombspocket40GlitchedUpGraphic = 0xCA,
-  GoronbraceletGlitchedUpGraphic = 0xCB,
-  PowergloveGlitchedUpGraphic = 0xCC,
-  TitaniumgloveGlitchedUpGraphic = 0xCD,
-  SilverScaleGlitchedUpGraphic = 0xCE,
-  GoldScaleGlitchedUpGraphic = 0xCF,
+  SmallKey = 0x77,
+}
+
+export enum Collecibles {
+  SmallMagicJar = 0x78,
+  LargeMagicJar = 0x79,
+  PieceofHeart = 0x7A,
+}
+
+export enum RemovedItems {
+  Item1 = 0x7B,
+  Item2 = 0x7C,
+  Item3 = 0x7D,
+  Item4 = 0x7E,
+  Item5 = 0x7F,
+  Item6 = 0x80,
+  Item7 = 0x81,
+}
+
+export enum OtherItems {
+  LonLonMilk = 0x82,
+  RecoveryHeart = 0x83,
+  GreenRupee = 0x84,
+  BlueRupee = 0x85,
+  RedRupee = 0x86,
+  PurpleRupee = 0x87,
+  HugeRupee = 0x88,
+  Removed = 0x89,
+  DekuSticks5 = 0x8A,
+  DekuSticks10 = 0x8B,
+  DekuNuts5 = 0x8C,
+  DekuNuts10 = 0x8D,
+  Bombs5 = 0x8E,
+  Bombs10 = 0x8F,
+  Bombs20 = 0x90,
+  Bombs30 = 0x91,
+  Arrows5or10 = 0x92,
+  Arrows10or30 = 0x93,
+  Arrows30or50 = 0x94,
+  DekuSeeds30 = 0x95,
+  Bombchu5 = 0x96,
+  Bombchu20 = 0x97,
+  DekuStickUpgradeHolds20Sticks = 0x98,
+  DekuStickUpgradeHolds30Sticks = 0x99,
+  DekuNutUpgradeHolds30Nuts = 0x9A,
+  DekuNutUpgradeHolds40Nuts = 0x9B,
   Empty = 0xFF,
 }
 
-export type InventoryItems = Items | Sword | Shield | Tunic | Boots;
-export const InventoryItems = {
-  ...Items,
-  ...Sword,
-  ...Shield,
-  ...Tunic,
-  ...Boots,
-};
+export interface ButtonEquips {
+  bButton: number; // TODO what's the correct data type here?
+  cLeftButton: number; // TODO what's the correct data type here?
+  cDownButton: number; // TODO what's the correct data type here?
+  cRightButton: number; // TODO what's the correct data type here?
+  cLeftOffset: number; // TODO what's the correct data type here?
+  cDownOffset: number; // TODO what's the correct data type here?
+  cRightOffset: number; // TODO what's the correct data type here?
+}
 
 export interface FaroresWindWarp {
   x: number;
