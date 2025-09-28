@@ -1,6 +1,7 @@
 import { assertInstanceOf } from "@std/assert/instance-of";
 import {
   Age,
+  FaroresWindWarp,
   InventoryItems,
   Items,
   MagicAmount,
@@ -791,6 +792,66 @@ Deno.test({
 });
 
 Deno.test({
+  name: "should get coordinates of farores wind warp",
+  fn() {
+    const testData = new Uint8Array(SaveSlot.requiredSize);
+    const expectedXCoordinate = 23;
+    const expectedYCoordinate = 32;
+    const expectedZCoordinate = 42;
+    const expectedYRotation = 123;
+    testData.set(toUint8Array(expectedXCoordinate, 4), 0x0E64);
+    testData.set(toUint8Array(expectedYCoordinate, 4), 0x0E68);
+    testData.set(toUint8Array(expectedZCoordinate, 4), 0x0E6C);
+    testData.set(toUint8Array(expectedYRotation, 2), 0x0E72);
+    const instance = new SaveSlot(testData);
+    assertEquals(instance.faroresWindWarp, {
+      x: expectedXCoordinate,
+      y: expectedYCoordinate,
+      z: expectedZCoordinate,
+      yRotation: expectedYRotation,
+    });
+  },
+});
+
+Deno.test({
+  name: "should set the coordinates of farores wind warp",
+  fn() {
+    const testData = new Uint8Array(SaveSlot.requiredSize);
+    const expectedWindWarp: FaroresWindWarp = {
+      x: 23,
+      y: 32,
+      z: 42,
+      yRotation: 123,
+    };
+    const instance = new SaveSlot(testData);
+    instance.faroresWindWarp = expectedWindWarp;
+    assertEquals(instance.faroresWindWarp, expectedWindWarp);
+  },
+});
+
+Deno.test({
+  name: "should get big poe points",
+  fn() {
+    const testData = new Uint8Array(SaveSlot.requiredSize);
+    const expectedPoints = 42;
+    testData.set(toUint8Array(expectedPoints, 4), 0x0EBC);
+    const instance = new SaveSlot(testData);
+    assertEquals(instance.bigPoePoints, expectedPoints);
+  },
+});
+
+Deno.test({
+  name: "should set big poe points",
+  fn() {
+    const testData = new Uint8Array(SaveSlot.requiredSize);
+    const expectedPoints = 42;
+    const instance = new SaveSlot(testData);
+    instance.bigPoePoints = expectedPoints;
+    assertEquals(instance.bigPoePoints, expectedPoints);
+  },
+});
+
+Deno.test({
   name: "should calculate the checksum",
   fn() {
     const testData = new Uint8Array(SaveSlot.requiredSize);
@@ -832,5 +893,27 @@ Deno.test({
     const testData = new Uint8Array(SaveSlot.requiredSize);
     const instance = new SaveSlot(testData);
     assertEquals(instance.isValid, false);
+  },
+});
+
+Deno.test({
+  name: "should get file index",
+  fn() {
+    const testData = new Uint8Array(SaveSlot.requiredSize);
+    const expectedIndex = 2;
+    testData.set(toUint8Array(expectedIndex, 4), 0x1354);
+    const instance = new SaveSlot(testData);
+    assertEquals(instance.fileIndex, expectedIndex);
+  },
+});
+
+Deno.test({
+  name: "should set the file index",
+  fn() {
+    const testData = new Uint8Array(SaveSlot.requiredSize);
+    const expectedIndex = 1;
+    const instance = new SaveSlot(testData);
+    instance.fileIndex = expectedIndex;
+    assertEquals(instance.fileIndex, expectedIndex);
   },
 });

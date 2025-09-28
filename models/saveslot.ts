@@ -813,11 +813,11 @@ export class SaveSlot {
   }
 
   private get faroresWindWarpZ(): number {
-    return toNumber(this.bytes.slice(0x0E6B, 0x0E6B + 4));
+    return toNumber(this.bytes.slice(0x0E6C, 0x0E6C + 4));
   }
 
   private set faroresWindWarpZ(value: number) {
-    this.bytes.set(toUint8Array(value, 4), 0x0E6B);
+    this.bytes.set(toUint8Array(value, 4), 0x0E6C);
   }
 
   private get faroresWindWarpYRotation(): number {
@@ -844,6 +844,7 @@ export class SaveSlot {
     this.faroresWindWarpYRotation = value.yRotation;
   }
 
+  // TODO finish proper parsing
   get entranceIndexTransport(): number {
     return toNumber(this.bytes.slice(0x0E7A, 0x0E7A + 2));
   }
@@ -862,6 +863,7 @@ export class SaveSlot {
   }
 
   // TODO check size of data structure
+  // TODO tie into setting the warp point
   get warpPointSet(): boolean {
     const value = toNumber(this.bytes.slice(0x0E83, 0x0E83 + 2));
     switch (value) {
@@ -885,7 +887,7 @@ export class SaveSlot {
   }
 
   set bigPoePoints(value: number) {
-    this.bytes.set(toUint8Array(0x0EBC, 4), 0x0EBC);
+    this.bytes.set(toUint8Array(value, 4), 0x0EBC);
   }
 
   // TODO set eventFlags at 0x0ED4, uint16_t[14]
@@ -898,6 +900,14 @@ export class SaveSlot {
 
   set checksum(value: number) {
     this.bytes.set(toUint8Array(value, 2), 0x1352);
+  }
+
+  get fileIndex(): number {
+    return toNumber(this.bytes.slice(0x1354, 0x1354 + 4));
+  }
+
+  set fileIndex(value: number) {
+    this.bytes.set(toUint8Array(value, 4), 0x1354);
   }
 
   calculateChecksum(): number {
