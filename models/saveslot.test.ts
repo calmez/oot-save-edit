@@ -1,6 +1,7 @@
 import { assertInstanceOf } from "@std/assert/instance-of";
 import {
   Age,
+  ButtonEquips,
   FaroresWindWarp,
   InventoryItems,
   Items,
@@ -542,6 +543,55 @@ Deno.test({
     );
     assertEquals(instance.room, expectedRoom);
     assertEquals(instance.entrance, expectedEntrance);
+  },
+});
+
+Deno.test({
+  name: "should get the current button equips",
+  fn() {
+    const testData = new Uint8Array(SaveSlot.requiredSize);
+    const expectedEquips: ButtonEquips = {
+      bButton: 12,
+      cLeftButton: 23,
+      cDownButton: 32,
+      cRightButton: 42,
+      cLeftOffset: 1,
+      cDownOffset: 2,
+      cRightOffset: 3,
+    };
+    testData.set(
+      new Uint8Array([
+        ...toUint8Array(expectedEquips.bButton, 1),
+        ...toUint8Array(expectedEquips.cLeftButton, 1),
+        ...toUint8Array(expectedEquips.cDownButton, 1),
+        ...toUint8Array(expectedEquips.cRightButton, 1),
+        ...toUint8Array(expectedEquips.cLeftOffset, 1),
+        ...toUint8Array(expectedEquips.cDownOffset, 1),
+        ...toUint8Array(expectedEquips.cRightOffset, 1),
+      ]),
+      0x0068,
+    );
+    const instance = new SaveSlot(testData);
+    assertEquals(instance.currentButtonEquips, expectedEquips);
+  },
+});
+
+Deno.test({
+  name: "should set the currentButtonEquips",
+  fn() {
+    const testData = new Uint8Array(SaveSlot.requiredSize);
+    const expectedEquips: ButtonEquips = {
+      bButton: 12,
+      cLeftButton: 23,
+      cDownButton: 32,
+      cRightButton: 42,
+      cLeftOffset: 1,
+      cDownOffset: 2,
+      cRightOffset: 3,
+    };
+    const instance = new SaveSlot(testData);
+    instance.currentButtonEquips = expectedEquips;
+    assertEquals(instance.currentButtonEquips, expectedEquips);
   },
 });
 

@@ -25,6 +25,16 @@ export enum MagicAmount {
   Full = 0x60,
 }
 
+export interface ButtonEquips {
+  bButton: number; // TODO what's the correct data type here?
+  cLeftButton: number; // TODO what's the correct data type here?
+  cDownButton: number; // TODO what's the correct data type here?
+  cRightButton: number; // TODO what's the correct data type here?
+  cLeftOffset: number; // TODO what's the correct data type here?
+  cDownOffset: number; // TODO what's the correct data type here?
+  cRightOffset: number; // TODO what's the correct data type here?
+}
+
 export enum Sword {
   Kokiri = 0x3B,
   Master = 0x3C,
@@ -560,59 +570,79 @@ export class SaveSlot {
     this.bytes.set(toUint8Array(value, 2), 0x0066);
   }
 
-  private get currentButtonEquips(): Uint8Array {
-    return this.bytes.slice(0x0068, 0x0068 + 7);
+  get currentButtonEquips(): ButtonEquips {
+    const data = this.bytes.slice(0x0068, 0x0068 + 7);
+    return {
+      bButton: toNumber(data.slice(0, 1)),
+      cLeftButton: toNumber(data.slice(1, 2)),
+      cDownButton: toNumber(data.slice(2, 3)),
+      cRightButton: toNumber(data.slice(3, 4)),
+      cLeftOffset: toNumber(data.slice(4, 5)),
+      cDownOffset: toNumber(data.slice(5, 6)),
+      cRightOffset: toNumber(data.slice(6, 7)),
+    };
   }
 
-  // TODO button equipments should return specific data structures
-  private set currentButtonEquips(value: Uint8Array) {
-    if (value.length != 7) {
-      throw Error(
-        `button equip data needs to be 7 bytes, got ${value.length}.`,
-      );
-    }
-    this.bytes.set(value, 0x0068);
+  set currentButtonEquips(value: ButtonEquips) {
+    this.bytes.set(
+      new Uint8Array([
+        ...toUint8Array(value.bButton, 1),
+        ...toUint8Array(value.cLeftButton, 1),
+        ...toUint8Array(value.cDownButton, 1),
+        ...toUint8Array(value.cRightButton, 1),
+        ...toUint8Array(value.cLeftOffset, 1),
+        ...toUint8Array(value.cDownOffset, 1),
+        ...toUint8Array(value.cRightOffset, 1),
+      ]),
+      0x0068,
+    );
   }
 
   get bButtonEquip(): number {
-    return toNumber(this.currentButtonEquips.slice(0, 0 + 1));
+    return this.currentButtonEquips.bButton;
   }
 
   set bButtonEquip(value: number) {
-    const buttonEquips = this.currentButtonEquips;
-    buttonEquips.set(toUint8Array(value, 1), 0);
-    this.currentButtonEquips = buttonEquips;
+    this.currentButtonEquips = {
+      ...this.currentButtonEquips,
+      bButton: value,
+    };
   }
 
   get cLeftButtonEquip(): number {
-    return toNumber(this.currentButtonEquips.slice(1, 1 + 1));
+    return this.currentButtonEquips.cLeftButton;
   }
 
   set cLeftButtonEquip(value: number) {
-    const buttonEquips = this.currentButtonEquips;
-    buttonEquips.set(toUint8Array(value, 1), 1);
-    this.currentButtonEquips = buttonEquips;
+    this.currentButtonEquips = {
+      ...this.currentButtonEquips,
+      cLeftButton: value,
+    };
   }
 
   get cDownButtonEquip(): number {
-    return toNumber(this.currentButtonEquips.slice(2, 2 + 1));
+    return this.currentButtonEquips.cDownButton;
   }
 
   set cDownButtonEquip(value: number) {
-    const buttonEquips = this.currentButtonEquips;
-    buttonEquips.set(toUint8Array(value, 1), 2);
-    this.currentButtonEquips = buttonEquips;
+    this.currentButtonEquips = {
+      ...this.currentButtonEquips,
+      cDownButton: value,
+    };
   }
 
   get cRightButtonEquip(): number {
-    return toNumber(this.currentButtonEquips.slice(3, 3 + 1));
+    return this.currentButtonEquips.cRightButton;
   }
 
   set cRightButtonEquip(value: number) {
-    const buttonEquips = this.currentButtonEquips;
-    buttonEquips.set(toUint8Array(value, 1), 3);
-    this.currentButtonEquips = buttonEquips;
+    this.currentButtonEquips = {
+      ...this.currentButtonEquips,
+      cRightButton: value,
+    };
   }
+
+  // TODO do we need helpers for the offsets?
 
   // TODO should reference data structures for equipment
   // & 0x000F = Swords
