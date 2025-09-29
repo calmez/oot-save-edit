@@ -1,11 +1,16 @@
 import { assertInstanceOf } from "@std/assert/instance-of";
 import {
   Age,
+  Boots,
   ButtonEquips,
+  CurrentEquipment,
   FaroresWindWarp,
   InventoryItems,
   MagicAmount,
   SaveSlot,
+  Shield,
+  Sword,
+  Tunic,
 } from "./saveslot.ts";
 import { assertEquals, assertNotEquals, assertThrows } from "@std/assert";
 import { toUint8Array } from "../utils/conversions.ts";
@@ -598,7 +603,7 @@ Deno.test({
   name: "should provide the B button equipment",
   fn() {
     const testData = new Uint8Array(SaveSlot.requiredSize);
-    const expectedEquipment = 56;
+    const expectedEquipment = InventoryItems.DekuStick;
     testData.set(toUint8Array(expectedEquipment, 1), 0x0068);
     const instance = new SaveSlot(testData);
     assertEquals(instance.bButtonEquip, expectedEquipment);
@@ -609,7 +614,7 @@ Deno.test({
   name: "should set the B button equipment",
   fn() {
     const testData = new Uint8Array(SaveSlot.requiredSize);
-    const expectedEquipment = 56;
+    const expectedEquipment = InventoryItems.DekuStick;
     const instance = new SaveSlot(testData);
     instance.bButtonEquip = expectedEquipment;
     assertEquals(instance.bButtonEquip, expectedEquipment);
@@ -620,7 +625,7 @@ Deno.test({
   name: "should provide the C left button equipment",
   fn() {
     const testData = new Uint8Array(SaveSlot.requiredSize);
-    const expectedEquipment = 58;
+    const expectedEquipment = InventoryItems.Bombchu;
     testData.set(toUint8Array(expectedEquipment, 1), 0x0069);
     const instance = new SaveSlot(testData);
     assertEquals(instance.cLeftButtonEquip, expectedEquipment);
@@ -631,7 +636,7 @@ Deno.test({
   name: "should set the C left button equipment",
   fn() {
     const testData = new Uint8Array(SaveSlot.requiredSize);
-    const expectedEquipment = 58;
+    const expectedEquipment = InventoryItems.Bombchu;
     const instance = new SaveSlot(testData);
     instance.cLeftButtonEquip = expectedEquipment;
     assertEquals(instance.cLeftButtonEquip, expectedEquipment);
@@ -642,7 +647,7 @@ Deno.test({
   name: "should provide the C down button equipment",
   fn() {
     const testData = new Uint8Array(SaveSlot.requiredSize);
-    const expectedEquipment = 60;
+    const expectedEquipment = InventoryItems.Bomb;
     testData.set(toUint8Array(expectedEquipment, 1), 0x006A);
     const instance = new SaveSlot(testData);
     assertEquals(instance.cDownButtonEquip, expectedEquipment);
@@ -653,7 +658,7 @@ Deno.test({
   name: "should set the C down button equipment",
   fn() {
     const testData = new Uint8Array(SaveSlot.requiredSize);
-    const expectedEquipment = 60;
+    const expectedEquipment = InventoryItems.Bomb;
     const instance = new SaveSlot(testData);
     instance.cDownButtonEquip = expectedEquipment;
     assertEquals(instance.cDownButtonEquip, expectedEquipment);
@@ -664,7 +669,7 @@ Deno.test({
   name: "should provide the C right button equipment",
   fn() {
     const testData = new Uint8Array(SaveSlot.requiredSize);
-    const expectedEquipment = 62;
+    const expectedEquipment = InventoryItems.DekuNut;
     testData.set(toUint8Array(expectedEquipment, 1), 0x006B);
     const instance = new SaveSlot(testData);
     assertEquals(instance.cRightButtonEquip, expectedEquipment);
@@ -675,10 +680,44 @@ Deno.test({
   name: "should set the C right button equipment",
   fn() {
     const testData = new Uint8Array(SaveSlot.requiredSize);
-    const expectedEquipment = 62;
+    const expectedEquipment = InventoryItems.DekuNut;
     const instance = new SaveSlot(testData);
     instance.cRightButtonEquip = expectedEquipment;
     assertEquals(instance.cRightButtonEquip, expectedEquipment);
+  },
+});
+
+Deno.test({
+  name: "should get the currently equipped equipment",
+  fn() {
+    const testData = new Uint8Array(SaveSlot.requiredSize);
+    const expectedEquipment: CurrentEquipment = {
+      sword: Sword.Kokiri,
+      shield: Shield.Kokiri,
+      tunic: Tunic.Kokiri,
+      boots: Boots.Kokiri,
+    };
+    const equipmentData = expectedEquipment.sword | expectedEquipment.shield |
+      expectedEquipment.tunic | expectedEquipment.boots;
+    testData.set(toUint8Array(equipmentData, 2), 0x0070);
+    const instance = new SaveSlot(testData);
+    assertEquals(instance.currentlyEquippedEquipment, expectedEquipment);
+  },
+});
+
+Deno.test({
+  name: "should set the currently equipped equipment",
+  fn() {
+    const testData = new Uint8Array(SaveSlot.requiredSize);
+    const expectedEquipment: CurrentEquipment = {
+      sword: Sword.Master,
+      shield: Shield.Hylian,
+      tunic: Tunic.Goron,
+      boots: Boots.Iron,
+    };
+    const instance = new SaveSlot(testData);
+    instance.currentlyEquippedEquipment = expectedEquipment;
+    assertEquals(instance.currentlyEquippedEquipment, expectedEquipment);
   },
 });
 
