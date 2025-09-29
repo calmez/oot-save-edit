@@ -88,27 +88,39 @@ export enum InventoryItems {
 }
 
 export enum Sword {
-  Kokiri = 0x3B,
-  Master = 0x3C,
-  GiantKnife = 0x3D,
+  //Kokiri = 0x3B,
+  //Master = 0x3C,
+  //GiantKnife = 0x3D,
+  Kokiri = 0x0001,
+  Master = 0x0002,
+  GiantKnife = 0x0003,
 }
 
 export enum Shield {
-  Kokiri = 0x3E,
-  Hylian = 0x3F,
-  Mirror = 0x40,
+  //Kokiri = 0x3E,
+  //Hylian = 0x3F,
+  //Mirror = 0x40,
+  Kokiri = 0x0010,
+  Hylian = 0x0020,
+  Mirror = 0x0030,
 }
 
 export enum Tunic {
-  Kokiri = 0x41,
-  Goron = 0x42,
-  Zora = 0x43,
+  //Kokiri = 0x41,
+  //Goron = 0x42,
+  //Zora = 0x43,
+  Kokiri = 0x0100,
+  Goron = 0x0200,
+  Zora = 0x0300,
 }
 
 export enum Boots {
-  Kokiri = 0x44,
-  Iron = 0x45,
-  Hover = 0x46,
+  //Kokiri = 0x44,
+  //Iron = 0x45,
+  //Hover = 0x46,
+  Kokiri = 0x1000,
+  Iron = 0x2000,
+  Hover = 0x3000,
 }
 
 export enum BulletBag {
@@ -245,13 +257,20 @@ export enum OtherItems {
 }
 
 export interface ButtonEquips {
-  bButton: number; // TODO what's the correct data type here?
-  cLeftButton: number; // TODO what's the correct data type here?
-  cDownButton: number; // TODO what's the correct data type here?
-  cRightButton: number; // TODO what's the correct data type here?
+  bButton: InventoryItems;
+  cLeftButton: InventoryItems;
+  cDownButton: InventoryItems;
+  cRightButton: InventoryItems;
   cLeftOffset: number; // TODO what's the correct data type here?
   cDownOffset: number; // TODO what's the correct data type here?
   cRightOffset: number; // TODO what's the correct data type here?
+}
+
+export interface CurrentEquipment {
+  sword: Sword;
+  shield: Shield;
+  tunic: Tunic;
+  boots: Boots;
 }
 
 export interface FaroresWindWarp {
@@ -558,10 +577,10 @@ export class SaveSlot {
   get currentButtonEquips(): ButtonEquips {
     const data = this.bytes.slice(0x0068, 0x0068 + 7);
     return {
-      bButton: toNumber(data.slice(0, 1)),
-      cLeftButton: toNumber(data.slice(1, 2)),
-      cDownButton: toNumber(data.slice(2, 3)),
-      cRightButton: toNumber(data.slice(3, 4)),
+      bButton: toNumber(data.slice(0, 1)) as InventoryItems,
+      cLeftButton: toNumber(data.slice(1, 2)) as InventoryItems,
+      cDownButton: toNumber(data.slice(2, 3)) as InventoryItems,
+      cRightButton: toNumber(data.slice(3, 4)) as InventoryItems,
       cLeftOffset: toNumber(data.slice(4, 5)),
       cDownOffset: toNumber(data.slice(5, 6)),
       cRightOffset: toNumber(data.slice(6, 7)),
@@ -583,44 +602,44 @@ export class SaveSlot {
     );
   }
 
-  get bButtonEquip(): number {
+  get bButtonEquip(): InventoryItems {
     return this.currentButtonEquips.bButton;
   }
 
-  set bButtonEquip(value: number) {
+  set bButtonEquip(value: InventoryItems) {
     this.currentButtonEquips = {
       ...this.currentButtonEquips,
       bButton: value,
     };
   }
 
-  get cLeftButtonEquip(): number {
+  get cLeftButtonEquip(): InventoryItems {
     return this.currentButtonEquips.cLeftButton;
   }
 
-  set cLeftButtonEquip(value: number) {
+  set cLeftButtonEquip(value: InventoryItems) {
     this.currentButtonEquips = {
       ...this.currentButtonEquips,
       cLeftButton: value,
     };
   }
 
-  get cDownButtonEquip(): number {
+  get cDownButtonEquip(): InventoryItems {
     return this.currentButtonEquips.cDownButton;
   }
 
-  set cDownButtonEquip(value: number) {
+  set cDownButtonEquip(value: InventoryItems) {
     this.currentButtonEquips = {
       ...this.currentButtonEquips,
       cDownButton: value,
     };
   }
 
-  get cRightButtonEquip(): number {
+  get cRightButtonEquip(): InventoryItems {
     return this.currentButtonEquips.cRightButton;
   }
 
-  set cRightButtonEquip(value: number) {
+  set cRightButtonEquip(value: InventoryItems) {
     this.currentButtonEquips = {
       ...this.currentButtonEquips,
       cRightButton: value,
@@ -629,22 +648,19 @@ export class SaveSlot {
 
   // TODO do we need helpers for the offsets?
 
-  // TODO should reference data structures for equipment
-  // & 0x000F = Swords
-  // & 0x00F0 = Shields
-  // & 0x0F00 = Tunics
-  // & 0xF000 = Boots
-  private get currentlyEquippedEquipment(): Uint8Array {
-    return this.bytes.slice(0x0070, 0x0070 + 2);
+  get currentlyEquippedEquipment(): CurrentEquipment {
+    const equipData = toNumber(this.bytes.slice(0x0070, 0x0070 + 2));
+    return {
+      sword: equipData & 0x000F,
+      shield: equipData & 0x00F0,
+      tunic: equipData & 0x0F00,
+      boots: equipData & 0xF000,
+    };
   }
 
-  private set currentlyEquippedEquipment(value: Uint8Array) {
-    if (value.length != 2) {
-      throw Error(
-        `current equipment data needs to be 2 bytes, got ${value.length}.`,
-      );
-    }
-    this.bytes.set(value, 0x0070);
+  set currentlyEquippedEquipment(value: CurrentEquipment) {
+    const data = value.sword | value.shield | value.tunic | value.boots;
+    this.bytes.set(toUint8Array(data, 2), 0x0070);
   }
 
   get inventory(): Array<InventoryItems> {
