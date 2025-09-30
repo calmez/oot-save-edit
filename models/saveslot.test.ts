@@ -4,6 +4,7 @@ import {
   Boots,
   ButtonEquips,
   CurrentEquipment,
+  EquippableItems,
   FaroresWindWarp,
   InventoryItems,
   MagicAmount,
@@ -692,10 +693,10 @@ Deno.test({
   fn() {
     const testData = new Uint8Array(SaveSlot.requiredSize);
     const expectedEquipment: CurrentEquipment = {
-      sword: Sword.Kokiri,
-      shield: Shield.Kokiri,
-      tunic: Tunic.Kokiri,
-      boots: Boots.Kokiri,
+      sword: Sword.KokiriSword,
+      shield: Shield.KokiriShield,
+      tunic: Tunic.KokiriTunic,
+      boots: Boots.KokiriBoots,
     };
     const equipmentData = expectedEquipment.sword | expectedEquipment.shield |
       expectedEquipment.tunic | expectedEquipment.boots;
@@ -710,10 +711,10 @@ Deno.test({
   fn() {
     const testData = new Uint8Array(SaveSlot.requiredSize);
     const expectedEquipment: CurrentEquipment = {
-      sword: Sword.Master,
-      shield: Shield.Hylian,
-      tunic: Tunic.Goron,
-      boots: Boots.Iron,
+      sword: Sword.MasterSword,
+      shield: Shield.HylianShield,
+      tunic: Tunic.GoronTunic,
+      boots: Boots.IronBoots,
     };
     const instance = new SaveSlot(testData);
     instance.currentlyEquippedEquipment = expectedEquipment;
@@ -788,6 +789,46 @@ Deno.test({
     const instance = new SaveSlot(testData);
     instance.magicBeans = expectedBeans;
     assertEquals(instance.magicBeans, expectedBeans);
+  },
+});
+
+Deno.test({
+  name: "should get obtained equipment",
+  fn() {
+    const testData = new Uint8Array(SaveSlot.requiredSize);
+    const expectedEquipment: Array<EquippableItems> = [
+      Sword.KokiriSword,
+      Sword.MasterSword,
+      Shield.KokiriShield,
+      Tunic.ZoraTunic,
+      Boots.HoverBoots,
+    ];
+    testData.set(
+      toUint8Array(expectedEquipment.reduce((l, r) => l | r), 2),
+      0x009C,
+    );
+    const instance = new SaveSlot(testData);
+    assertEquals(instance.obtainedEquipment, expectedEquipment);
+  },
+});
+
+Deno.test({
+  name: "should set obtained equipment",
+  fn() {
+    const testData = new Uint8Array(SaveSlot.requiredSize);
+    const expectedEquipment: Array<EquippableItems> = [
+      Sword.MasterSword,
+      Shield.MirrorShield,
+      Tunic.KokiriTunic,
+      Boots.HoverBoots,
+      Boots.IronBoots,
+    ];
+    const instance = new SaveSlot(testData);
+    instance.obtainedEquipment = expectedEquipment;
+    assertEquals(
+      instance.obtainedEquipment.toSorted(),
+      expectedEquipment.toSorted(),
+    );
   },
 });
 

@@ -91,37 +91,49 @@ export enum Sword {
   //Kokiri = 0x3B,
   //Master = 0x3C,
   //GiantKnife = 0x3D,
-  Kokiri = 0x0001,
-  Master = 0x0002,
-  GiantKnife = 0x0003,
+  KokiriSword = 0x0001,
+  MasterSword = 0x0002,
+  GiantKnife = 0x0004,
 }
 
 export enum Shield {
   //Kokiri = 0x3E,
   //Hylian = 0x3F,
   //Mirror = 0x40,
-  Kokiri = 0x0010,
-  Hylian = 0x0020,
-  Mirror = 0x0030,
+  KokiriShield = 0x0010,
+  HylianShield = 0x0020,
+  MirrorShield = 0x0040,
 }
 
 export enum Tunic {
   //Kokiri = 0x41,
   //Goron = 0x42,
   //Zora = 0x43,
-  Kokiri = 0x0100,
-  Goron = 0x0200,
-  Zora = 0x0300,
+  KokiriTunic = 0x0100,
+  GoronTunic = 0x0200,
+  ZoraTunic = 0x0400,
 }
 
 export enum Boots {
   //Kokiri = 0x44,
   //Iron = 0x45,
   //Hover = 0x46,
-  Kokiri = 0x1000,
-  Iron = 0x2000,
-  Hover = 0x3000,
+  KokiriBoots = 0x1000,
+  IronBoots = 0x2000,
+  HoverBoots = 0x4000,
 }
+
+export type EquippableItems =
+  | Sword
+  | Shield
+  | Tunic
+  | Boots;
+export const EquippableItems = {
+  ...Sword,
+  ...Shield,
+  ...Tunic,
+  ...Boots,
+};
 
 export enum BulletBag {
   BulletBagHolds30 = 0x47,
@@ -153,26 +165,6 @@ export enum OtherEquipment {
   SlingShotBulletsJapaneseName = 0x58,
   FishingRodJapaneseName = 0x59,
 }
-
-export type EquippableItems =
-  | Sword
-  | Shield
-  | Tunic
-  | Boots
-  | BulletBag
-  | Quiver
-  | BombBag
-  | OtherEquipment;
-export const EquippableItems = {
-  ...Sword,
-  ...Shield,
-  ...Tunic,
-  ...Boots,
-  ...BulletBag,
-  ...Quiver,
-  ...BombBag,
-  ...OtherEquipment,
-};
 
 export enum QuestItems {
   MinuetofForest = 0x5A,
@@ -703,22 +695,26 @@ export class SaveSlot {
     this.bytes.set(toUint8Array(value, 1), 0x009B);
   }
 
-  // TODO should reference data structures for equipment
-  // & 0x000F = Swords
-  // & 0x00F0 = Shields
-  // & 0x0F00 = Tunics
-  // & 0xF000 = Boots
-  private get obtainedEquipment(): Uint8Array {
-    return this.bytes.slice(0x009C, 0x009C + 2);
+  get obtainedEquipment(): Array<EquippableItems> {
+    const obtainedEquipment: Array<EquippableItems> = [];
+    const equipmentData = toNumber(this.bytes.slice(0x009C, 0x009C + 2));
+
+    function addIfInData(equipment: EquippableItems) {
+      if ((equipmentData & equipment) === equipment) {
+        obtainedEquipment.push(equipment);
+      }
+    }
+
+    Object.values(EquippableItems).slice(
+      Object.values(EquippableItems).length / 2,
+    ).forEach((equipment) => addIfInData(equipment as EquippableItems));
+
+    return obtainedEquipment;
   }
 
-  private set obtainedEquipment(value: Uint8Array) {
-    if (value.length != 2) {
-      throw Error(
-        `obtained equipment data needs to be 2 bytes, got ${value.length}.`,
-      );
-    }
-    this.bytes.set(value, 0x009C);
+  set obtainedEquipment(value: Array<EquippableItems>) {
+    const data = value.reduce((l, r) => l | r);
+    this.bytes.set(toUint8Array(data, 2), 0x009C);
   }
 
   // TODO should reference data structures for equipment
