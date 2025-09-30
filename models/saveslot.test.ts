@@ -1,13 +1,19 @@
 import { assertInstanceOf } from "@std/assert/instance-of";
 import {
   Age,
+  BombBag,
   Boots,
+  BulletBag,
   ButtonEquips,
   CurrentEquipment,
+  DekuNutUpgrades,
+  DekuStickUpgrades,
   EquippableItems,
   FaroresWindWarp,
   InventoryItems,
   MagicAmount,
+  ObtainableUpgrades,
+  Quiver,
   SaveSlot,
   Shield,
   Sword,
@@ -828,6 +834,47 @@ Deno.test({
     assertEquals(
       instance.obtainedEquipment.toSorted(),
       expectedEquipment.toSorted(),
+    );
+  },
+});
+
+Deno.test({
+  name: "should get obtained upgrades",
+  fn() {
+    const testData = new Uint8Array(SaveSlot.requiredSize);
+    const expectedUpgrades: Array<ObtainableUpgrades> = [
+      DekuNutUpgrades.DekuNutUpgradeHolds30Nuts,
+      DekuStickUpgrades.DekuStickUpgradeHolds20Sticks,
+      DekuStickUpgrades.DekuStickUpgradeHolds30Sticks,
+      BulletBag.BulletBagHolds30,
+      BombBag.BombBagHolds20,
+      Quiver.QuiverHolds40,
+    ];
+    testData.set(
+      toUint8Array(expectedUpgrades.reduce((l, r) => l | r), 4),
+      0x00A0,
+    );
+    const instance = new SaveSlot(testData);
+    assertEquals(instance.obtainedUpgrades, expectedUpgrades);
+  },
+});
+
+Deno.test({
+  name: "should set obtained upgrades",
+  fn() {
+    const testData = new Uint8Array(SaveSlot.requiredSize);
+    const expectedUpgrades: Array<ObtainableUpgrades> = [
+      DekuNutUpgrades.DekuNutUpgradeHolds30Nuts,
+      BulletBag.BulletBagHolds40,
+      BombBag.BombBagHolds30,
+      Quiver.QuiverHolds30,
+      Quiver.QuiverHolds50,
+    ];
+    const instance = new SaveSlot(testData);
+    instance.obtainedUpgrades = expectedUpgrades;
+    assertEquals(
+      instance.obtainedUpgrades.toSorted(),
+      expectedUpgrades.toSorted(),
     );
   },
 });
