@@ -135,36 +135,100 @@ export const EquippableItems = {
   ...Boots,
 };
 
-export enum BulletBag {
-  BulletBagHolds30 = 0x47,
-  BulletBagHolds40 = 0x48,
-  BulletBagHolds50 = 0x49,
+//export enum BulletBag {
+//  BulletBagHolds30 = 0x47,
+//  BulletBagHolds40 = 0x48,
+//  BulletBagHolds50 = 0x49,
+//}
+//
+//export enum Quiver {
+//  QuiverHolds30 = 0x4A,
+//  QuiverHolds40 = 0x4B,
+//  QuiverHolds50 = 0x4C,
+//}
+//
+//export enum BombBag {
+//  BombBagHolds20 = 0x4D,
+//  BombBagHolds30 = 0x4E,
+//  BombBagHolds40 = 0x4F,
+//}
+//
+//export enum OtherEquipment {
+//  GoronsBracelet = 0x50,
+//  SilverGauntlets = 0x51,
+//  GoldenGauntlets = 0x52,
+//  SilverScale = 0x53,
+//  GoldenScale = 0x54,
+//  GiantsKnifeBroken = 0x55,
+//  BombBagJapaneseName = 0x56,
+//  BombBag2JapaneseName = 0x57,
+//  SlingShotBulletsJapaneseName = 0x58,
+//  FishingRodJapaneseName = 0x59,
+//}
+
+export enum DekuNutUpgrades {
+  DekuNutUpgradeHolds30Nuts = 0x0010_0000,
+  DekuNutUpgradeHolds40Nuts = 0x0020_0000,
 }
 
-export enum Quiver {
-  QuiverHolds30 = 0x4A,
-  QuiverHolds40 = 0x4B,
-  QuiverHolds50 = 0x4C,
+export enum DekuStickUpgrades {
+  DekuStickUpgradeHolds20Sticks = 0x0002_0000,
+  DekuStickUpgradeHolds30Sticks = 0x0004_0000,
+}
+
+export enum BulletBag {
+  BulletBagHolds30 = 0x0000_4000,
+  BulletBagHolds40 = 0x0000_8000,
+  BulletBagHolds50 = 0x0001_0000,
+}
+
+export enum Wallet {
+  WalletHolds200 = 0x0000_1000,
+  WalletHolds500 = 0x0000_2000,
+}
+
+export enum DiveMeter {
+  SilverScale = 0x0000_0200,
+  GoldenScale = 0x0000_0400,
+}
+
+export enum StrengthUpgrades {
+  SilverGauntlets = 0x0000_0040,
+  GoldenGauntlets = 0x0000_0080,
 }
 
 export enum BombBag {
-  BombBagHolds20 = 0x4D,
-  BombBagHolds30 = 0x4E,
-  BombBagHolds40 = 0x4F,
+  BombBagHolds20 = 0x0000_0008,
+  BombBagHolds30 = 0x0000_0010,
+  BombBagHolds40 = 0x0000_0020,
 }
 
-export enum OtherEquipment {
-  GoronsBracelet = 0x50,
-  SilverGauntlets = 0x51,
-  GoldenGauntlets = 0x52,
-  SilverScale = 0x53,
-  GoldenScale = 0x54,
-  GiantsKnifeBroken = 0x55,
-  BombBagJapaneseName = 0x56,
-  BombBag2JapaneseName = 0x57,
-  SlingShotBulletsJapaneseName = 0x58,
-  FishingRodJapaneseName = 0x59,
+export enum Quiver {
+  QuiverHolds30 = 0x0000_0001,
+  QuiverHolds40 = 0x0000_0002,
+  QuiverHolds50 = 0x0000_0004,
 }
+
+export type ObtainableUpgrades =
+  | DekuNutUpgrades
+  | DekuStickUpgrades
+  | BulletBag
+  | Wallet
+  | DiveMeter
+  | StrengthUpgrades
+  | BombBag
+  | Quiver;
+
+export const ObtainableUpgrades = {
+  ...DekuNutUpgrades,
+  ...DekuStickUpgrades,
+  ...BulletBag,
+  ...Wallet,
+  ...DiveMeter,
+  ...StrengthUpgrades,
+  ...BombBag,
+  ...Quiver,
+};
 
 export enum QuestItems {
   MinuetofForest = 0x5A,
@@ -705,8 +769,9 @@ export class SaveSlot {
       }
     }
 
-    Object.values(EquippableItems).slice(
-      Object.values(EquippableItems).length / 2,
+
+    Object.values(EquippableItems).map((v) => Number(v)).filter((v) =>
+      !Number.isNaN(v)
     ).forEach((equipment) => addIfInData(equipment as EquippableItems));
 
     return obtainedEquipment;
@@ -717,26 +782,26 @@ export class SaveSlot {
     this.bytes.set(toUint8Array(data, 2), 0x009C);
   }
 
-  // TODO should reference data structures for equipment
-  // & 0x0070_0000 = Deku Nut capacity
-  // & 0x000E_0000 = Deku Stick capacity
-  // & 0x0001_C000 = Bullet Bag
-  // & 0x0000_3000 = Wallet
-  // & 0x0000_0E00 = Dive Meter
-  // & 0x0000_01C0 = Strength Upgrades
-  // & 0x0000_0038 = Bomb Bag
-  // & 0x0000_0007 = Quiver
-  private get obtainedUpgrades(): Uint8Array {
-    return this.bytes.slice(0x00A0, 0x00A0 + 4);
+  get obtainedUpgrades(): Array<ObtainableUpgrades> {
+    const obtainedUpgrades: Array<ObtainableUpgrades> = [];
+    const upgradeData = toNumber(this.bytes.slice(0x00A0, 0x00A0 + 4));
+
+    function addIfInData(upgrade: ObtainableUpgrades) {
+      if ((upgradeData & upgrade) === upgrade) {
+        obtainedUpgrades.push(upgrade);
+      }
+    }
+
+    Object.values(ObtainableUpgrades).map((v) => Number(v)).filter((v) =>
+      !Number.isNaN(v)
+    ).forEach((upgrade) => addIfInData(upgrade as ObtainableUpgrades));
+
+    return obtainedUpgrades;
   }
 
-  private set obtainedUpgrades(value: Uint8Array) {
-    if (value.length != 4) {
-      throw Error(
-        `obtained equipment data needs to be 4 bytes, got ${value.length}.`,
-      );
-    }
-    this.bytes.set(value, 0x00A0);
+  set obtainedUpgrades(value: Array<ObtainableUpgrades>) {
+    const data = value.reduce((l, r) => l | r);
+    this.bytes.set(toUint8Array(data, 4), 0x00A0);
   }
 
   // TODO should reference data structures for equipment
