@@ -230,34 +230,78 @@ export const ObtainableUpgrades = {
   ...Quiver,
 };
 
-export enum QuestItems {
-  MinuetofForest = 0x5A,
-  BoleroofFire = 0x5B,
-  SerenadeofWater = 0x5C,
-  RequiemofSpirit = 0x5D,
-  NocturneofShadow = 0x5E,
-  PreludeofLight = 0x5F,
-  ZeldasLullaby = 0x60,
-  EponasSong = 0x61,
-  SariasSong = 0x62,
-  SunsSong = 0x63,
-  SongofTime = 0x64,
-  SongofStorms = 0x65,
-  ForestMedallion = 0x66,
-  FireMedallion = 0x67,
-  WaterMedallion = 0x68,
-  SpiritMedallion = 0x69,
-  ShadowMedallion = 0x6A,
-  LightMedallion = 0x6B,
-  KokirisEmerald = 0x6C,
-  GoronsRuby = 0x6D,
-  ZorasSapphire = 0x6E,
-  StoneofAgony = 0x6F,
-  GerudosCard = 0x70,
-  GoldSkulltula = 0x71,
-  HeartContainer = 0x72,
-  PieceofHeart = 0x73,
+//export enum QuestItems {
+//  MinuetofForest = 0x5A,
+//  BoleroofFire = 0x5B,
+//  SerenadeofWater = 0x5C,
+//  RequiemofSpirit = 0x5D,
+//  NocturneofShadow = 0x5E,
+//  PreludeofLight = 0x5F,
+//  ZeldasLullaby = 0x60,
+//  EponasSong = 0x61,
+//  SariasSong = 0x62,
+//  SunsSong = 0x63,
+//  SongofTime = 0x64,
+//  SongofStorms = 0x65,
+//  ForestMedallion = 0x66,
+//  FireMedallion = 0x67,
+//  WaterMedallion = 0x68,
+//  SpiritMedallion = 0x69,
+//  ShadowMedallion = 0x6A,
+//  LightMedallion = 0x6B,
+//  KokirisEmerald = 0x6C,
+//  GoronsRuby = 0x6D,
+//  ZorasSapphire = 0x6E,
+//  StoneofAgony = 0x6F,
+//  GerudosCard = 0x70,
+//  GoldSkulltula = 0x71,
+//  HeartContainer = 0x72,
+//  PieceofHeart = 0x73,
+//}
+
+export enum Medallions {
+  ForestMedallion = 0x0000_0001,
+  FireMedallion = 0x0000_0002,
+  WaterMedallion = 0x0000_0004,
+  SpiritMedallion = 0x0000_0008,
+  ShadowMedallion = 0x0000_0010,
+  LightMedallion = 0x0000_0020,
 }
+
+export enum Songs {
+  MinuetofForest = 0x0000_0040,
+  BoleroofFire = 0x0000_0080,
+  SerenadeofWater = 0x0000_0100,
+  RequiemofSpirit = 0x0000_0200,
+  NocturneofShadow = 0x0000_0400,
+  PreludeofLight = 0x0000_0800,
+  ZeldasLullaby = 0x0000_1000,
+  EponasSong = 0x0000_2000,
+  SariasSong = 0x0000_4000,
+  SunsSong = 0x0000_8000,
+  SongofTime = 0x0001_0000,
+  SongofStorms = 0x0002_0000,
+}
+
+export enum SpiritualStones {
+  KokirisEmerald = 0x0004_0000,
+  GoronsRuby = 0x0008_0000,
+  ZorasSapphire = 0x0010_0000,
+  StoneofAgony = 0x0020_0000,
+}
+
+export enum Tokens {
+  GerudosCard = 0x0040_0000,
+  GoldSkulltulaToken = 0x0080_0000,
+}
+
+export type QuestItems = Medallions | Songs | SpiritualStones | Tokens;
+export const QuestItems = {
+  ...Medallions,
+  ...Songs,
+  ...SpiritualStones,
+  ...Tokens,
+};
 
 export enum DungeonItems {
   BigKey = 0x74,
@@ -804,42 +848,26 @@ export class SaveSlot {
     this.bytes.set(toUint8Array(data, 4), 0x00A0);
   }
 
-  // TODO should reference data structures for equipment
-  // & 0x0080_0000 = Gold Skulltula Token (Set the first time one is collected)
-  // & 0x0040_0000 = Gerudo card
-  // & 0x0020_0000 = Stone of Agony
-  // & 0x0010_0000 = Zora Sapphire
-  // & 0x0008_0000 = Goron Ruby
-  // & 0x0004_0000 = Kokiri Emerald
-  // & 0x0002_0000 = Song of Storms
-  // & 0x0001_0000 = Song of Time
-  // & 0x0000_8000 = Sun's Song
-  // & 0x0000_4000 = Saria's Song
-  // & 0x0000_2000 = Epona's Song
-  // & 0x0000_1000 = Zelda's Lullaby
-  // & 0x0000_0800 = Prelude of Light
-  // & 0x0000_0400 = Nocturne of Shadow
-  // & 0x0000_0200 = Requiem of Spirit
-  // & 0x0000_0100 = Serenade of Water
-  // & 0x0000_0080 = Bolero of Fire
-  // & 0x0000_0040 = Minuet of Forest
-  // & 0x0000_0020 = Light Medallion
-  // & 0x0000_0010 = Shadow Medallion
-  // & 0x0000_0008 = Spirit Medallion
-  // & 0x0000_0004 = Water Medallion
-  // & 0x0000_0002 = Fire Medallion
-  // & 0x0000_0001 = Forest Medallion
-  private get questStatusItems(): Uint8Array {
-    return this.bytes.slice(0x00A4, 0x00A4 + 4);
+  get questStatusItems(): Array<QuestItems> {
+    const obtainedItems: Array<QuestItems> = [];
+    const itemData = toNumber(this.bytes.slice(0x00A4, 0x00A4 + 4));
+
+    function addIfInData(item: QuestItems) {
+      if ((itemData & item) === item) {
+        obtainedItems.push(item);
+      }
+    }
+
+    Object.values(QuestItems).map((v) => Number(v)).filter((v) =>
+      !Number.isNaN(v)
+    ).forEach((item) => addIfInData(item as QuestItems));
+
+    return obtainedItems;
   }
 
-  private set questStatusItems(value: Uint8Array) {
-    if (value.length != 4) {
-      throw Error(
-        `obtained equipment data needs to be 4 bytes, got ${value.length}.`,
-      );
-    }
-    this.bytes.set(value, 0x00A4);
+  set questStatusItems(value: Array<QuestItems>) {
+    const data = value.reduce((l, r) => l | r);
+    this.bytes.set(toUint8Array(data, 4), 0x00A4);
   }
 
   // Indexed by the Scene Index. Each byte contains the following:
