@@ -12,11 +12,16 @@ import {
   FaroresWindWarp,
   InventoryItems,
   MagicAmount,
+  Medallions,
   ObtainableUpgrades,
+  QuestItems,
   Quiver,
   SaveSlot,
   Shield,
+  Songs,
+  SpiritualStones,
   Sword,
+  Tokens,
   Tunic,
 } from "./saveslot.ts";
 import { assertEquals, assertNotEquals, assertThrows } from "@std/assert";
@@ -875,6 +880,47 @@ Deno.test({
     assertEquals(
       instance.obtainedUpgrades.toSorted(),
       expectedUpgrades.toSorted(),
+    );
+  },
+});
+
+Deno.test({
+  name: "should get obtained quest items",
+  fn() {
+    const testData = new Uint8Array(SaveSlot.requiredSize);
+    const expectedItems: Array<QuestItems> = [
+      Medallions.ForestMedallion,
+      Medallions.FireMedallion,
+      Songs.SariasSong,
+      SpiritualStones.StoneofAgony,
+      Tokens.GoldSkulltulaToken,
+    ];
+    testData.set(
+      toUint8Array(expectedItems.reduce((l, r) => l | r), 4),
+      0x00A4,
+    );
+    const instance = new SaveSlot(testData);
+    assertEquals(instance.questStatusItems, expectedItems);
+  },
+});
+
+Deno.test({
+  name: "should set obtained quest items",
+  fn() {
+    const testData = new Uint8Array(SaveSlot.requiredSize);
+    const expectedItems: Array<QuestItems> = [
+      Medallions.ForestMedallion,
+      Medallions.ShadowMedallion,
+      Songs.SariasSong,
+      SpiritualStones.StoneofAgony,
+      Tokens.GoldSkulltulaToken,
+      Tokens.GerudosCard,
+    ];
+    const instance = new SaveSlot(testData);
+    instance.questStatusItems = expectedItems;
+    assertEquals(
+      instance.questStatusItems.toSorted(),
+      expectedItems.toSorted(),
     );
   },
 });
