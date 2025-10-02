@@ -303,11 +303,17 @@ export const QuestItems = {
   ...Tokens,
 };
 
+//export enum DungeonItems {
+//  BigKey = 0x74,
+//  Compass = 0x75,
+//  DungeonMap = 0x76,
+//  SmallKey = 0x77,
+//}
+
 export enum DungeonItems {
-  BigKey = 0x74,
-  Compass = 0x75,
-  DungeonMap = 0x76,
-  SmallKey = 0x77,
+  BossKey = 0x01,
+  Compass = 0x02,
+  DungeonMap = 0x04,
 }
 
 export enum Collecibles {
@@ -813,7 +819,6 @@ export class SaveSlot {
       }
     }
 
-
     Object.values(EquippableItems).map((v) => Number(v)).filter((v) =>
       !Number.isNaN(v)
     ).forEach((equipment) => addIfInData(equipment as EquippableItems));
@@ -870,28 +875,55 @@ export class SaveSlot {
     this.bytes.set(toUint8Array(data, 4), 0x00A4);
   }
 
-  // Indexed by the Scene Index. Each byte contains the following:
-  // & 0x01 = Boss Key
-  // & 0x02 = Compass
-  // & 0x04 = Dungeon Map
-  get dungeonItems(): Uint8Array {
-    return this.bytes.slice(0x00A8, 0x00A8 + 0x14);
+  get dungeonItems(): Array<Array<DungeonItems>> {
+    const allDungeonsItems: Array<Array<DungeonItems>> = [];
+    const dungeonItemsData = this.bytes.slice(0x00A8, 0x00A8 + 0x14);
+
+    function addIfInData(
+      items: Array<DungeonItems>,
+      data: number,
+      item: DungeonItems,
+    ) {
+      if ((data & item) === item) {
+        items.push(item);
+      }
+    }
+
+    for (let i = 0; i < dungeonItemsData.length; i++) {
+      const itemData = toNumber(dungeonItemsData.slice(i, i + 1));
+      const items: Array<DungeonItems> = [];
+
+      Object.values(DungeonItems).map((v) => Number(v)).filter((v) =>
+        !Number.isNaN(v)
+      ).forEach((item) => addIfInData(items, itemData, item as DungeonItems));
+
+      allDungeonsItems.push(items);
+    }
+
+    return allDungeonsItems;
   }
 
-  set dungeonItems(value: Uint8Array) {
+  set dungeonItems(value: Array<Array<DungeonItems>>) {
     if (value.length != 0x14) {
       throw Error(
         `dungeon items data needs to be ${0x14} bytes, got ${value.length}.`,
       );
     }
-    this.bytes.set(value, 0x00A8);
+    this.bytes.set(
+      value.map((itemSet) => itemSet.reduce((l, r) => l | r)),
+      0x00A8,
+    );
   }
 
-  get smallKeyAmount(): Uint8Array {
-    return this.bytes.slice(0x00BC, 0x00BC + 0x14);
+  get smallKeyAmount(): Array<number> {
+    const keys: Array<number> = [];
+    for (let i = 0; i < 0x14; i++) {
+      keys.push(toNumber(this.bytes.slice(0x00BC + i, 0x00BC + i + 1)));
+    }
+    return keys;
   }
 
-  set smallKeyAmount(value: Uint8Array) {
+  set smallKeyAmount(value: Array<number>) {
     if (value.length != 0x14) {
       throw Error(
         `small key amount data needs to be ${0x14} bytes, got ${value.length}.`,

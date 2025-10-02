@@ -8,6 +8,7 @@ import {
   CurrentEquipment,
   DekuNutUpgrades,
   DekuStickUpgrades,
+  DungeonItems,
   EquippableItems,
   FaroresWindWarp,
   InventoryItems,
@@ -25,7 +26,7 @@ import {
   Tunic,
 } from "./saveslot.ts";
 import { assertEquals, assertNotEquals, assertThrows } from "@std/assert";
-import { toUint8Array } from "../utils/conversions.ts";
+import { toNumber, toUint8Array } from "../utils/conversions.ts";
 import { OotText } from "../utils/text.ts";
 import { Entrance, Room, RoomWithEntranceFor, Scene } from "./scene.ts";
 
@@ -929,8 +930,11 @@ Deno.test({
   name: "should provide dungeon items",
   fn() {
     const testData = new Uint8Array(SaveSlot.requiredSize);
-    const expectedItems = new Uint8Array(0x14).fill(0x23);
-    testData.set(expectedItems, 0x00A8);
+    const expectedItems = new Array<Array<DungeonItems>>(0x14).fill([DungeonItems.Compass]);
+    testData.set(
+      expectedItems.map((itemSet) => itemSet.reduce((l, r) => l | r)),
+      0x00A8
+    );
     const instance = new SaveSlot(testData);
     assertEquals(instance.dungeonItems, expectedItems);
   },
@@ -940,7 +944,7 @@ Deno.test({
   name: "should set dungeon items",
   fn() {
     const testData = new Uint8Array(SaveSlot.requiredSize);
-    const expectedItems = new Uint8Array(0x14).fill(0x23);
+    const expectedItems = new Array<Array<DungeonItems>>(0x14).fill([DungeonItems.DungeonMap]);
     const instance = new SaveSlot(testData);
     instance.dungeonItems = expectedItems;
     assertEquals(instance.dungeonItems, expectedItems);
@@ -951,7 +955,7 @@ Deno.test({
   name: "should provide small key amount",
   fn() {
     const testData = new Uint8Array(SaveSlot.requiredSize);
-    const expectedKeys = new Uint8Array(0x14).fill(0x23);
+    const expectedKeys = new Array<number>(0x14).fill(0x23);
     testData.set(expectedKeys, 0x00BC);
     const instance = new SaveSlot(testData);
     assertEquals(instance.smallKeyAmount, expectedKeys);
@@ -962,7 +966,7 @@ Deno.test({
   name: "should set small key amount",
   fn() {
     const testData = new Uint8Array(SaveSlot.requiredSize);
-    const expectedKeys = new Uint8Array(0x14).fill(0x23);
+    const expectedKeys = new Array<number>(0x14).fill(0x23);
     const instance = new SaveSlot(testData);
     instance.smallKeyAmount = expectedKeys;
     assertEquals(instance.smallKeyAmount, expectedKeys);
