@@ -930,10 +930,12 @@ Deno.test({
   name: "should provide dungeon items",
   fn() {
     const testData = new Uint8Array(SaveSlot.requiredSize);
-    const expectedItems = new Array<Array<DungeonItems>>(0x14).fill([DungeonItems.Compass]);
+    const expectedItems = new Array<Array<DungeonItems>>(0x14).fill([
+      DungeonItems.Compass,
+    ]);
     testData.set(
       expectedItems.map((itemSet) => itemSet.reduce((l, r) => l | r)),
-      0x00A8
+      0x00A8,
     );
     const instance = new SaveSlot(testData);
     assertEquals(instance.dungeonItems, expectedItems);
@@ -944,7 +946,9 @@ Deno.test({
   name: "should set dungeon items",
   fn() {
     const testData = new Uint8Array(SaveSlot.requiredSize);
-    const expectedItems = new Array<Array<DungeonItems>>(0x14).fill([DungeonItems.DungeonMap]);
+    const expectedItems = new Array<Array<DungeonItems>>(0x14).fill([
+      DungeonItems.DungeonMap,
+    ]);
     const instance = new SaveSlot(testData);
     instance.dungeonItems = expectedItems;
     assertEquals(instance.dungeonItems, expectedItems);
@@ -1014,6 +1018,20 @@ Deno.test({
     const instance = new SaveSlot(testData);
     instance.goldSkulltulaTokens = expectedTokens;
     assertEquals(instance.goldSkulltulaTokens, expectedTokens);
+  },
+});
+
+// TODO permanent scene flags
+
+// TODO proper test for entrance index
+Deno.test({
+  name: "should get entrace index transport",
+  fn() {
+    const testData = new Uint8Array(SaveSlot.requiredSize);
+    const expectedEntrance = 42;
+    testData.set(toUint8Array(expectedEntrance, 2), 0x0E7A);
+    const instance = new SaveSlot(testData);
+    assertEquals(instance.entranceIndexTransport, expectedEntrance);
   },
 });
 
