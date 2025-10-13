@@ -14,10 +14,25 @@
     },
     {
       "request": "launch",
+      "name": "Run Tests",
+      "type": "node",
+      "cwd": "${workspaceFolder}",
+      "runtimeExecutable": "deno",
+      "runtimeArgs": [
+        "test",
+        "--inspect-wait",
+        "--allow-all"
+      ],
+      "attachSimplePort": 9229
+    },
+    {
+      "request": "launch",
       "name": "OoT Save Edit",
       "type": "node",
       "program": "${workspaceFolder}/main.ts",
-      "args": ["./test-data/new-game.srm"],
+      "args": [
+        "./test-data/new-game.srm"
+      ],
       "cwd": "${workspaceFolder}",
       "env": {},
       "runtimeExecutable": "deno",
