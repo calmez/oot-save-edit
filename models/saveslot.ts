@@ -379,6 +379,16 @@ export interface CurrentEquipment {
   boots: Boots;
 }
 
+export interface PermanentSceneFlags {
+  chestFlags: number;
+  switches: number;
+  roomClearFlags: number;
+  collectibleFlags: number;
+  unused: number;
+  visitedRooms: number;
+  visitedFloors: number;
+}
+
 export interface FaroresWindWarp {
   x: number;
   y: number;
@@ -948,7 +958,44 @@ export class SaveSlot {
     this.bytes.set(toUint8Array(value, 2), 0x00D0);
   }
 
-  // TODO permanent scene flags at 0x00D4
+  private get permanentSceneFlags(): Array<PermanentSceneFlags> {
+    const sceneFlags: Array<PermanentSceneFlags> = [];
+    for (let i = 0; i < 101; i++) {
+      const offset = i * 0x1C;
+      sceneFlags.push({
+        chestFlags: toNumber(this.bytes.slice(0x00D4 + offset, 0x00D4 + offset + 4)),
+        switches: toNumber(this.bytes.slice(0x00D8 + offset, 0x00D8 + offset + 4)),
+        roomClearFlags: toNumber(this.bytes.slice(0x00DC + offset, 0x00DC + offset + 4)),
+        collectibleFlags: toNumber(this.bytes.slice(0x00E0 + offset, 0x00E0 + offset + 4)),
+        unused: toNumber(this.bytes.slice(0x00E4 + offset, 0x00E4 + offset + 4)),
+        visitedRooms: toNumber(this.bytes.slice(0x00E8 + offset, 0x00E8 + offset + 4)),
+        visitedFloors: toNumber(this.bytes.slice(0x00EC + offset, 0x00EC + offset + 4)),
+      });
+    }
+    return sceneFlags;
+  }
+
+  private set permanentSceneFlags(value: Array<PermanentSceneFlags>) {
+    if (value.length != (101)) {
+      throw Error(
+        `permanent scene flags data needs to be ${101} bytes, got ${value.length}.`,
+      );
+    }
+
+    const data = new Uint8Array(101 * 0x1C);
+    for (let i = 0; i < value.length; i++) {
+      const offset = i * 0x1C;
+      data.set(toUint8Array(value[i].chestFlags, 4), offset + 0);
+      data.set(toUint8Array(value[i].switches, 4), offset + 4);
+      data.set(toUint8Array(value[i].roomClearFlags, 4), offset + 8);
+      data.set(toUint8Array(value[i].collectibleFlags, 4), offset + 12);
+      data.set(toUint8Array(value[i].unused, 4), offset + 16);
+      data.set(toUint8Array(value[i].visitedRooms, 4), offset + 20);
+      data.set(toUint8Array(value[i].visitedFloors, 4), offset + 24);
+    }
+
+    this.bytes.set(data, 0x00D4);
+  }
 
   private get faroresWindWarpX(): number {
     return toNumber(this.bytes.slice(0x0E64, 0x0E64 + 4));
