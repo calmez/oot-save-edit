@@ -7,8 +7,8 @@ on:
     branches: ["main", "develop"]
   workflow_dispatch:
 
-permissions:
-  contents: write # for creating a release tag
+env:
+  REGISTRY: ghcr.io
 
 jobs:
   verify:
@@ -54,7 +54,7 @@ jobs:
       - name: Build Container Image
         uses: redhat-actions/buildah-build@v2
         with:
-          image: ghcr.io/${{ github.repository}}
+          image: ${{ github.event.repository.name }}
           tags: latest ${{ github.sha }}
           containerfiles: |
             ./Containerfile
@@ -64,6 +64,11 @@ jobs:
     name: Build and Release
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs: verify
+    permissions:
+      contents: write
+      packages: write
+      attestations: write
+      id-token: write
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -84,6 +89,16 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           vcs_release: true
           commit: false
+      - name: Build Container Image
+        id: build_container
+        uses: redhat-actions/buildah-build@v2
+        with:
+          image: ${{ github.event.repository.name }}
+          tags: latest ${{ github.sha }} ${{ steps.version.outputs.tag }}
+          containerfiles: |
+            ./Containerfile
+          build-args: |
+            GIT_REVISION=${{ github.sha }}
       - name: Get Release by Tag
         id: get_release_by_tag
         uses: actions/github-script@v7
@@ -189,6 +204,15 @@ jobs:
           asset_path: ./build/x86_64-pc-windows-msvc/tui.exe
           asset_name: oot-save-edit_tui.exe
           asset_content_type: application/x-dosexec
+      - name: Push Image to Registry
+        id: push_container_image
+        uses: redhat-actions/push-to-registry@v2
+        with:
+          image: ${{ steps.build_container.outputs.image }}
+          tags: ${{ steps.build_container.outputs.tags }}
+          registry: ${{ env.REGISTRY }}/${{ github.repository_owner }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
   docs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     name: Release Docs
