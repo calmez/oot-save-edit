@@ -51,6 +51,15 @@ jobs:
         run: |
           deno task build:tui:win
           deno task build:gui:win
+      - name: Build Container Image
+        uses: redhat-actions/buildah-build@v2
+        with:
+          image: ghcr.io/${{ github.repository}}
+          tags: latest ${{ github.sha }}
+          containerfiles: |
+            ./Containerfile
+          build-args: |
+            GIT_REVISION=${{ github.sha }}
   release:
     name: Build and Release
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
