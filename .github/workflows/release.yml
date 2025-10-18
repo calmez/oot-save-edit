@@ -11,21 +11,13 @@ on:
         type: string
         default: "refs/heads/main"
         description: The target git reference for the release
-      container_image:
-        type: string
-        description: The built container image
-        required: true
-      container_tags:
-        type: string
-        description: The tags for the built container image
-        required: true
 
 env:
   REGISTRY: ghcr.io
 
 jobs:
-  release:
-    name: Release
+  release_mac:
+    name: Release Mac
     if: github.event_name == ${{ inputs.event_name }} && github.ref == ${{ inputs.target_ref }}
     permissions:
       contents: write
@@ -34,13 +26,194 @@ jobs:
       id-token: write
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Version
+        id: version
+        uses: python-semantic-release/python-semantic-release@v9.21.0
         with:
-          ref: ${{ github.ref_name }}
-          fetch-depth: 0
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          vcs_release: true
+          commit: false
+      - name: Get Release by Tag
+        id: get_release_by_tag
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const tag = "${{ steps.version.outputs.tag }}";
+            const release = await github.request(
+              `/repos/${context.repo.owner}/${context.repo.repo}/releases/tags/${tag}`,
+            );
+            return release.data.upload_url;
+          result-encoding: string
+      - uses: actions/download-artifact@v5
+        with:
+          name: mac-build
+      - name: Upload release asset TUI MacOS ARM
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.get_release_by_tag.outputs.result }}
+          asset_path: ./build/aarch64-apple-darwin/tui
+          asset_name: oot-save-edit_tui_macos-apple-silicon
+          asset_content_type: application/x-mach-binary
+      - name: Upload release asset TUI MacOS Intel
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.get_release_by_tag.outputs.result }}
+          asset_path: ./build/x86_64-apple-darwin/tui
+          asset_name: oot-save-edit_tui_macos-intel
+          asset_content_type: application/x-mach-binary
+      - name: Upload release asset GUI MacOS ARM
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.get_release_by_tag.outputs.result }}
+          asset_path: ./build/aarch64-apple-darwin/oot-save-edit_apple-silicon.app.zip
+          asset_name: oot-save-edit_gui_macos-apple-silicon.app.zip
+          asset_content_type: application/zip
+      - name: Upload release asset GUI MacOS Intel
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.get_release_by_tag.outputs.result }}
+          asset_path: ./build/x86_64-apple-darwin/oot-save-edit_intel.app.zip
+          asset_name: oot-save-edit_gui_macos-intel.app.zip
+          asset_content_type: application/zip
+  release_linux:
+    name: Release Linux
+    if: github.event_name == ${{ inputs.event_name }} && github.ref == ${{ inputs.target_ref }}
+    permissions:
+      contents: write
+      packages: write
+      attestations: write
+      id-token: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Version
+        id: version
+        uses: python-semantic-release/python-semantic-release@v9.21.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          vcs_release: true
+          commit: false
+      - name: Get Release by Tag
+        id: get_release_by_tag
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const tag = "${{ steps.version.outputs.tag }}";
+            const release = await github.request(
+              `/repos/${context.repo.owner}/${context.repo.repo}/releases/tags/${tag}`,
+            );
+            return release.data.upload_url;
+          result-encoding: string
+      - uses: actions/download-artifact@v5
+        with:
+          name: linux-build
+      - name: Upload release asset TUI Linux ARM
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.get_release_by_tag.outputs.result }}
+          asset_path: ./build/aarch64-unknown-linux-gnu/tui
+          asset_name: oot-save-edit_tui_linux-intel
+          asset_content_type: application/x-pie-executable
+      - name: Upload release asset TUI Linux Intel
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.get_release_by_tag.outputs.result }}
+          asset_path: ./build/x86_64-unknown-linux-gnu/tui
+          asset_name: oot-save-edit_tui_linux-arm
+          asset_content_type: application/x-pie-executable
+      - name: Upload release asset GUI Linux ARM
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.get_release_by_tag.outputs.result }}
+          asset_path: ./build/aarch64-unknown-linux-gnu/gui
+          asset_name: oot-save-edit_gui_linux-arm
+          asset_content_type: application/x-pie-executable
+      - name: Upload release asset GUI Linux Intel
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.get_release_by_tag.outputs.result }}
+          asset_path: ./build/x86_64-unknown-linux-gnu/gui
+          asset_name: oot-save-edit_gui_linux-intel
+          asset_content_type: application/x-pie-executable
+  release_windows:
+    name: Release Windows
+    if: github.event_name == ${{ inputs.event_name }} && github.ref == ${{ inputs.target_ref }}
+    permissions:
+      contents: write
+      packages: write
+      attestations: write
+      id-token: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Version
+        id: version
+        uses: python-semantic-release/python-semantic-release@v9.21.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          vcs_release: true
+          commit: false
+      - name: Get Release by Tag
+        id: get_release_by_tag
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const tag = "${{ steps.version.outputs.tag }}";
+            const release = await github.request(
+              `/repos/${context.repo.owner}/${context.repo.repo}/releases/tags/${tag}`,
+            );
+            return release.data.upload_url;
+          result-encoding: string
+      - uses: actions/download-artifact@v5
+        with:
+          name: windows-build
+      - name: Upload release asset TUI Windows
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.get_release_by_tag.outputs.result }}
+          asset_path: ./build/x86_64-pc-windows-msvc/tui.exe
+          asset_name: oot-save-edit_tui.exe
+          asset_content_type: application/x-dosexec
+      - name: Upload release asset GUI Windows
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.get_release_by_tag.outputs.result }}
+          asset_path: ./build/x86_64-pc-windows-msvc/gui.exe
+          asset_name: oot-save-edit_gui.exe
+          asset_content_type: application/x-dosexec
+  release_container:
+    name: Release Container
+    if: github.event_name == ${{ inputs.event_name }} && github.ref == ${{ inputs.target_ref }}
+    permissions:
+      contents: write
+      packages: write
+      attestations: write
+      id-token: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
       - uses: denoland/setup-deno@v2
         with:
-          deno-version: v2.x
+          deno-version: "v2.x"
       - name: Install
         run: deno install --lock
       - name: Version
@@ -61,111 +234,27 @@ jobs:
             );
             return release.data.upload_url;
           result-encoding: string
-      - name: Zip release asset GUI MacOS ARM
-        run: zip -r ./build/aarch64-apple-darwin/oot-save-edit_apple-silicon.app.zip ./build/aarch64-apple-darwin/oot-save-edit_apple-silicon.app
-      - name: Upload release asset GUI MacOS ARM
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build
+        id: build
+        uses: redhat-actions/buildah-build@v2
         with:
-          upload_url: ${{ steps.get_release_by_tag.outputs.result }}
-          asset_path: ./build/aarch64-apple-darwin/oot-save-edit_apple-silicon.app.zip
-          asset_name: oot-save-edit_gui_macos-apple-silicon.app.zip
-          asset_content_type: application/zip
-      - name: Zip release asset GUI MacOS Intel
-        run: zip -r ./build/x86_64-apple-darwin/oot-save-edit_intel.app.zip ./build/x86_64-apple-darwin/oot-save-edit_intel.app
-      - name: Upload release asset GUI MacOS Intel
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.get_release_by_tag.outputs.result }}
-          asset_path: ./build/x86_64-apple-darwin/oot-save-edit_intel.app.zip
-          asset_name: oot-save-edit_gui_macos-intel.app.zip
-          asset_content_type: application/zip
-      - name: Upload release asset GUI Linux ARM
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.get_release_by_tag.outputs.result }}
-          asset_path: ./build/aarch64-unknown-linux-gnu/gui
-          asset_name: oot-save-edit_gui_linux-arm
-          asset_content_type: application/x-pie-executable
-      - name: Upload release asset GUI Linux Intel
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.get_release_by_tag.outputs.result }}
-          asset_path: ./build/x86_64-unknown-linux-gnu/gui
-          asset_name: oot-save-edit_gui_linux-intel
-          asset_content_type: application/x-pie-executable
-      - name: Upload release asset GUI Windows
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.get_release_by_tag.outputs.result }}
-          asset_path: ./build/x86_64-pc-windows-msvc/gui.exe
-          asset_name: oot-save-edit_gui.exe
-          asset_content_type: application/x-dosexec
-      - name: Upload release asset TUI MacOS ARM
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.get_release_by_tag.outputs.result }}
-          asset_path: ./build/aarch64-apple-darwin/tui
-          asset_name: oot-save-edit_tui_macos-apple-silicon
-          asset_content_type: application/x-mach-binary
-      - name: Upload release asset TUI MacOS Intel
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.get_release_by_tag.outputs.result }}
-          asset_path: ./build/x86_64-apple-darwin/tui
-          asset_name: oot-save-edit_tui_macos-intel
-          asset_content_type: application/x-mach-binary
-      - name: Upload release asset TUI Linux ARM
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.get_release_by_tag.outputs.result }}
-          asset_path: ./build/aarch64-unknown-linux-gnu/tui
-          asset_name: oot-save-edit_tui_linux-intel
-          asset_content_type: application/x-pie-executable
-      - name: Upload release asset TUI Linux Intel
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.get_release_by_tag.outputs.result }}
-          asset_path: ./build/x86_64-unknown-linux-gnu/tui
-          asset_name: oot-save-edit_tui_linux-arm
-          asset_content_type: application/x-pie-executable
-      - name: Upload release asset TUI Windows
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.get_release_by_tag.outputs.result }}
-          asset_path: ./build/x86_64-pc-windows-msvc/tui.exe
-          asset_name: oot-save-edit_tui.exe
-          asset_content_type: application/x-dosexec
+          image: ${{ github.event.repository.name }}
+          tags: latest ${{ github.sha }}
+          containerfiles: |
+            ./Containerfile
+          build-args: |
+            GIT_REVISION=${{ github.sha }}
       - name: Push Image to Registry
         id: push_container_image
         uses: redhat-actions/push-to-registry@v2
         with:
-          image: ${{ inputs.container_image }}
-          tags: ${{ inputs.container_tags }} ${{ steps.version.outputs.tag }}
+          image: ${{ steps.build.outputs.image }}
+          tags: ${{ steps.build.outputs.tags }} ${{ steps.version.outputs.tag }}
           registry: ${{ env.REGISTRY }}/${{ github.repository_owner }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
   docs:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name == ${{ inputs.event_name }} && github.ref == ${{ inputs.target_ref }}
     name: Release Docs
     runs-on: ubuntu-latest
     steps:

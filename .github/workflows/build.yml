@@ -2,13 +2,6 @@ name: Build
 
 on:
   workflow_call:
-    outputs:
-      container_image:
-        description: The built container image
-        value: ${{ jobs.build_container.outputs.container_image }}
-      container_tags:
-        description: The tags for the built container image
-        value: ${{ jobs.build_container.outputs.container_tags }}
 
 jobs:
   build_web:
