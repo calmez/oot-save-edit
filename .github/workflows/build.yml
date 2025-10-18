@@ -103,8 +103,8 @@ jobs:
         with:
           name: windows-build
           path: |
-            ./build/x86_64-pc-windows-msvc/tui
-            ./build/x86_64-pc-windows-msvc/gui
+            ./build/x86_64-pc-windows-msvc/tui.exe
+            ./build/x86_64-pc-windows-msvc/gui.exe
   build_container:
     name: Build Container
     runs-on: ubuntu-latest
