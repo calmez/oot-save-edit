@@ -233,7 +233,7 @@ jobs:
         uses: redhat-actions/buildah-build@v2
         with:
           image: ${{ github.event.repository.name }}
-          tags: latest ${{ github.sha }}
+          tags: latest ${{ github.sha }} ${{ needs.create_release.outputs.version }}
           containerfiles: |
             ./Containerfile
           build-args: |
@@ -243,7 +243,7 @@ jobs:
         uses: redhat-actions/push-to-registry@v2
         with:
           image: ${{ steps.build.outputs.image }}
-          tags: ${{ steps.build.outputs.tags }} ${{ needs.create_release.outputs.version }}
+          tags: ${{ steps.build.outputs.tags }}
           registry: ${{ env.REGISTRY }}/${{ github.repository_owner }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
