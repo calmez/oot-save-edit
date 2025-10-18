@@ -18,7 +18,6 @@ env:
 jobs:
   release_mac:
     name: Release Mac
-    if: github.event_name == ${{ inputs.event_name }} && github.ref == ${{ inputs.target_ref }}
     permissions:
       contents: write
       packages: write
@@ -87,7 +86,6 @@ jobs:
           asset_content_type: application/zip
   release_linux:
     name: Release Linux
-    if: github.event_name == ${{ inputs.event_name }} && github.ref == ${{ inputs.target_ref }}
     permissions:
       contents: write
       packages: write
@@ -156,7 +154,6 @@ jobs:
           asset_content_type: application/x-pie-executable
   release_windows:
     name: Release Windows
-    if: github.event_name == ${{ inputs.event_name }} && github.ref == ${{ inputs.target_ref }}
     permissions:
       contents: write
       packages: write
@@ -207,7 +204,6 @@ jobs:
           asset_content_type: application/x-dosexec
   release_container:
     name: Release Container
-    if: github.event_name == ${{ inputs.event_name }} && github.ref == ${{ inputs.target_ref }}
     permissions:
       contents: write
       packages: write
@@ -260,7 +256,6 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
   docs:
-    if: github.event_name == ${{ inputs.event_name }} && github.ref == ${{ inputs.target_ref }}
     name: Release Docs
     runs-on: ubuntu-latest
     steps:
