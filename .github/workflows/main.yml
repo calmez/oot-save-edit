@@ -21,6 +21,3 @@ jobs:
       id-token: write
     uses: ./.github/workflows/release.yml
     needs: build
-    with:
-      container_image: ${{ needs.build.outputs.container_image }}
-      container_tags: ${{ needs.build.outputs.container_tags }}
