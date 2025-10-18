@@ -1,0 +1,26 @@
+name: Verify
+
+on:
+  workflow_call:
+
+jobs:
+  verify:
+    name: Verify
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: "v2.x"
+      - name: Install
+        run: deno install --lock
+      - name: Install web dependencies
+        working-directory: ./ui/web
+        run: deno install --allow-scripts --lock
+      - name: Linting
+        run: deno lint
+      - name: Formatting
+        run: deno fmt --check
+      - name: Run Tests
+        run: deno test
