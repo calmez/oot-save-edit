@@ -15,3 +15,4 @@ jobs:
     uses: ./.github/workflows/verify.yml
   build:
     uses: ./.github/workflows/build.yml
+    needs: verify
