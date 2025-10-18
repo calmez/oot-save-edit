@@ -1,5 +1,6 @@
 {
   "semantic_release": {
-    "major_on_zero": true
+    "major_on_zero": true,
+    "allow_zero_version": true
   }
 }
