@@ -52,7 +52,11 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: linux-build
-          path: ./build/(x86_64|aarch64)-unknown-linux-gnu/[gt]ui
+          path: |
+            ./build/x86_64-unknown-linux-gnu/tui
+            ./build/aarch64-unknown-linux-gnu/tui
+            ./build/x86_64-unknown-linux-gnu/gui
+            ./build/aarch64-unknown-linux-gnu/gui
   build_mac:
     name: Build Mac
     runs-on: ubuntu-latest
@@ -74,7 +78,11 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: mac-build
-          path: ./build/(x86_64|aarch64)-apple-darwin/[gt]ui
+          path: |
+            ./build/x86_64-apple-darwin/tui
+            ./build/aarch64-apple-darwin/tui
+            ./build/x86_64-apple-darwin/gui
+            ./build/aarch64-apple-darwin/gui
   build_windows:
     name: Build Windows
     runs-on: ubuntu-latest
@@ -94,7 +102,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: windows-build
-          path: ./build/x86_64-pc-windows-msvc/[gt]ui
+          path: |
+            ./build/x86_64-pc-windows-msvc/tui
+            ./build/x86_64-pc-windows-msvc/gui
   build_container:
     name: Build Container
     runs-on: ubuntu-latest
