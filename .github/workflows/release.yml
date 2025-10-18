@@ -58,6 +58,7 @@ jobs:
       - uses: actions/download-artifact@v5
         with:
           name: mac-build
+          path: ./build
       - name: Upload release asset TUI MacOS ARM
         uses: actions/upload-release-asset@v1
         env:
@@ -118,6 +119,7 @@ jobs:
       - uses: actions/download-artifact@v5
         with:
           name: linux-build
+          path: ./build
       - name: Upload release asset TUI Linux ARM
         uses: actions/upload-release-asset@v1
         env:
@@ -178,6 +180,7 @@ jobs:
       - uses: actions/download-artifact@v5
         with:
           name: windows-build
+          path: ./build
       - name: Upload release asset TUI Windows
         uses: actions/upload-release-asset@v1
         env:
