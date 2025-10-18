@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - uses: denoland/setup-deno@v2
         with:
           deno-version: "v2.x"
@@ -29,7 +29,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - uses: denoland/setup-deno@v2
         with:
           deno-version: "v2.x"
@@ -55,7 +55,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - uses: denoland/setup-deno@v2
         with:
           deno-version: "v2.x"
@@ -85,7 +85,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - uses: denoland/setup-deno@v2
         with:
           deno-version: "v2.x"
@@ -110,7 +110,7 @@ jobs:
       container_tags: ${{ steps.build.outputs.tags }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - uses: denoland/setup-deno@v2
         with:
           deno-version: "v2.x"
