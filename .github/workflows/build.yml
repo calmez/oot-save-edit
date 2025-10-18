@@ -5,18 +5,15 @@ on:
     outputs:
       container_image:
         description: The built container image
-        value: ${{ jobs.build.outputs.container_image }}
+        value: ${{ jobs.build_container.outputs.container_image }}
       container_tags:
         description: The tags for the built container image
-        value: ${{ jobs.build.outputs.container_tags }}
+        value: ${{ jobs.build_container.outputs.container_tags }}
 
 jobs:
-  build:
-    name: Build
+  build_web:
+    name: Build Web
     runs-on: ubuntu-latest
-    outputs:
-      container_image: ${{ steps.build_image.outputs.image }}
-      container_tags: ${{ steps.build_image.outputs.tags }}
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -25,28 +22,75 @@ jobs:
           deno-version: "v2.x"
       - name: Install
         run: deno install --lock
-      - name: Build Web
+      - name: Build
         working-directory: ./ui/web
         run: |
           deno task build
-      - name: Build Linux
+  build_linux:
+    name: Build Linux
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: "v2.x"
+      - name: Install
+        run: deno install --lock
+      - name: Build
         run: |
           deno task build:tui:linux-x86
           deno task build:tui:linux-aarch64
           deno task build:gui:linux-x86
           deno task build:gui:linux-aarch64
-      - name: Build MacOS
+  build_mac:
+    name: Build Mac
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: "v2.x"
+      - name: Install
+        run: deno install --lock
+      - name: Build
         run: |
           deno task build:tui:mac-x86
           deno task build:tui:mac-aarch64
           deno task build:gui:mac-x86
           deno task build:gui:mac-aarch64
-      - name: Build Windows
+  build_windows:
+    name: Build Windows
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: "v2.x"
+      - name: Install
+        run: deno install --lock
+      - name: Build
         run: |
           deno task build:tui:win
           deno task build:gui:win
-      - name: Build Container Image
-        id: build_image
+  build_container:
+    name: Build Container
+    runs-on: ubuntu-latest
+    outputs:
+      container_image: ${{ steps.build.outputs.image }}
+      container_tags: ${{ steps.build.outputs.tags }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: "v2.x"
+      - name: Install
+        run: deno install --lock
+      - name: Build
+        id: build
         uses: redhat-actions/buildah-build@v2
         with:
           image: ${{ github.event.repository.name }}
