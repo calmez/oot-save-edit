@@ -74,6 +74,10 @@ jobs:
           deno task build:tui:mac-aarch64
           deno task build:gui:mac-x86
           deno task build:gui:mac-aarch64
+      - name: Zip release asset GUI MacOS ARM
+        run: zip -r ./build/aarch64-apple-darwin/oot-save-edit_apple-silicon.app.zip ./build/aarch64-apple-darwin/oot-save-edit_apple-silicon.app
+      - name: Zip release asset GUI MacOS Intel
+        run: zip -r ./build/x86_64-apple-darwin/oot-save-edit_intel.app.zip ./build/x86_64-apple-darwin/oot-save-edit_intel.app
       - name: Store Artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -81,8 +85,8 @@ jobs:
           path: |
             ./build/x86_64-apple-darwin/tui
             ./build/aarch64-apple-darwin/tui
-            ./build/x86_64-apple-darwin/gui
-            ./build/aarch64-apple-darwin/gui
+            ./build/x86_64-apple-darwin/oot-save-edit_intel.app.zip
+            ./build/aarch64-apple-darwin/oot-save-edit_apple-silicon.app.zip
   build_windows:
     name: Build Windows
     runs-on: ubuntu-latest
