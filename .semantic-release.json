@@ -1,3 +1,5 @@
 {
-  "major_on_zero": true
+  "semantic_release": {
+    "major_on_zero": true
+  }
 }
