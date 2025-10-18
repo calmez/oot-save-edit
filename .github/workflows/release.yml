@@ -5,11 +5,11 @@ on:
     inputs:
       event_name:
         type: string
-        default: 'push'
+        default: "push"
         description: The name of the event triggering the release
       target_ref:
         type: string
-        default: 'refs/heads/main'
+        default: "refs/heads/main"
         description: The target git reference for the release
       container_image:
         type: string
