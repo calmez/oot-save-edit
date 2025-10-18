@@ -2,21 +2,11 @@ name: Build
 
 on:
   workflow_call:
-    outputs:
-      container_image:
-        description: The built container image
-        value: ${{ jobs.build.outputs.container_image }}
-      container_tags:
-        description: The tags for the built container image
-        value: ${{ jobs.build.outputs.container_tags }}
 
 jobs:
-  build:
-    name: Build
+  build_web:
+    name: Build Web
     runs-on: ubuntu-latest
-    outputs:
-      container_image: ${{ steps.build_image.outputs.image }}
-      container_tags: ${{ steps.build_image.outputs.tags }}
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -25,28 +15,109 @@ jobs:
           deno-version: "v2.x"
       - name: Install
         run: deno install --lock
-      - name: Build Web
+      - name: Build
         working-directory: ./ui/web
         run: |
           deno task build
-      - name: Build Linux
+      - name: Store Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-build
+          path: ./ui/web/_fresh
+  build_linux:
+    name: Build Linux
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: "v2.x"
+      - name: Install
+        run: deno install --lock
+      - name: Build
         run: |
           deno task build:tui:linux-x86
           deno task build:tui:linux-aarch64
           deno task build:gui:linux-x86
           deno task build:gui:linux-aarch64
-      - name: Build MacOS
+      - name: Store Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-build
+          path: |
+            ./build/x86_64-unknown-linux-gnu/tui
+            ./build/aarch64-unknown-linux-gnu/tui
+            ./build/x86_64-unknown-linux-gnu/gui
+            ./build/aarch64-unknown-linux-gnu/gui
+  build_mac:
+    name: Build Mac
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: "v2.x"
+      - name: Install
+        run: deno install --lock
+      - name: Build
         run: |
           deno task build:tui:mac-x86
           deno task build:tui:mac-aarch64
           deno task build:gui:mac-x86
           deno task build:gui:mac-aarch64
-      - name: Build Windows
+      - name: Zip release asset GUI MacOS ARM
+        run: zip -r ./build/aarch64-apple-darwin/oot-save-edit_apple-silicon.app.zip ./build/aarch64-apple-darwin/oot-save-edit_apple-silicon.app
+      - name: Zip release asset GUI MacOS Intel
+        run: zip -r ./build/x86_64-apple-darwin/oot-save-edit_intel.app.zip ./build/x86_64-apple-darwin/oot-save-edit_intel.app
+      - name: Store Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: mac-build
+          path: |
+            ./build/x86_64-apple-darwin/tui
+            ./build/aarch64-apple-darwin/tui
+            ./build/x86_64-apple-darwin/oot-save-edit_intel.app.zip
+            ./build/aarch64-apple-darwin/oot-save-edit_apple-silicon.app.zip
+  build_windows:
+    name: Build Windows
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: "v2.x"
+      - name: Install
+        run: deno install --lock
+      - name: Build
         run: |
           deno task build:tui:win
           deno task build:gui:win
-      - name: Build Container Image
-        id: build_image
+      - name: Store Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-build
+          path: |
+            ./build/x86_64-pc-windows-msvc/tui.exe
+            ./build/x86_64-pc-windows-msvc/gui.exe
+  build_container:
+    name: Build Container
+    runs-on: ubuntu-latest
+    outputs:
+      container_image: ${{ steps.build.outputs.image }}
+      container_tags: ${{ steps.build.outputs.tags }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: "v2.x"
+      - name: Install
+        run: deno install --lock
+      - name: Build
+        id: build
         uses: redhat-actions/buildah-build@v2
         with:
           image: ${{ github.event.repository.name }}
