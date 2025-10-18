@@ -1,0 +1,57 @@
+name: Build
+
+on:
+  workflow_call:
+    outputs:
+      container_image:
+        description: The built container image
+        value: ${{ jobs.build.outputs.container_image }}
+      container_tags:
+        description: The tags for the built container image
+        value: ${{ jobs.build.outputs.container_tags }}
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    outputs:
+      container_image: ${{ steps.build_image.outputs.image }}
+      container_tags: ${{ steps.build_image.outputs.tags }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: "v2.x"
+      - name: Install
+        run: deno install --lock
+      - name: Build Web
+        working-directory: ./ui/web
+        run: |
+          deno task build
+      - name: Build Linux
+        run: |
+          deno task build:tui:linux-x86
+          deno task build:tui:linux-aarch64
+          deno task build:gui:linux-x86
+          deno task build:gui:linux-aarch64
+      - name: Build MacOS
+        run: |
+          deno task build:tui:mac-x86
+          deno task build:tui:mac-aarch64
+          deno task build:gui:mac-x86
+          deno task build:gui:mac-aarch64
+      - name: Build Windows
+        run: |
+          deno task build:tui:win
+          deno task build:gui:win
+      - name: Build Container Image
+        id: build_image
+        uses: redhat-actions/buildah-build@v2
+        with:
+          image: ${{ github.event.repository.name }}
+          tags: latest ${{ github.sha }}
+          containerfiles: |
+            ./Containerfile
+          build-args: |
+            GIT_REVISION=${{ github.sha }}
