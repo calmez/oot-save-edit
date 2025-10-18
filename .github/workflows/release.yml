@@ -15,6 +15,10 @@ on:
 env:
   REGISTRY: ghcr.io
 
+permissions:
+  contents: read
+  packages: write
+
 jobs:
   create_release:
     name: Create Release
