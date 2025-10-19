@@ -250,7 +250,7 @@ jobs:
           tags: ${{ steps.build.outputs.tags }}
           registry: ${{ env.REGISTRY }}/${{ github.repository_owner }}
           username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          password: ${{ github.token }}
   docs:
     name: Release Docs
     runs-on: ubuntu-latest
