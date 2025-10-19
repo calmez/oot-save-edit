@@ -1,13 +1,32 @@
 import { assertInstanceOf } from "@std/assert/instance-of";
 import {
   Age,
+  BombBag,
+  Boots,
+  BulletBag,
+  ButtonEquips,
+  CurrentEquipment,
+  DekuNutUpgrades,
+  DekuStickUpgrades,
+  DungeonItems,
+  EquippableItems,
+  FaroresWindWarp,
   InventoryItems,
-  Items,
   MagicAmount,
+  Medallions,
+  ObtainableUpgrades,
+  QuestItems,
+  Quiver,
   SaveSlot,
+  Shield,
+  Songs,
+  SpiritualStones,
+  Sword,
+  Tokens,
+  Tunic,
 } from "./saveslot.ts";
 import { assertEquals, assertNotEquals, assertThrows } from "@std/assert";
-import { toUint8Array } from "../utils/conversions.ts";
+import { toNumber, toUint8Array } from "../utils/conversions.ts";
 import { OotText } from "../utils/text.ts";
 import { Entrance, Room, RoomWithEntranceFor, Scene } from "./scene.ts";
 
@@ -545,10 +564,59 @@ Deno.test({
 });
 
 Deno.test({
+  name: "should get the current button equips",
+  fn() {
+    const testData = new Uint8Array(SaveSlot.requiredSize);
+    const expectedEquips: ButtonEquips = {
+      bButton: 12,
+      cLeftButton: 23,
+      cDownButton: 32,
+      cRightButton: 42,
+      cLeftOffset: 1,
+      cDownOffset: 2,
+      cRightOffset: 3,
+    };
+    testData.set(
+      new Uint8Array([
+        ...toUint8Array(expectedEquips.bButton, 1),
+        ...toUint8Array(expectedEquips.cLeftButton, 1),
+        ...toUint8Array(expectedEquips.cDownButton, 1),
+        ...toUint8Array(expectedEquips.cRightButton, 1),
+        ...toUint8Array(expectedEquips.cLeftOffset, 1),
+        ...toUint8Array(expectedEquips.cDownOffset, 1),
+        ...toUint8Array(expectedEquips.cRightOffset, 1),
+      ]),
+      0x0068,
+    );
+    const instance = new SaveSlot(testData);
+    assertEquals(instance.currentButtonEquips, expectedEquips);
+  },
+});
+
+Deno.test({
+  name: "should set the currentButtonEquips",
+  fn() {
+    const testData = new Uint8Array(SaveSlot.requiredSize);
+    const expectedEquips: ButtonEquips = {
+      bButton: 12,
+      cLeftButton: 23,
+      cDownButton: 32,
+      cRightButton: 42,
+      cLeftOffset: 1,
+      cDownOffset: 2,
+      cRightOffset: 3,
+    };
+    const instance = new SaveSlot(testData);
+    instance.currentButtonEquips = expectedEquips;
+    assertEquals(instance.currentButtonEquips, expectedEquips);
+  },
+});
+
+Deno.test({
   name: "should provide the B button equipment",
   fn() {
     const testData = new Uint8Array(SaveSlot.requiredSize);
-    const expectedEquipment = 56;
+    const expectedEquipment = InventoryItems.DekuStick;
     testData.set(toUint8Array(expectedEquipment, 1), 0x0068);
     const instance = new SaveSlot(testData);
     assertEquals(instance.bButtonEquip, expectedEquipment);
@@ -559,7 +627,7 @@ Deno.test({
   name: "should set the B button equipment",
   fn() {
     const testData = new Uint8Array(SaveSlot.requiredSize);
-    const expectedEquipment = 56;
+    const expectedEquipment = InventoryItems.DekuStick;
     const instance = new SaveSlot(testData);
     instance.bButtonEquip = expectedEquipment;
     assertEquals(instance.bButtonEquip, expectedEquipment);
@@ -570,7 +638,7 @@ Deno.test({
   name: "should provide the C left button equipment",
   fn() {
     const testData = new Uint8Array(SaveSlot.requiredSize);
-    const expectedEquipment = 58;
+    const expectedEquipment = InventoryItems.Bombchu;
     testData.set(toUint8Array(expectedEquipment, 1), 0x0069);
     const instance = new SaveSlot(testData);
     assertEquals(instance.cLeftButtonEquip, expectedEquipment);
@@ -581,7 +649,7 @@ Deno.test({
   name: "should set the C left button equipment",
   fn() {
     const testData = new Uint8Array(SaveSlot.requiredSize);
-    const expectedEquipment = 58;
+    const expectedEquipment = InventoryItems.Bombchu;
     const instance = new SaveSlot(testData);
     instance.cLeftButtonEquip = expectedEquipment;
     assertEquals(instance.cLeftButtonEquip, expectedEquipment);
@@ -592,7 +660,7 @@ Deno.test({
   name: "should provide the C down button equipment",
   fn() {
     const testData = new Uint8Array(SaveSlot.requiredSize);
-    const expectedEquipment = 60;
+    const expectedEquipment = InventoryItems.Bomb;
     testData.set(toUint8Array(expectedEquipment, 1), 0x006A);
     const instance = new SaveSlot(testData);
     assertEquals(instance.cDownButtonEquip, expectedEquipment);
@@ -603,7 +671,7 @@ Deno.test({
   name: "should set the C down button equipment",
   fn() {
     const testData = new Uint8Array(SaveSlot.requiredSize);
-    const expectedEquipment = 60;
+    const expectedEquipment = InventoryItems.Bomb;
     const instance = new SaveSlot(testData);
     instance.cDownButtonEquip = expectedEquipment;
     assertEquals(instance.cDownButtonEquip, expectedEquipment);
@@ -614,7 +682,7 @@ Deno.test({
   name: "should provide the C right button equipment",
   fn() {
     const testData = new Uint8Array(SaveSlot.requiredSize);
-    const expectedEquipment = 62;
+    const expectedEquipment = InventoryItems.DekuNut;
     testData.set(toUint8Array(expectedEquipment, 1), 0x006B);
     const instance = new SaveSlot(testData);
     assertEquals(instance.cRightButtonEquip, expectedEquipment);
@@ -625,7 +693,7 @@ Deno.test({
   name: "should set the C right button equipment",
   fn() {
     const testData = new Uint8Array(SaveSlot.requiredSize);
-    const expectedEquipment = 62;
+    const expectedEquipment = InventoryItems.DekuNut;
     const instance = new SaveSlot(testData);
     instance.cRightButtonEquip = expectedEquipment;
     assertEquals(instance.cRightButtonEquip, expectedEquipment);
@@ -633,10 +701,44 @@ Deno.test({
 });
 
 Deno.test({
+  name: "should get the currently equipped equipment",
+  fn() {
+    const testData = new Uint8Array(SaveSlot.requiredSize);
+    const expectedEquipment: CurrentEquipment = {
+      sword: Sword.KokiriSword,
+      shield: Shield.KokiriShield,
+      tunic: Tunic.KokiriTunic,
+      boots: Boots.KokiriBoots,
+    };
+    const equipmentData = expectedEquipment.sword | expectedEquipment.shield |
+      expectedEquipment.tunic | expectedEquipment.boots;
+    testData.set(toUint8Array(equipmentData, 2), 0x0070);
+    const instance = new SaveSlot(testData);
+    assertEquals(instance.currentlyEquippedEquipment, expectedEquipment);
+  },
+});
+
+Deno.test({
+  name: "should set the currently equipped equipment",
+  fn() {
+    const testData = new Uint8Array(SaveSlot.requiredSize);
+    const expectedEquipment: CurrentEquipment = {
+      sword: Sword.MasterSword,
+      shield: Shield.HylianShield,
+      tunic: Tunic.GoronTunic,
+      boots: Boots.IronBoots,
+    };
+    const instance = new SaveSlot(testData);
+    instance.currentlyEquippedEquipment = expectedEquipment;
+    assertEquals(instance.currentlyEquippedEquipment, expectedEquipment);
+  },
+});
+
+Deno.test({
   name: "should provide the inventory",
   fn() {
     const testData = new Uint8Array(SaveSlot.requiredSize);
-    const expectedItem = Items.Bomb;
+    const expectedItem = InventoryItems.Bomb;
     const testInventory = new Uint8Array(24);
     testInventory.set(toUint8Array(expectedItem, 1), 0);
     testData.set(testInventory, 0x0074);
@@ -650,7 +752,7 @@ Deno.test({
   fn() {
     const testData = new Uint8Array(SaveSlot.requiredSize);
     const expectedInventory = new Array<InventoryItems>(24).fill(
-      InventoryItems.Empty,
+      InventoryItems.DekuStick,
     );
     const instance = new SaveSlot(testData);
     instance.inventory = expectedInventory;
@@ -703,11 +805,138 @@ Deno.test({
 });
 
 Deno.test({
+  name: "should get obtained equipment",
+  fn() {
+    const testData = new Uint8Array(SaveSlot.requiredSize);
+    const expectedEquipment: Array<EquippableItems> = [
+      Sword.KokiriSword,
+      Sword.MasterSword,
+      Shield.KokiriShield,
+      Tunic.ZoraTunic,
+      Boots.HoverBoots,
+    ];
+    testData.set(
+      toUint8Array(expectedEquipment.reduce((l, r) => l | r), 2),
+      0x009C,
+    );
+    const instance = new SaveSlot(testData);
+    assertEquals(instance.obtainedEquipment, expectedEquipment);
+  },
+});
+
+Deno.test({
+  name: "should set obtained equipment",
+  fn() {
+    const testData = new Uint8Array(SaveSlot.requiredSize);
+    const expectedEquipment: Array<EquippableItems> = [
+      Sword.MasterSword,
+      Shield.MirrorShield,
+      Tunic.KokiriTunic,
+      Boots.HoverBoots,
+      Boots.IronBoots,
+    ];
+    const instance = new SaveSlot(testData);
+    instance.obtainedEquipment = expectedEquipment;
+    assertEquals(
+      instance.obtainedEquipment.toSorted(),
+      expectedEquipment.toSorted(),
+    );
+  },
+});
+
+Deno.test({
+  name: "should get obtained upgrades",
+  fn() {
+    const testData = new Uint8Array(SaveSlot.requiredSize);
+    const expectedUpgrades: Array<ObtainableUpgrades> = [
+      DekuNutUpgrades.DekuNutUpgradeHolds30Nuts,
+      DekuStickUpgrades.DekuStickUpgradeHolds20Sticks,
+      DekuStickUpgrades.DekuStickUpgradeHolds30Sticks,
+      BulletBag.BulletBagHolds30,
+      BombBag.BombBagHolds20,
+      Quiver.QuiverHolds40,
+    ];
+    testData.set(
+      toUint8Array(expectedUpgrades.reduce((l, r) => l | r), 4),
+      0x00A0,
+    );
+    const instance = new SaveSlot(testData);
+    assertEquals(instance.obtainedUpgrades, expectedUpgrades);
+  },
+});
+
+Deno.test({
+  name: "should set obtained upgrades",
+  fn() {
+    const testData = new Uint8Array(SaveSlot.requiredSize);
+    const expectedUpgrades: Array<ObtainableUpgrades> = [
+      DekuNutUpgrades.DekuNutUpgradeHolds30Nuts,
+      BulletBag.BulletBagHolds40,
+      BombBag.BombBagHolds30,
+      Quiver.QuiverHolds30,
+      Quiver.QuiverHolds50,
+    ];
+    const instance = new SaveSlot(testData);
+    instance.obtainedUpgrades = expectedUpgrades;
+    assertEquals(
+      instance.obtainedUpgrades.toSorted(),
+      expectedUpgrades.toSorted(),
+    );
+  },
+});
+
+Deno.test({
+  name: "should get obtained quest items",
+  fn() {
+    const testData = new Uint8Array(SaveSlot.requiredSize);
+    const expectedItems: Array<QuestItems> = [
+      Medallions.ForestMedallion,
+      Medallions.FireMedallion,
+      Songs.SariasSong,
+      SpiritualStones.StoneofAgony,
+      Tokens.GoldSkulltulaToken,
+    ];
+    testData.set(
+      toUint8Array(expectedItems.reduce((l, r) => l | r), 4),
+      0x00A4,
+    );
+    const instance = new SaveSlot(testData);
+    assertEquals(instance.questStatusItems, expectedItems);
+  },
+});
+
+Deno.test({
+  name: "should set obtained quest items",
+  fn() {
+    const testData = new Uint8Array(SaveSlot.requiredSize);
+    const expectedItems: Array<QuestItems> = [
+      Medallions.ForestMedallion,
+      Medallions.ShadowMedallion,
+      Songs.SariasSong,
+      SpiritualStones.StoneofAgony,
+      Tokens.GoldSkulltulaToken,
+      Tokens.GerudosCard,
+    ];
+    const instance = new SaveSlot(testData);
+    instance.questStatusItems = expectedItems;
+    assertEquals(
+      instance.questStatusItems.toSorted(),
+      expectedItems.toSorted(),
+    );
+  },
+});
+
+Deno.test({
   name: "should provide dungeon items",
   fn() {
     const testData = new Uint8Array(SaveSlot.requiredSize);
-    const expectedItems = new Uint8Array(0x14).fill(0x23);
-    testData.set(expectedItems, 0x00A8);
+    const expectedItems = new Array<Array<DungeonItems>>(0x14).fill([
+      DungeonItems.Compass,
+    ]);
+    testData.set(
+      expectedItems.map((itemSet) => itemSet.reduce((l, r) => l | r)),
+      0x00A8,
+    );
     const instance = new SaveSlot(testData);
     assertEquals(instance.dungeonItems, expectedItems);
   },
@@ -717,7 +946,9 @@ Deno.test({
   name: "should set dungeon items",
   fn() {
     const testData = new Uint8Array(SaveSlot.requiredSize);
-    const expectedItems = new Uint8Array(0x14).fill(0x23);
+    const expectedItems = new Array<Array<DungeonItems>>(0x14).fill([
+      DungeonItems.DungeonMap,
+    ]);
     const instance = new SaveSlot(testData);
     instance.dungeonItems = expectedItems;
     assertEquals(instance.dungeonItems, expectedItems);
@@ -728,7 +959,7 @@ Deno.test({
   name: "should provide small key amount",
   fn() {
     const testData = new Uint8Array(SaveSlot.requiredSize);
-    const expectedKeys = new Uint8Array(0x14).fill(0x23);
+    const expectedKeys = new Array<number>(0x14).fill(0x23);
     testData.set(expectedKeys, 0x00BC);
     const instance = new SaveSlot(testData);
     assertEquals(instance.smallKeyAmount, expectedKeys);
@@ -739,7 +970,7 @@ Deno.test({
   name: "should set small key amount",
   fn() {
     const testData = new Uint8Array(SaveSlot.requiredSize);
-    const expectedKeys = new Uint8Array(0x14).fill(0x23);
+    const expectedKeys = new Array<number>(0x14).fill(0x23);
     const instance = new SaveSlot(testData);
     instance.smallKeyAmount = expectedKeys;
     assertEquals(instance.smallKeyAmount, expectedKeys);
@@ -790,6 +1021,80 @@ Deno.test({
   },
 });
 
+// TODO permanent scene flags
+
+// TODO proper test for entrance index
+Deno.test({
+  name: "should get entrace index transport",
+  fn() {
+    const testData = new Uint8Array(SaveSlot.requiredSize);
+    const expectedEntrance = 42;
+    testData.set(toUint8Array(expectedEntrance, 2), 0x0E7A);
+    const instance = new SaveSlot(testData);
+    assertEquals(instance.entranceIndexTransport, expectedEntrance);
+  },
+});
+
+Deno.test({
+  name: "should get coordinates of farores wind warp",
+  fn() {
+    const testData = new Uint8Array(SaveSlot.requiredSize);
+    const expectedXCoordinate = 23;
+    const expectedYCoordinate = 32;
+    const expectedZCoordinate = 42;
+    const expectedYRotation = 123;
+    testData.set(toUint8Array(expectedXCoordinate, 4), 0x0E64);
+    testData.set(toUint8Array(expectedYCoordinate, 4), 0x0E68);
+    testData.set(toUint8Array(expectedZCoordinate, 4), 0x0E6C);
+    testData.set(toUint8Array(expectedYRotation, 2), 0x0E72);
+    const instance = new SaveSlot(testData);
+    assertEquals(instance.faroresWindWarp, {
+      x: expectedXCoordinate,
+      y: expectedYCoordinate,
+      z: expectedZCoordinate,
+      yRotation: expectedYRotation,
+    });
+  },
+});
+
+Deno.test({
+  name: "should set the coordinates of farores wind warp",
+  fn() {
+    const testData = new Uint8Array(SaveSlot.requiredSize);
+    const expectedWindWarp: FaroresWindWarp = {
+      x: 23,
+      y: 32,
+      z: 42,
+      yRotation: 123,
+    };
+    const instance = new SaveSlot(testData);
+    instance.faroresWindWarp = expectedWindWarp;
+    assertEquals(instance.faroresWindWarp, expectedWindWarp);
+  },
+});
+
+Deno.test({
+  name: "should get big poe points",
+  fn() {
+    const testData = new Uint8Array(SaveSlot.requiredSize);
+    const expectedPoints = 42;
+    testData.set(toUint8Array(expectedPoints, 4), 0x0EBC);
+    const instance = new SaveSlot(testData);
+    assertEquals(instance.bigPoePoints, expectedPoints);
+  },
+});
+
+Deno.test({
+  name: "should set big poe points",
+  fn() {
+    const testData = new Uint8Array(SaveSlot.requiredSize);
+    const expectedPoints = 42;
+    const instance = new SaveSlot(testData);
+    instance.bigPoePoints = expectedPoints;
+    assertEquals(instance.bigPoePoints, expectedPoints);
+  },
+});
+
 Deno.test({
   name: "should calculate the checksum",
   fn() {
@@ -832,5 +1137,27 @@ Deno.test({
     const testData = new Uint8Array(SaveSlot.requiredSize);
     const instance = new SaveSlot(testData);
     assertEquals(instance.isValid, false);
+  },
+});
+
+Deno.test({
+  name: "should get file index",
+  fn() {
+    const testData = new Uint8Array(SaveSlot.requiredSize);
+    const expectedIndex = 2;
+    testData.set(toUint8Array(expectedIndex, 4), 0x1354);
+    const instance = new SaveSlot(testData);
+    assertEquals(instance.fileIndex, expectedIndex);
+  },
+});
+
+Deno.test({
+  name: "should set the file index",
+  fn() {
+    const testData = new Uint8Array(SaveSlot.requiredSize);
+    const expectedIndex = 1;
+    const instance = new SaveSlot(testData);
+    instance.fileIndex = expectedIndex;
+    assertEquals(instance.fileIndex, expectedIndex);
   },
 });

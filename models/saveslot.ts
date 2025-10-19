@@ -25,32 +25,7 @@ export enum MagicAmount {
   Full = 0x60,
 }
 
-export enum Sword {
-  Kokiri = 0x3B,
-  Master = 0x3C,
-  GiantKnife = 0x3D,
-}
-
-export enum Shield {
-  Kokiri = 0x3E,
-  Hylian = 0x3F,
-  Mirror = 0x40,
-}
-
-export enum Tunic {
-  Kokiri = 0x41,
-  Goron = 0x42,
-  Zora = 0x43,
-}
-
-export enum Boots {
-  Kokiri = 0x44,
-  Iron = 0x45,
-  Hover = 0x46,
-}
-
-// TODO consider breaking this up further
-export enum Items {
+export enum InventoryItems {
   DekuStick = 0x01,
   DekuNut = 0x02,
   Bomb = 0x03,
@@ -110,154 +85,309 @@ export enum Items {
   FireArrowPoweredUp = 0x38,
   IceArrowPoweredUp = 0x39,
   LightArrowPoweredUp = 0x3A,
-  BulletBagHolds30 = 0x47,
-  BulletBagHolds40 = 0x48,
-  BulletBagHolds50 = 0x49,
-  QuiverHolds30 = 0x4A,
-  QuiverHolds40 = 0x4B,
-  QuiverHolds50 = 0x4C,
-  BombBagHolds20 = 0x4D,
-  BombBagHolds30 = 0x4E,
-  BombBagHolds40 = 0x4F,
-  GoronsBracelet = 0x50,
-  SilverGauntlets = 0x51,
-  GoldenGauntlets = 0x52,
-  SilverScale = 0x53,
-  GoldenScale = 0x54,
-  GiantsKnifeBroken = 0x55,
-  BombBagJapaneseName = 0x56,
-  BombBag2JapaneseName = 0x57,
-  SlingShotBulletsJapaneseName = 0x58,
-  FishingRodJapaneseName = 0x59,
-  MinuetofForest = 0x5A,
-  BoleroofFire = 0x5B,
-  SerenadeofWater = 0x5C,
-  RequiemofSpirit = 0x5D,
-  NocturneofShadow = 0x5E,
-  PreludeofLight = 0x5F,
-  ZeldasLullaby = 0x60,
-  EponasSong = 0x61,
-  SariasSong = 0x62,
-  SunsSong = 0x63,
-  SongofTime = 0x64,
-  SongofStorms = 0x65,
-  ForestMedallion = 0x66,
-  FireMedallion = 0x67,
-  WaterMedallion = 0x68,
-  SpiritMedallion = 0x69,
-  ShadowMedallion = 0x6A,
-  LightMedallion = 0x6B,
-  KokirisEmerald = 0x6C,
-  GoronsRuby = 0x6D,
-  ZorasSapphire = 0x6E,
-  StoneofAgony = 0x6F,
-  GerudosCard = 0x70,
-  GoldSkulltula = 0x71,
-  PieceofHeart = 0x72,
-  JapaneseName = 0x73,
-  BigKey = 0x74,
-  Compass = 0x75,
-  DungeonMap = 0x76,
-  JapaneseName2 = 0x77,
-  JapaneseName3 = 0x78,
-  JapaneseName4 = 0x79,
-  BiggoronsSwordGlitchedupGraphic = 0x7A,
-  DekuRodGlitchedUpGraphics = 0x7B,
-  DekuNutGlitchedUpGraphics = 0x7C,
-  JapaneseName5 = 0x7D,
-  JapaneseName6 = 0x7E,
-  JapaneseName7 = 0x7F,
-  JapaneseName8 = 0x80,
-  JapaneseName9 = 0x81,
-  JapaneseName10 = 0x82,
-  LetterinaBottlewBlueShadeJapaneseName = 0x83,
-  QuiverHolds20wRedHueJapaneseName = 0x84,
-  JapaneseName11 = 0x85,
-  JapaneseName12 = 0x86,
-  JapaneseName13 = 0x87,
-  JapaneseName14 = 0x88,
-  HauntedWastelandFPSDropto17fromhere = 0x89,
-  GerudosFortress = 0x8A,
-  GerudoValley = 0x8B,
-  LakeHylia = 0x8C,
-  LonLonRanch = 0x8D,
-  MarketToHere = 0x8E,
-  HyruleField = 0x8F,
-  DeathMountain = 0x90,
-  KakarikoVillage = 0x91,
-  LostWoods = 0x92,
-  KokiriForest = 0x93,
-  ZorasDomain = 0x94,
-  MilkGlitchedUpGraphics = 0x95,
-  LetterGlitchedUpGraphics = 0x96,
-  BlueFireGlitchedUpGraphics = 0x97,
-  BugGlitchedUpGraphics = 0x98,
-  NightSwarmGlitchedUpGraphics = 0x99,
-  Milk12GlitchedUpGraphics = 0x9A,
-  LightGlitchedUpGraphic = 0x9B,
-  StrangeEggGlitchedUpGraphics = 0x9C,
-  ChickenGlitchedUpGraphic = 0x9D,
-  ZeldasLetterGlitchedUpGraphic = 0x9E,
-  FoxMaskGlitchedUpGraphic = 0x9F,
-  SkullMaskGlitchedUpGraphic = 0xA0,
-  RabbitHonorGlitchedUpGraphic = 0xA1,
-  GoronMaskGlitchedUpGraphic = 0xA2,
-  GoronMaskAgainGlitchedUpGraphic = 0xA3,
-  ZoraMaskGlitchedUpGraphic = 0xA4,
-  GerudoMaskGlitchedUpGraphic = 0xA5,
-  MaskoftheKnowledgeGlitchedUpGraphic = 0xA6,
-  SellsGlitchedUpGraphic = 0xA7,
-  EggGlitchedUpGraphic = 0xA8,
-  KikiGlitchedUpGraphic = 0xA9,
-  WhinniedGlitchedUpGraphic = 0xAA,
-  MoldGlitchedUpGraphic = 0xAB,
-  MoldDrankGlitchedUpFlashingGraphic = 0xAC,
-  WouldSawGlitchedUpFlashingGraphic = 0xAD,
-  GoronSwordBrokenGlitchedUpFlashingGraphic = 0xAE,
-  PrescriptionGlitchedUpGraphic = 0xAF,
-  GlotzFrogGlitchedUpGraphic = 0xB0,
-  EyedropGlitchedUpGraphic = 0xB1,
-  CertificateGlitchedUpGraphic = 0xB2,
-  JapTextGlitchedUpGraphic = 0xB3,
-  JapTextGlitchedUpGraphic2 = 0xB4,
-  KokiriswordGlitchedUpGraphicName = 0xB5,
-  KokiriSwordAgainGlitchedUpGraphic = 0xB6,
-  MasterSwordGlitchedUpGraphic = 0xB7,
-  LongSwordGlitchedUpGraphic = 0xB8,
-  DekusignGlitchedUpGraphic = 0xB9,
-  HyliasignGlitchedUpGraphic = 0xBA,
-  Unknown = 0xBB,
-  KokiriarmamentGlitchedUpGraphic = 0xBC,
-  GoronarmamentGlitchedUpGraphic = 0xBD,
-  ZoraarmamentGlitchedUpGraphic = 0xBE,
-  LeatherbootGlitchedUpGraphic = 0xBF,
-  IronbootGlitchedUpGraphic = 0xC0,
-  HoverbootGlitchedUpGraphic = 0xC1,
-  Ammunitionpocket30GlitchedUpFlashingGraphic = 0xC2,
-  Ammunitionpocket40GlitchedUpGraphic = 0xC3,
-  Ammunitionpocket50GlitchedUpGraphic = 0xC4,
-  Cooks30GlitchedUpFlashingGraphic = 0xC5,
-  Cooks40GlitchedUpFlashingGraphic = 0xC6,
-  Cooks50ItLookslikeanTVwithnoreception = 0xC7,
-  Bombspocket20GlitchedUpGraphic = 0xC8,
-  Bombspocket30GlitchedUpGraphic = 0xC9,
-  Bombspocket40GlitchedUpGraphic = 0xCA,
-  GoronbraceletGlitchedUpGraphic = 0xCB,
-  PowergloveGlitchedUpGraphic = 0xCC,
-  TitaniumgloveGlitchedUpGraphic = 0xCD,
-  SilverScaleGlitchedUpGraphic = 0xCE,
-  GoldScaleGlitchedUpGraphic = 0xCF,
-  Empty = 0xFF,
 }
 
-export type InventoryItems = Items | Sword | Shield | Tunic | Boots;
-export const InventoryItems = {
-  ...Items,
+export enum Sword {
+  //Kokiri = 0x3B,
+  //Master = 0x3C,
+  //GiantKnife = 0x3D,
+  KokiriSword = 0x0001,
+  MasterSword = 0x0002,
+  GiantKnife = 0x0004,
+}
+
+export enum Shield {
+  //Kokiri = 0x3E,
+  //Hylian = 0x3F,
+  //Mirror = 0x40,
+  KokiriShield = 0x0010,
+  HylianShield = 0x0020,
+  MirrorShield = 0x0040,
+}
+
+export enum Tunic {
+  //Kokiri = 0x41,
+  //Goron = 0x42,
+  //Zora = 0x43,
+  KokiriTunic = 0x0100,
+  GoronTunic = 0x0200,
+  ZoraTunic = 0x0400,
+}
+
+export enum Boots {
+  //Kokiri = 0x44,
+  //Iron = 0x45,
+  //Hover = 0x46,
+  KokiriBoots = 0x1000,
+  IronBoots = 0x2000,
+  HoverBoots = 0x4000,
+}
+
+export type EquippableItems =
+  | Sword
+  | Shield
+  | Tunic
+  | Boots;
+export const EquippableItems = {
   ...Sword,
   ...Shield,
   ...Tunic,
   ...Boots,
 };
+
+//export enum BulletBag {
+//  BulletBagHolds30 = 0x47,
+//  BulletBagHolds40 = 0x48,
+//  BulletBagHolds50 = 0x49,
+//}
+//
+//export enum Quiver {
+//  QuiverHolds30 = 0x4A,
+//  QuiverHolds40 = 0x4B,
+//  QuiverHolds50 = 0x4C,
+//}
+//
+//export enum BombBag {
+//  BombBagHolds20 = 0x4D,
+//  BombBagHolds30 = 0x4E,
+//  BombBagHolds40 = 0x4F,
+//}
+//
+//export enum OtherEquipment {
+//  GoronsBracelet = 0x50,
+//  SilverGauntlets = 0x51,
+//  GoldenGauntlets = 0x52,
+//  SilverScale = 0x53,
+//  GoldenScale = 0x54,
+//  GiantsKnifeBroken = 0x55,
+//  BombBagJapaneseName = 0x56,
+//  BombBag2JapaneseName = 0x57,
+//  SlingShotBulletsJapaneseName = 0x58,
+//  FishingRodJapaneseName = 0x59,
+//}
+
+export enum DekuNutUpgrades {
+  DekuNutUpgradeHolds30Nuts = 0x0010_0000,
+  DekuNutUpgradeHolds40Nuts = 0x0020_0000,
+}
+
+export enum DekuStickUpgrades {
+  DekuStickUpgradeHolds20Sticks = 0x0002_0000,
+  DekuStickUpgradeHolds30Sticks = 0x0004_0000,
+}
+
+export enum BulletBag {
+  BulletBagHolds30 = 0x0000_4000,
+  BulletBagHolds40 = 0x0000_8000,
+  BulletBagHolds50 = 0x0001_0000,
+}
+
+export enum Wallet {
+  WalletHolds200 = 0x0000_1000,
+  WalletHolds500 = 0x0000_2000,
+}
+
+export enum DiveMeter {
+  SilverScale = 0x0000_0200,
+  GoldenScale = 0x0000_0400,
+}
+
+export enum StrengthUpgrades {
+  SilverGauntlets = 0x0000_0040,
+  GoldenGauntlets = 0x0000_0080,
+}
+
+export enum BombBag {
+  BombBagHolds20 = 0x0000_0008,
+  BombBagHolds30 = 0x0000_0010,
+  BombBagHolds40 = 0x0000_0020,
+}
+
+export enum Quiver {
+  QuiverHolds30 = 0x0000_0001,
+  QuiverHolds40 = 0x0000_0002,
+  QuiverHolds50 = 0x0000_0004,
+}
+
+export type ObtainableUpgrades =
+  | DekuNutUpgrades
+  | DekuStickUpgrades
+  | BulletBag
+  | Wallet
+  | DiveMeter
+  | StrengthUpgrades
+  | BombBag
+  | Quiver;
+
+export const ObtainableUpgrades = {
+  ...DekuNutUpgrades,
+  ...DekuStickUpgrades,
+  ...BulletBag,
+  ...Wallet,
+  ...DiveMeter,
+  ...StrengthUpgrades,
+  ...BombBag,
+  ...Quiver,
+};
+
+//export enum QuestItems {
+//  MinuetofForest = 0x5A,
+//  BoleroofFire = 0x5B,
+//  SerenadeofWater = 0x5C,
+//  RequiemofSpirit = 0x5D,
+//  NocturneofShadow = 0x5E,
+//  PreludeofLight = 0x5F,
+//  ZeldasLullaby = 0x60,
+//  EponasSong = 0x61,
+//  SariasSong = 0x62,
+//  SunsSong = 0x63,
+//  SongofTime = 0x64,
+//  SongofStorms = 0x65,
+//  ForestMedallion = 0x66,
+//  FireMedallion = 0x67,
+//  WaterMedallion = 0x68,
+//  SpiritMedallion = 0x69,
+//  ShadowMedallion = 0x6A,
+//  LightMedallion = 0x6B,
+//  KokirisEmerald = 0x6C,
+//  GoronsRuby = 0x6D,
+//  ZorasSapphire = 0x6E,
+//  StoneofAgony = 0x6F,
+//  GerudosCard = 0x70,
+//  GoldSkulltula = 0x71,
+//  HeartContainer = 0x72,
+//  PieceofHeart = 0x73,
+//}
+
+export enum Medallions {
+  ForestMedallion = 0x0000_0001,
+  FireMedallion = 0x0000_0002,
+  WaterMedallion = 0x0000_0004,
+  SpiritMedallion = 0x0000_0008,
+  ShadowMedallion = 0x0000_0010,
+  LightMedallion = 0x0000_0020,
+}
+
+export enum Songs {
+  MinuetofForest = 0x0000_0040,
+  BoleroofFire = 0x0000_0080,
+  SerenadeofWater = 0x0000_0100,
+  RequiemofSpirit = 0x0000_0200,
+  NocturneofShadow = 0x0000_0400,
+  PreludeofLight = 0x0000_0800,
+  ZeldasLullaby = 0x0000_1000,
+  EponasSong = 0x0000_2000,
+  SariasSong = 0x0000_4000,
+  SunsSong = 0x0000_8000,
+  SongofTime = 0x0001_0000,
+  SongofStorms = 0x0002_0000,
+}
+
+export enum SpiritualStones {
+  KokirisEmerald = 0x0004_0000,
+  GoronsRuby = 0x0008_0000,
+  ZorasSapphire = 0x0010_0000,
+  StoneofAgony = 0x0020_0000,
+}
+
+export enum Tokens {
+  GerudosCard = 0x0040_0000,
+  GoldSkulltulaToken = 0x0080_0000,
+}
+
+export type QuestItems = Medallions | Songs | SpiritualStones | Tokens;
+export const QuestItems = {
+  ...Medallions,
+  ...Songs,
+  ...SpiritualStones,
+  ...Tokens,
+};
+
+//export enum DungeonItems {
+//  BigKey = 0x74,
+//  Compass = 0x75,
+//  DungeonMap = 0x76,
+//  SmallKey = 0x77,
+//}
+
+export enum DungeonItems {
+  BossKey = 0x01,
+  Compass = 0x02,
+  DungeonMap = 0x04,
+}
+
+export enum Collecibles {
+  SmallMagicJar = 0x78,
+  LargeMagicJar = 0x79,
+  PieceofHeart = 0x7A,
+}
+
+export enum RemovedItems {
+  Item1 = 0x7B,
+  Item2 = 0x7C,
+  Item3 = 0x7D,
+  Item4 = 0x7E,
+  Item5 = 0x7F,
+  Item6 = 0x80,
+  Item7 = 0x81,
+}
+
+export enum OtherItems {
+  LonLonMilk = 0x82,
+  RecoveryHeart = 0x83,
+  GreenRupee = 0x84,
+  BlueRupee = 0x85,
+  RedRupee = 0x86,
+  PurpleRupee = 0x87,
+  HugeRupee = 0x88,
+  Removed = 0x89,
+  DekuSticks5 = 0x8A,
+  DekuSticks10 = 0x8B,
+  DekuNuts5 = 0x8C,
+  DekuNuts10 = 0x8D,
+  Bombs5 = 0x8E,
+  Bombs10 = 0x8F,
+  Bombs20 = 0x90,
+  Bombs30 = 0x91,
+  Arrows5or10 = 0x92,
+  Arrows10or30 = 0x93,
+  Arrows30or50 = 0x94,
+  DekuSeeds30 = 0x95,
+  Bombchu5 = 0x96,
+  Bombchu20 = 0x97,
+  DekuStickUpgradeHolds20Sticks = 0x98,
+  DekuStickUpgradeHolds30Sticks = 0x99,
+  DekuNutUpgradeHolds30Nuts = 0x9A,
+  DekuNutUpgradeHolds40Nuts = 0x9B,
+  Empty = 0xFF,
+}
+
+export interface ButtonEquips {
+  bButton: InventoryItems;
+  cLeftButton: InventoryItems;
+  cDownButton: InventoryItems;
+  cRightButton: InventoryItems;
+  cLeftOffset: number; // TODO what's the correct data type here?
+  cDownOffset: number; // TODO what's the correct data type here?
+  cRightOffset: number; // TODO what's the correct data type here?
+}
+
+export interface CurrentEquipment {
+  sword: Sword;
+  shield: Shield;
+  tunic: Tunic;
+  boots: Boots;
+}
+
+export interface PermanentSceneFlags {
+  chestFlags: number;
+  switches: number;
+  roomClearFlags: number;
+  collectibleFlags: number;
+  unused: number;
+  visitedRooms: number;
+  visitedFloors: number;
+}
 
 export interface FaroresWindWarp {
   x: number;
@@ -443,6 +573,8 @@ export class SaveSlot {
     this.bytes.set(toUint8Array(value, 2), 0x0034);
   }
 
+  // TODO needs to be tested assuming previous rupees at 0x0034 with size
+  // uint16_t is correct this should start here
   get biggoronsSwordFlag1(): boolean {
     const value = toNumber(this.bytes.slice(0x0036, 0x0036 + 1));
     switch (value) {
@@ -558,76 +690,93 @@ export class SaveSlot {
     this.bytes.set(toUint8Array(value, 2), 0x0066);
   }
 
-  private get currentButtonEquips(): Uint8Array {
-    return this.bytes.slice(0x0068, 0x0068 + 7);
+  get currentButtonEquips(): ButtonEquips {
+    const data = this.bytes.slice(0x0068, 0x0068 + 7);
+    return {
+      bButton: toNumber(data.slice(0, 1)) as InventoryItems,
+      cLeftButton: toNumber(data.slice(1, 2)) as InventoryItems,
+      cDownButton: toNumber(data.slice(2, 3)) as InventoryItems,
+      cRightButton: toNumber(data.slice(3, 4)) as InventoryItems,
+      cLeftOffset: toNumber(data.slice(4, 5)),
+      cDownOffset: toNumber(data.slice(5, 6)),
+      cRightOffset: toNumber(data.slice(6, 7)),
+    };
   }
 
-  // TODO button equipments should return specific data structures
-  private set currentButtonEquips(value: Uint8Array) {
-    if (value.length != 7) {
-      throw Error(
-        `button equip data needs to be 7 bytes, got ${value.length}.`,
-      );
-    }
-    this.bytes.set(value, 0x0068);
+  set currentButtonEquips(value: ButtonEquips) {
+    this.bytes.set(
+      new Uint8Array([
+        ...toUint8Array(value.bButton, 1),
+        ...toUint8Array(value.cLeftButton, 1),
+        ...toUint8Array(value.cDownButton, 1),
+        ...toUint8Array(value.cRightButton, 1),
+        ...toUint8Array(value.cLeftOffset, 1),
+        ...toUint8Array(value.cDownOffset, 1),
+        ...toUint8Array(value.cRightOffset, 1),
+      ]),
+      0x0068,
+    );
   }
 
-  get bButtonEquip(): number {
-    return toNumber(this.currentButtonEquips.slice(0, 0 + 1));
+  get bButtonEquip(): InventoryItems {
+    return this.currentButtonEquips.bButton;
   }
 
-  set bButtonEquip(value: number) {
-    const buttonEquips = this.currentButtonEquips;
-    buttonEquips.set(toUint8Array(value, 1), 0);
-    this.currentButtonEquips = buttonEquips;
+  set bButtonEquip(value: InventoryItems) {
+    this.currentButtonEquips = {
+      ...this.currentButtonEquips,
+      bButton: value,
+    };
   }
 
-  get cLeftButtonEquip(): number {
-    return toNumber(this.currentButtonEquips.slice(1, 1 + 1));
+  get cLeftButtonEquip(): InventoryItems {
+    return this.currentButtonEquips.cLeftButton;
   }
 
-  set cLeftButtonEquip(value: number) {
-    const buttonEquips = this.currentButtonEquips;
-    buttonEquips.set(toUint8Array(value, 1), 1);
-    this.currentButtonEquips = buttonEquips;
+  set cLeftButtonEquip(value: InventoryItems) {
+    this.currentButtonEquips = {
+      ...this.currentButtonEquips,
+      cLeftButton: value,
+    };
   }
 
-  get cDownButtonEquip(): number {
-    return toNumber(this.currentButtonEquips.slice(2, 2 + 1));
+  get cDownButtonEquip(): InventoryItems {
+    return this.currentButtonEquips.cDownButton;
   }
 
-  set cDownButtonEquip(value: number) {
-    const buttonEquips = this.currentButtonEquips;
-    buttonEquips.set(toUint8Array(value, 1), 2);
-    this.currentButtonEquips = buttonEquips;
+  set cDownButtonEquip(value: InventoryItems) {
+    this.currentButtonEquips = {
+      ...this.currentButtonEquips,
+      cDownButton: value,
+    };
   }
 
-  get cRightButtonEquip(): number {
-    return toNumber(this.currentButtonEquips.slice(3, 3 + 1));
+  get cRightButtonEquip(): InventoryItems {
+    return this.currentButtonEquips.cRightButton;
   }
 
-  set cRightButtonEquip(value: number) {
-    const buttonEquips = this.currentButtonEquips;
-    buttonEquips.set(toUint8Array(value, 1), 3);
-    this.currentButtonEquips = buttonEquips;
+  set cRightButtonEquip(value: InventoryItems) {
+    this.currentButtonEquips = {
+      ...this.currentButtonEquips,
+      cRightButton: value,
+    };
   }
 
-  // TODO should reference data structures for equipment
-  // & 0x000F = Swords
-  // & 0x00F0 = Shields
-  // & 0x0F00 = Tunics
-  // & 0xF000 = Boots
-  private get currentlyEquippedEquipment(): Uint8Array {
-    return this.bytes.slice(0x0070, 0x0070 + 2);
+  // TODO do we need helpers for the offsets?
+
+  get currentlyEquippedEquipment(): CurrentEquipment {
+    const equipData = toNumber(this.bytes.slice(0x0070, 0x0070 + 2));
+    return {
+      sword: equipData & 0x000F,
+      shield: equipData & 0x00F0,
+      tunic: equipData & 0x0F00,
+      boots: equipData & 0xF000,
+    };
   }
 
-  private set currentlyEquippedEquipment(value: Uint8Array) {
-    if (value.length != 2) {
-      throw Error(
-        `current equipment data needs to be 2 bytes, got ${value.length}.`,
-      );
-    }
-    this.bytes.set(value, 0x0070);
+  set currentlyEquippedEquipment(value: CurrentEquipment) {
+    const data = value.sword | value.shield | value.tunic | value.boots;
+    this.bytes.set(toUint8Array(data, 2), 0x0070);
   }
 
   get inventory(): Array<InventoryItems> {
@@ -670,106 +819,121 @@ export class SaveSlot {
     this.bytes.set(toUint8Array(value, 1), 0x009B);
   }
 
-  // TODO should reference data structures for equipment
-  // & 0x000F = Swords
-  // & 0x00F0 = Shields
-  // & 0x0F00 = Tunics
-  // & 0xF000 = Boots
-  private get obtainedEquipment(): Uint8Array {
-    return this.bytes.slice(0x009C, 0x009C + 2);
-  }
+  get obtainedEquipment(): Array<EquippableItems> {
+    const obtainedEquipment: Array<EquippableItems> = [];
+    const equipmentData = toNumber(this.bytes.slice(0x009C, 0x009C + 2));
 
-  private set obtainedEquipment(value: Uint8Array) {
-    if (value.length != 2) {
-      throw Error(
-        `obtained equipment data needs to be 2 bytes, got ${value.length}.`,
-      );
+    function addIfInData(equipment: EquippableItems) {
+      if ((equipmentData & equipment) === equipment) {
+        obtainedEquipment.push(equipment);
+      }
     }
-    this.bytes.set(value, 0x009C);
+
+    Object.values(EquippableItems).map((v) => Number(v)).filter((v) =>
+      !Number.isNaN(v)
+    ).forEach((equipment) => addIfInData(equipment as EquippableItems));
+
+    return obtainedEquipment;
   }
 
-  // TODO should reference data structures for equipment
-  // & 0x0070_0000 = Deku Nut capacity
-  // & 0x000E_0000 = Deku Stick capacity
-  // & 0x0001_C000 = Bullet Bag
-  // & 0x0000_3000 = Wallet
-  // & 0x0000_0E00 = Dive Meter
-  // & 0x0000_01C0 = Strength Upgrades
-  // & 0x0000_0038 = Bomb Bag
-  // & 0x0000_0007 = Quiver
-  private get obtainedUpgrades(): Uint8Array {
-    return this.bytes.slice(0x00A0, 0x00A0 + 4);
+  set obtainedEquipment(value: Array<EquippableItems>) {
+    const data = value.reduce((l, r) => l | r);
+    this.bytes.set(toUint8Array(data, 2), 0x009C);
   }
 
-  private set obtainedUpgrades(value: Uint8Array) {
-    if (value.length != 4) {
-      throw Error(
-        `obtained equipment data needs to be 4 bytes, got ${value.length}.`,
-      );
+  get obtainedUpgrades(): Array<ObtainableUpgrades> {
+    const obtainedUpgrades: Array<ObtainableUpgrades> = [];
+    const upgradeData = toNumber(this.bytes.slice(0x00A0, 0x00A0 + 4));
+
+    function addIfInData(upgrade: ObtainableUpgrades) {
+      if ((upgradeData & upgrade) === upgrade) {
+        obtainedUpgrades.push(upgrade);
+      }
     }
-    this.bytes.set(value, 0x00A0);
+
+    Object.values(ObtainableUpgrades).map((v) => Number(v)).filter((v) =>
+      !Number.isNaN(v)
+    ).forEach((upgrade) => addIfInData(upgrade as ObtainableUpgrades));
+
+    return obtainedUpgrades;
   }
 
-  // TODO should reference data structures for equipment
-  // & 0x0080_0000 = Gold Skulltula Token (Set the first time one is collected)
-  // & 0x0040_0000 = Gerudo card
-  // & 0x0020_0000 = Stone of Agony
-  // & 0x0010_0000 = Zora Sapphire
-  // & 0x0008_0000 = Goron Ruby
-  // & 0x0004_0000 = Kokiri Emerald
-  // & 0x0002_0000 = Song of Storms
-  // & 0x0001_0000 = Song of Time
-  // & 0x0000_8000 = Sun's Song
-  // & 0x0000_4000 = Saria's Song
-  // & 0x0000_2000 = Epona's Song
-  // & 0x0000_1000 = Zelda's Lullaby
-  // & 0x0000_0800 = Prelude of Light
-  // & 0x0000_0400 = Nocturne of Shadow
-  // & 0x0000_0200 = Requiem of Spirit
-  // & 0x0000_0100 = Serenade of Water
-  // & 0x0000_0080 = Bolero of Fire
-  // & 0x0000_0040 = Minuet of Forest
-  // & 0x0000_0020 = Light Medallion
-  // & 0x0000_0010 = Shadow Medallion
-  // & 0x0000_0008 = Spirit Medallion
-  // & 0x0000_0004 = Water Medallion
-  // & 0x0000_0002 = Fire Medallion
-  // & 0x0000_0001 = Forest Medallion
-  private get questStatusItems(): Uint8Array {
-    return this.bytes.slice(0x00A4, 0x00A4 + 4);
+  set obtainedUpgrades(value: Array<ObtainableUpgrades>) {
+    const data = value.reduce((l, r) => l | r);
+    this.bytes.set(toUint8Array(data, 4), 0x00A0);
   }
 
-  private set questStatusItems(value: Uint8Array) {
-    if (value.length != 4) {
-      throw Error(
-        `obtained equipment data needs to be 4 bytes, got ${value.length}.`,
-      );
+  get questStatusItems(): Array<QuestItems> {
+    const obtainedItems: Array<QuestItems> = [];
+    const itemData = toNumber(this.bytes.slice(0x00A4, 0x00A4 + 4));
+
+    function addIfInData(item: QuestItems) {
+      if ((itemData & item) === item) {
+        obtainedItems.push(item);
+      }
     }
-    this.bytes.set(value, 0x00A4);
+
+    Object.values(QuestItems).map((v) => Number(v)).filter((v) =>
+      !Number.isNaN(v)
+    ).forEach((item) => addIfInData(item as QuestItems));
+
+    return obtainedItems;
   }
 
-  // Indexed by the Scene Index. Each byte contains the following:
-  // & 0x01 = Boss Key
-  // & 0x02 = Compass
-  // & 0x04 = Dungeon Map
-  get dungeonItems(): Uint8Array {
-    return this.bytes.slice(0x00A8, 0x00A8 + 0x14);
+  set questStatusItems(value: Array<QuestItems>) {
+    const data = value.reduce((l, r) => l | r);
+    this.bytes.set(toUint8Array(data, 4), 0x00A4);
   }
 
-  set dungeonItems(value: Uint8Array) {
+  get dungeonItems(): Array<Array<DungeonItems>> {
+    const allDungeonsItems: Array<Array<DungeonItems>> = [];
+    const dungeonItemsData = this.bytes.slice(0x00A8, 0x00A8 + 0x14);
+
+    function addIfInData(
+      items: Array<DungeonItems>,
+      data: number,
+      item: DungeonItems,
+    ) {
+      if ((data & item) === item) {
+        items.push(item);
+      }
+    }
+
+    for (let i = 0; i < dungeonItemsData.length; i++) {
+      const itemData = toNumber(dungeonItemsData.slice(i, i + 1));
+      const items: Array<DungeonItems> = [];
+
+      Object.values(DungeonItems).map((v) => Number(v)).filter((v) =>
+        !Number.isNaN(v)
+      ).forEach((item) => addIfInData(items, itemData, item as DungeonItems));
+
+      allDungeonsItems.push(items);
+    }
+
+    return allDungeonsItems;
+  }
+
+  set dungeonItems(value: Array<Array<DungeonItems>>) {
     if (value.length != 0x14) {
       throw Error(
         `dungeon items data needs to be ${0x14} bytes, got ${value.length}.`,
       );
     }
-    this.bytes.set(value, 0x00A8);
+    this.bytes.set(
+      value.map((itemSet) => itemSet.reduce((l, r) => l | r)),
+      0x00A8,
+    );
   }
 
-  get smallKeyAmount(): Uint8Array {
-    return this.bytes.slice(0x00BC, 0x00BC + 0x14);
+  get smallKeyAmount(): Array<number> {
+    const keys: Array<number> = [];
+    for (let i = 0; i < 0x14; i++) {
+      keys.push(toNumber(this.bytes.slice(0x00BC + i, 0x00BC + i + 1)));
+    }
+    return keys;
   }
 
-  set smallKeyAmount(value: Uint8Array) {
+  set smallKeyAmount(value: Array<number>) {
     if (value.length != 0x14) {
       throw Error(
         `small key amount data needs to be ${0x14} bytes, got ${value.length}.`,
@@ -794,7 +958,44 @@ export class SaveSlot {
     this.bytes.set(toUint8Array(value, 2), 0x00D0);
   }
 
-  // TODO permanent scene flags at 0x00D4
+  private get permanentSceneFlags(): Array<PermanentSceneFlags> {
+    const sceneFlags: Array<PermanentSceneFlags> = [];
+    for (let i = 0; i < 101; i++) {
+      const offset = i * 0x1C;
+      sceneFlags.push({
+        chestFlags: toNumber(this.bytes.slice(0x00D4 + offset, 0x00D4 + offset + 4)),
+        switches: toNumber(this.bytes.slice(0x00D8 + offset, 0x00D8 + offset + 4)),
+        roomClearFlags: toNumber(this.bytes.slice(0x00DC + offset, 0x00DC + offset + 4)),
+        collectibleFlags: toNumber(this.bytes.slice(0x00E0 + offset, 0x00E0 + offset + 4)),
+        unused: toNumber(this.bytes.slice(0x00E4 + offset, 0x00E4 + offset + 4)),
+        visitedRooms: toNumber(this.bytes.slice(0x00E8 + offset, 0x00E8 + offset + 4)),
+        visitedFloors: toNumber(this.bytes.slice(0x00EC + offset, 0x00EC + offset + 4)),
+      });
+    }
+    return sceneFlags;
+  }
+
+  private set permanentSceneFlags(value: Array<PermanentSceneFlags>) {
+    if (value.length != (101)) {
+      throw Error(
+        `permanent scene flags data needs to be ${101} bytes, got ${value.length}.`,
+      );
+    }
+
+    const data = new Uint8Array(101 * 0x1C);
+    for (let i = 0; i < value.length; i++) {
+      const offset = i * 0x1C;
+      data.set(toUint8Array(value[i].chestFlags, 4), offset + 0);
+      data.set(toUint8Array(value[i].switches, 4), offset + 4);
+      data.set(toUint8Array(value[i].roomClearFlags, 4), offset + 8);
+      data.set(toUint8Array(value[i].collectibleFlags, 4), offset + 12);
+      data.set(toUint8Array(value[i].unused, 4), offset + 16);
+      data.set(toUint8Array(value[i].visitedRooms, 4), offset + 20);
+      data.set(toUint8Array(value[i].visitedFloors, 4), offset + 24);
+    }
+
+    this.bytes.set(data, 0x00D4);
+  }
 
   private get faroresWindWarpX(): number {
     return toNumber(this.bytes.slice(0x0E64, 0x0E64 + 4));
@@ -813,11 +1014,11 @@ export class SaveSlot {
   }
 
   private get faroresWindWarpZ(): number {
-    return toNumber(this.bytes.slice(0x0E6B, 0x0E6B + 4));
+    return toNumber(this.bytes.slice(0x0E6C, 0x0E6C + 4));
   }
 
   private set faroresWindWarpZ(value: number) {
-    this.bytes.set(toUint8Array(value, 4), 0x0E6B);
+    this.bytes.set(toUint8Array(value, 4), 0x0E6C);
   }
 
   private get faroresWindWarpYRotation(): number {
@@ -844,6 +1045,7 @@ export class SaveSlot {
     this.faroresWindWarpYRotation = value.yRotation;
   }
 
+  // TODO finish proper parsing
   get entranceIndexTransport(): number {
     return toNumber(this.bytes.slice(0x0E7A, 0x0E7A + 2));
   }
@@ -862,6 +1064,7 @@ export class SaveSlot {
   }
 
   // TODO check size of data structure
+  // TODO tie into setting the warp point
   get warpPointSet(): boolean {
     const value = toNumber(this.bytes.slice(0x0E83, 0x0E83 + 2));
     switch (value) {
@@ -885,7 +1088,7 @@ export class SaveSlot {
   }
 
   set bigPoePoints(value: number) {
-    this.bytes.set(toUint8Array(0x0EBC, 4), 0x0EBC);
+    this.bytes.set(toUint8Array(value, 4), 0x0EBC);
   }
 
   // TODO set eventFlags at 0x0ED4, uint16_t[14]
@@ -898,6 +1101,14 @@ export class SaveSlot {
 
   set checksum(value: number) {
     this.bytes.set(toUint8Array(value, 2), 0x1352);
+  }
+
+  get fileIndex(): number {
+    return toNumber(this.bytes.slice(0x1354, 0x1354 + 4));
+  }
+
+  set fileIndex(value: number) {
+    this.bytes.set(toUint8Array(value, 4), 0x1354);
   }
 
   calculateChecksum(): number {
