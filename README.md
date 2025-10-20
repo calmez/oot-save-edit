@@ -39,6 +39,12 @@ for me where I am experimenting a bit and hoping to grow as a developer.
 Combining multiple things that I like and hopefully creating something useful
 also to less techy people is what I aim for here.
 
+## Other Projects in this space
+
+- [Game Tools Collection](https://github.com/RyudoSynbios/game-tools-collection)
+- [OotSaveEditor](https://github.com/AdmiralCurtiss/OoTSaveEditor)
+- [ZeldaSaveTool](https://github.com/xoascf/ZeldaSaveTool)
+
 ## Ideas for what to come next
 
 I am using [issues](https://github.com/calmez/oot-save-edit/issues) for managing
