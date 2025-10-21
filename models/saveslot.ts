@@ -1053,7 +1053,7 @@ export class SaveSlot {
     this.bytes.set(toUint8Array(value, 2), 0x0E7A);
   }
 
-  // TODO check size of data structure
+  // TODO check size of data structure and what structure is stored in there
   get mapNumber(): number {
     return toNumber(this.bytes.slice(0x0E7F, 0x0E7F + 1));
   }
