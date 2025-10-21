@@ -1025,14 +1025,25 @@ Deno.test({
 
 // TODO proper test for entrance index
 Deno.test({
-  name: "should get entrace index transport",
+  name: "should get entrance index transport",
   fn() {
     const testData = new Uint8Array(SaveSlot.requiredSize);
-    const expectedEntrance = 42;
+    const expectedEntrance = Scene.ChamberOfSages_Default_Adult_Day;
     testData.set(toUint8Array(expectedEntrance, 2), 0x0E7A);
     const instance = new SaveSlot(testData);
     assertEquals(instance.entranceIndexTransport, expectedEntrance);
   },
+});
+
+Deno.test({
+	name: "should set entrance index transport",
+	fn() {
+		const testData = new Uint8Array(SaveSlot.requiredSize);
+		const expectedEntrance = Scene.ChamberOfSages_Default_Adult_Day;
+		const instance = new SaveSlot(testData);
+		instance.entranceIndexTransport = expectedEntrance;
+		assertEquals(instance.entranceIndexTransport, expectedEntrance);
+	},
 });
 
 Deno.test({
@@ -1073,6 +1084,32 @@ Deno.test({
   },
 });
 
+// TODO test entrance index transport
+
+// TODO map number
+
+Deno.test({
+	name: "should get if the warp point is set",
+	fn() {
+		const testData = new Uint8Array(SaveSlot.requiredSize);
+		const expectedIsSet = true;
+		testData.set(toUint8Array(expectedIsSet, 1), 0x0E83);
+		const instance = new SaveSlot(testData);
+		assertEquals(instance.warpPointSet, expectedIsSet);
+	},
+});
+
+Deno.test({
+	name: "should set if the warp point is set",
+	fn() {
+		const testData = new Uint8Array(SaveSlot.requiredSize);
+		const expectedIsSet = true;
+		const instance = new SaveSlot(testData);
+		instance.warpPointSet = expectedIsSet;
+		assertEquals(instance.warpPointSet, expectedIsSet);
+	},
+});
+
 Deno.test({
   name: "should get big poe points",
   fn() {
@@ -1095,6 +1132,27 @@ Deno.test({
   },
 });
 
+Deno.test({
+  name: "should get file index",
+  fn() {
+    const testData = new Uint8Array(SaveSlot.requiredSize);
+    const expectedIndex = 2;
+    testData.set(toUint8Array(expectedIndex, 4), 0x1354);
+    const instance = new SaveSlot(testData);
+    assertEquals(instance.fileIndex, expectedIndex);
+  },
+});
+
+Deno.test({
+  name: "should set the file index",
+  fn() {
+    const testData = new Uint8Array(SaveSlot.requiredSize);
+    const expectedIndex = 1;
+    const instance = new SaveSlot(testData);
+    instance.fileIndex = expectedIndex;
+    assertEquals(instance.fileIndex, expectedIndex);
+  },
+});
 Deno.test({
   name: "should calculate the checksum",
   fn() {
@@ -1137,27 +1195,5 @@ Deno.test({
     const testData = new Uint8Array(SaveSlot.requiredSize);
     const instance = new SaveSlot(testData);
     assertEquals(instance.isValid, false);
-  },
-});
-
-Deno.test({
-  name: "should get file index",
-  fn() {
-    const testData = new Uint8Array(SaveSlot.requiredSize);
-    const expectedIndex = 2;
-    testData.set(toUint8Array(expectedIndex, 4), 0x1354);
-    const instance = new SaveSlot(testData);
-    assertEquals(instance.fileIndex, expectedIndex);
-  },
-});
-
-Deno.test({
-  name: "should set the file index",
-  fn() {
-    const testData = new Uint8Array(SaveSlot.requiredSize);
-    const expectedIndex = 1;
-    const instance = new SaveSlot(testData);
-    instance.fileIndex = expectedIndex;
-    assertEquals(instance.fileIndex, expectedIndex);
   },
 });

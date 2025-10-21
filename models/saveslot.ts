@@ -1045,12 +1045,11 @@ export class SaveSlot {
     this.faroresWindWarpYRotation = value.yRotation;
   }
 
-  // TODO finish proper parsing
-  get entranceIndexTransport(): number {
+  get entranceIndexTransport(): Scene {
     return toNumber(this.bytes.slice(0x0E7A, 0x0E7A + 2));
   }
 
-  set entranceIndexTransport(value: number) {
+  set entranceIndexTransport(value: Scene) {
     this.bytes.set(toUint8Array(value, 2), 0x0E7A);
   }
 
@@ -1066,7 +1065,7 @@ export class SaveSlot {
   // TODO check size of data structure
   // TODO tie into setting the warp point
   get warpPointSet(): boolean {
-    const value = toNumber(this.bytes.slice(0x0E83, 0x0E83 + 2));
+    const value = toNumber(this.bytes.slice(0x0E83, 0x0E83 + 1));
     switch (value) {
       case 0:
         return false;
