@@ -1023,7 +1023,6 @@ Deno.test({
 
 // TODO permanent scene flags
 
-// TODO proper test for entrance index
 Deno.test({
   name: "should get entrance index transport",
   fn() {
@@ -1043,6 +1042,28 @@ Deno.test({
 		const instance = new SaveSlot(testData);
 		instance.entranceIndexTransport = expectedEntrance;
 		assertEquals(instance.entranceIndexTransport, expectedEntrance);
+	},
+});
+
+Deno.test({
+	name: "should get map number",
+	fn() {
+		const testData = new Uint8Array(SaveSlot.requiredSize);
+		const expectedMapNumber = 5;
+		testData.set(toUint8Array(expectedMapNumber, 1), 0x0E7F);
+		const instance = new SaveSlot(testData);
+		assertEquals(instance.mapNumber, expectedMapNumber);
+	},
+});
+
+Deno.test({
+	name: "should set map number",
+	fn() {
+		const testData = new Uint8Array(SaveSlot.requiredSize);
+		const expectedMapNumber = 5;
+		const instance = new SaveSlot(testData);
+		instance.mapNumber = expectedMapNumber;
+		assertEquals(instance.mapNumber, expectedMapNumber);
 	},
 });
 
