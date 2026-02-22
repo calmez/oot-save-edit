@@ -47,7 +47,9 @@ function formatFlagName(name: string): string {
     .replace(/([A-Z])([A-Z][a-z])/g, "$1 $2");
 }
 
-function getBooleanFlags(source: object): Array<{ name: string; value: boolean }> {
+function getBooleanFlags(
+  source: object,
+): Array<{ name: string; value: boolean }> {
   const prototype = Object.getPrototypeOf(source) as object;
   const descriptors = Object.getOwnPropertyDescriptors(prototype);
   const flags: Array<{ name: string; value: boolean }> = [];
@@ -165,7 +167,7 @@ export default function Slot(props: SlotProps) {
         expanded ? "bg-blue-300/90 shadow-lg h-max" : "bg-gray-50 h-min"
       }`}
     >
-      <h3 
+      <h3
         className="text-xl font-semibold mb-2 hover:cursor-pointer"
         onClick={() => {
           setExpanded(!expanded);
@@ -207,7 +209,9 @@ export default function Slot(props: SlotProps) {
         <div className="grid grid-cols-3 gap-4">
           <div>
             <span className="font-medium">Day/Night:</span>{" "}
-            <span className="tabular-nums">{enumLabel(Time, slot.nightFlag)}</span>
+            <span className="tabular-nums">
+              {enumLabel(Time, slot.nightFlag)}
+            </span>
           </div>
           <div>
             <span className="font-medium">DD Only:</span>{" "}
@@ -254,7 +258,9 @@ export default function Slot(props: SlotProps) {
           </div>
           <div>
             <span className="font-medium">Saved Scene:</span>{" "}
-            <span className="tabular-nums">{enumLabel(Scene, slot.savedSceneIndex)}</span>
+            <span className="tabular-nums">
+              {enumLabel(Scene, slot.savedSceneIndex)}
+            </span>
           </div>
         </div>
       )}
@@ -281,19 +287,42 @@ export default function Slot(props: SlotProps) {
           <div>
             <span className="font-medium">Button Equips:</span>{" "}
             <span className="tabular-nums">
-              B: {inventoryItemLabel(slot.bButtonEquip)}, C←: {inventoryItemLabel(slot.cLeftButtonEquip)}, C↓: {inventoryItemLabel(slot.cDownButtonEquip)}, C→: {inventoryItemLabel(slot.cRightButtonEquip)}
+              B: {inventoryItemLabel(slot.bButtonEquip)}, C←:{" "}
+              {inventoryItemLabel(slot.cLeftButtonEquip)}, C↓:{" "}
+              {inventoryItemLabel(slot.cDownButtonEquip)}, C→:{" "}
+              {inventoryItemLabel(slot.cRightButtonEquip)}
             </span>
           </div>
           <div>
             <span className="font-medium">Equip Offsets:</span>{" "}
             <span className="tabular-nums">
-              C←: {slot.currentButtonEquips.cLeftOffset === 0xFF ? "Unset" : slot.currentButtonEquips.cLeftOffset}, C↓: {slot.currentButtonEquips.cDownOffset === 0xFF ? "Unset" : slot.currentButtonEquips.cDownOffset}, C→: {slot.currentButtonEquips.cRightOffset === 0xFF ? "Unset" : slot.currentButtonEquips.cRightOffset}
+              C←: {slot.currentButtonEquips.cLeftOffset === 0xFF
+                ? "Unset"
+                : slot.currentButtonEquips.cLeftOffset}, C↓:{" "}
+              {slot.currentButtonEquips.cDownOffset === 0xFF
+                ? "Unset"
+                : slot.currentButtonEquips.cDownOffset}, C→:{" "}
+              {slot.currentButtonEquips.cRightOffset === 0xFF
+                ? "Unset"
+                : slot.currentButtonEquips.cRightOffset}
             </span>
           </div>
           <div>
             <span className="font-medium">Equipped:</span>{" "}
             <span className="tabular-nums">
-              {equipmentLabel(slot.currentlyEquippedEquipment.sword)}, {equipmentLabel(slot.currentlyEquippedEquipment.shield)}, {equipmentLabel(slot.currentlyEquippedEquipment.tunic)}, {equipmentLabel(slot.currentlyEquippedEquipment.boots)}
+              <span>
+                Sword: {equipmentLabel(slot.currentlyEquippedEquipment.sword)},
+              </span>
+              <span>
+                Shield:{" "}
+                {equipmentLabel(slot.currentlyEquippedEquipment.shield)},
+              </span>
+              <span>
+                Tunic: {equipmentLabel(slot.currentlyEquippedEquipment.tunic)},
+              </span>
+              <span>
+                Boots: {equipmentLabel(slot.currentlyEquippedEquipment.boots)}
+              </span>
             </span>
           </div>
         </div>
@@ -303,12 +332,16 @@ export default function Slot(props: SlotProps) {
           <div>
             <span className="font-medium">Inventory:</span>{" "}
             <span className="tabular-nums">
-              {slot.inventory.map((item) => inventoryItemLabel(item)).join(", ")}
+              {slot.inventory.map((item) => inventoryItemLabel(item)).join(
+                ", ",
+              )}
             </span>
           </div>
           <div>
             <span className="font-medium">Inventory Amounts:</span>{" "}
-            <span className="tabular-nums">{slot.inventoryAmounts.join(", ")}</span>
+            <span className="tabular-nums">
+              {slot.inventoryAmounts.join(", ")}
+            </span>
           </div>
         </div>
       )}
@@ -317,19 +350,25 @@ export default function Slot(props: SlotProps) {
           <div>
             <span className="font-medium">Obtained Equipment:</span>{" "}
             <span className="tabular-nums">
-              {slot.obtainedEquipment.map((item) => equipmentLabel(item)).join(", ")}
+              {slot.obtainedEquipment.map((item) => equipmentLabel(item)).join(
+                ", ",
+              )}
             </span>
           </div>
           <div>
             <span className="font-medium">Obtained Upgrades:</span>{" "}
             <span className="tabular-nums">
-              {slot.obtainedUpgrades.map((item) => upgradeLabel(item)).join(", ")}
+              {slot.obtainedUpgrades.map((item) => upgradeLabel(item)).join(
+                ", ",
+              )}
             </span>
           </div>
           <div>
             <span className="font-medium">Quest Items:</span>{" "}
             <span className="tabular-nums">
-              {slot.questStatusItems.map((item) => questItemLabel(item)).join(", ")}
+              {slot.questStatusItems.map((item) => questItemLabel(item)).join(
+                ", ",
+              )}
             </span>
           </div>
         </div>
@@ -340,7 +379,11 @@ export default function Slot(props: SlotProps) {
             <span className="font-medium">Dungeon Items:</span>{" "}
             <span className="tabular-nums">
               {slot.dungeonItems.map((items, dungeonIndex) => (
-                `D${dungeonIndex + 1}: ${items.map((item) => enumLabel(DungeonItems, item)).join("|") || "None"}`
+                `D${dungeonIndex + 1}: ${
+                  items.map((item) => enumLabel(DungeonItems, item)).join(
+                    "|",
+                  ) || "None"
+                }`
               )).join(", ")}
             </span>
           </div>
@@ -371,7 +414,9 @@ export default function Slot(props: SlotProps) {
           </div>
           <div>
             <span className="font-medium">Transport Scene:</span>{" "}
-            <span className="tabular-nums">{enumLabel(Scene, slot.entranceIndexTransport)}</span>
+            <span className="tabular-nums">
+              {enumLabel(Scene, slot.entranceIndexTransport)}
+            </span>
           </div>
           <div>
             <span className="font-medium">Map #:</span>{" "}
@@ -399,10 +444,15 @@ export default function Slot(props: SlotProps) {
         <div className="grid grid-cols-1 gap-4">
           <div>
             <details>
-              <summary className="font-medium cursor-pointer">Event Flags</summary>
+              <summary className="font-medium cursor-pointer">
+                Event Flags
+              </summary>
               <div className="grid grid-cols-2 gap-2 mt-2">
                 {eventFlags.map((flag) => (
-                  <label className="inline-flex items-center gap-2" key={flag.name}>
+                  <label
+                    className="inline-flex items-center gap-2"
+                    key={flag.name}
+                  >
                     <BooleanCheckbox value={flag.value} />
                     <span>{formatFlagName(flag.name)}</span>
                   </label>
@@ -412,10 +462,15 @@ export default function Slot(props: SlotProps) {
           </div>
           <div>
             <details>
-              <summary className="font-medium cursor-pointer">Item Flags</summary>
+              <summary className="font-medium cursor-pointer">
+                Item Flags
+              </summary>
               <div className="grid grid-cols-2 gap-2 mt-2">
                 {itemFlags.map((flag) => (
-                  <label className="inline-flex items-center gap-2" key={flag.name}>
+                  <label
+                    className="inline-flex items-center gap-2"
+                    key={flag.name}
+                  >
                     <BooleanCheckbox value={flag.value} />
                     <span>{formatFlagName(flag.name)}</span>
                   </label>
@@ -425,10 +480,15 @@ export default function Slot(props: SlotProps) {
           </div>
           <div>
             <details>
-              <summary className="font-medium cursor-pointer">Other Flags</summary>
+              <summary className="font-medium cursor-pointer">
+                Other Flags
+              </summary>
               <div className="grid grid-cols-2 gap-2 mt-2">
                 {otherFlags.map((flag) => (
-                  <label className="inline-flex items-center gap-2" key={flag.name}>
+                  <label
+                    className="inline-flex items-center gap-2"
+                    key={flag.name}
+                  >
                     <BooleanCheckbox value={flag.value} />
                     <span>{formatFlagName(flag.name)}</span>
                   </label>
