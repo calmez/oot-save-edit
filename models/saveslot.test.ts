@@ -28,7 +28,7 @@ import {
 import { assertEquals, assertNotEquals, assertThrows } from "@std/assert";
 import { ItemFlags } from "./itemflags.ts";
 import { OtherFlags } from "./otherflags.ts";
-import { toNumber, toUint8Array } from "../utils/conversions.ts";
+import { toUint8Array } from "../utils/conversions.ts";
 import { OotText } from "../utils/text.ts";
 import { Entrance, Room, RoomWithEntranceFor, Scene } from "./scene.ts";
 
@@ -1037,36 +1037,36 @@ Deno.test({
 });
 
 Deno.test({
-	name: "should set entrance index transport",
-	fn() {
-		const testData = new Uint8Array(SaveSlot.requiredSize);
-		const expectedEntrance = Scene.ChamberOfSages_Default_Adult_Day;
-		const instance = new SaveSlot(testData);
-		instance.entranceIndexTransport = expectedEntrance;
-		assertEquals(instance.entranceIndexTransport, expectedEntrance);
-	},
+  name: "should set entrance index transport",
+  fn() {
+    const testData = new Uint8Array(SaveSlot.requiredSize);
+    const expectedEntrance = Scene.ChamberOfSages_Default_Adult_Day;
+    const instance = new SaveSlot(testData);
+    instance.entranceIndexTransport = expectedEntrance;
+    assertEquals(instance.entranceIndexTransport, expectedEntrance);
+  },
 });
 
 Deno.test({
-	name: "should get map number",
-	fn() {
-		const testData = new Uint8Array(SaveSlot.requiredSize);
-		const expectedMapNumber = 5;
-		testData.set(toUint8Array(expectedMapNumber, 1), 0x0E7F);
-		const instance = new SaveSlot(testData);
-		assertEquals(instance.mapNumber, expectedMapNumber);
-	},
+  name: "should get map number",
+  fn() {
+    const testData = new Uint8Array(SaveSlot.requiredSize);
+    const expectedMapNumber = 5;
+    testData.set(toUint8Array(expectedMapNumber, 1), 0x0E7F);
+    const instance = new SaveSlot(testData);
+    assertEquals(instance.mapNumber, expectedMapNumber);
+  },
 });
 
 Deno.test({
-	name: "should set map number",
-	fn() {
-		const testData = new Uint8Array(SaveSlot.requiredSize);
-		const expectedMapNumber = 5;
-		const instance = new SaveSlot(testData);
-		instance.mapNumber = expectedMapNumber;
-		assertEquals(instance.mapNumber, expectedMapNumber);
-	},
+  name: "should set map number",
+  fn() {
+    const testData = new Uint8Array(SaveSlot.requiredSize);
+    const expectedMapNumber = 5;
+    const instance = new SaveSlot(testData);
+    instance.mapNumber = expectedMapNumber;
+    assertEquals(instance.mapNumber, expectedMapNumber);
+  },
 });
 
 Deno.test({
@@ -1112,25 +1112,25 @@ Deno.test({
 // TODO map number
 
 Deno.test({
-	name: "should get if the warp point is set",
-	fn() {
-		const testData = new Uint8Array(SaveSlot.requiredSize);
-		const expectedIsSet = true;
-		testData.set(toUint8Array(expectedIsSet, 1), 0x0E83);
-		const instance = new SaveSlot(testData);
-		assertEquals(instance.warpPointSet, expectedIsSet);
-	},
+  name: "should get if the warp point is set",
+  fn() {
+    const testData = new Uint8Array(SaveSlot.requiredSize);
+    const expectedIsSet = true;
+    testData.set(toUint8Array(expectedIsSet, 1), 0x0E83);
+    const instance = new SaveSlot(testData);
+    assertEquals(instance.warpPointSet, expectedIsSet);
+  },
 });
 
 Deno.test({
-	name: "should set if the warp point is set",
-	fn() {
-		const testData = new Uint8Array(SaveSlot.requiredSize);
-		const expectedIsSet = true;
-		const instance = new SaveSlot(testData);
-		instance.warpPointSet = expectedIsSet;
-		assertEquals(instance.warpPointSet, expectedIsSet);
-	},
+  name: "should set if the warp point is set",
+  fn() {
+    const testData = new Uint8Array(SaveSlot.requiredSize);
+    const expectedIsSet = true;
+    const instance = new SaveSlot(testData);
+    instance.warpPointSet = expectedIsSet;
+    assertEquals(instance.warpPointSet, expectedIsSet);
+  },
 });
 
 Deno.test({
