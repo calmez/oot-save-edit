@@ -1,3 +1,4 @@
+import type { ComponentChildren } from "preact";
 import { useState } from "preact/hooks";
 import {
   Age,
@@ -31,7 +32,56 @@ interface SlotProps {
 }
 
 function BooleanCheckbox(props: { value: boolean }) {
-  return <input type="checkbox" checked={props.value} disabled />;
+  return (
+    <input
+      type="checkbox"
+      checked={props.value}
+      disabled
+      className="h-4 w-4 accent-blue-600"
+    />
+  );
+}
+
+interface FieldProps {
+  label: string;
+  children: ComponentChildren;
+  className?: string;
+}
+
+function Field(props: FieldProps) {
+  return (
+    <div
+      className={`rounded-lg border border-slate-200 bg-white/80 p-3 ${
+        props.className ?? ""
+      }`}
+    >
+      <span className="block text-xs font-semibold uppercase tracking-wide text-slate-500">
+        {props.label}
+      </span>
+      <div className="mt-1 tabular-nums break-words text-slate-900">
+        {props.children}
+      </div>
+    </div>
+  );
+}
+
+interface SectionProps {
+  title: string;
+  children: ComponentChildren;
+  cols?: string;
+}
+
+function Section(props: SectionProps) {
+  return (
+    <section className="space-y-2">
+      <h4 className="text-sm font-semibold tracking-wide text-slate-700">
+        {props.title}
+      </h4>
+      <div className={props.cols ?? "grid grid-cols-1 gap-3 md:grid-cols-3"}>
+        {props.children}
+      </div>
+    </section>
+  );
 }
 
 function enumLabel<T extends number>(
@@ -162,140 +212,92 @@ export default function Slot(props: SlotProps) {
 
   return (
     <div
-      key={index}
-      className={`border rounded p-4 ${
-        expanded ? "bg-blue-300/90 shadow-lg h-max" : "bg-gray-50 h-min"
+      className={`rounded-xl border p-4 shadow-sm transition-all md:p-5 ${
+        expanded
+          ? "border-blue-300 bg-blue-50/70 shadow-md"
+          : "border-slate-200 bg-slate-50/80"
       }`}
     >
-      <h3
-        className="text-xl font-semibold mb-2 hover:cursor-pointer"
+      <button
+        type="button"
+        className="w-full text-left"
         onClick={() => {
           setExpanded(!expanded);
         }}
       >
-        File {index + 1}
-      </h3>
-      <div className="grid grid-cols-3 gap-4">
-        <div>
-          <span className="font-medium">Player Name:</span>{" "}
-          <span className="tabular-nums">{slot.playerName}</span>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h3 className="text-lg font-semibold text-slate-900 md:text-xl">
+            File {index + 1}
+          </h3>
+          <span className="text-sm font-medium text-blue-700">
+            {expanded ? "Hide details" : "Show details"}
+          </span>
         </div>
-        <div>
-          <span className="font-medium">Deaths:</span>{" "}
-          <span className="tabular-nums">{slot.deathCounter}</span>
-        </div>
-        <div>
-          <span className="font-medium">Age:</span>{" "}
-          <span className="tabular-nums">{Age[slot.age]}</span>
-        </div>
+      </button>
+
+      <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-3">
+        <Field label="Player Name">{slot.playerName}</Field>
+        <Field label="Deaths">{slot.deathCounter}</Field>
+        <Field label="Age">{Age[slot.age]}</Field>
       </div>
+
       {expanded && (
-        <div className="grid grid-cols-3 gap-4">
-          <div>
-            <span className="font-medium">Entrance Index:</span>{" "}
-            <span className="tabular-nums">{slot.entranceIndex}</span>
-          </div>
-          <div>
-            <span className="font-medium">Cutscene:</span>{" "}
-            <span className="tabular-nums">{slot.cutSceneNumber}</span>
-          </div>
-          <div>
-            <span className="font-medium">World Time:</span>{" "}
-            <span className="tabular-nums">{slot.worldTime}</span>
-          </div>
-        </div>
-      )}
-      {expanded && (
-        <div className="grid grid-cols-3 gap-4">
-          <div>
-            <span className="font-medium">Day/Night:</span>{" "}
-            <span className="tabular-nums">
-              {enumLabel(Time, slot.nightFlag)}
-            </span>
-          </div>
-          <div>
-            <span className="font-medium">DD Only:</span>{" "}
-            <BooleanCheckbox value={slot.ddOnly} />
-          </div>
-          <div>
-            <span className="font-medium">Navi Timer:</span>{" "}
-            <span className="tabular-nums">{slot.naviTimer}</span>
-          </div>
-        </div>
-      )}
-      {expanded && (
-        <div className="grid grid-cols-3 gap-4">
-          <div>
-            <span className="font-medium">Health:</span>{" "}
-            <span className="tabular-nums">
+        <div className="mt-4 space-y-4">
+          <Section title="World State">
+            <Field label="Entrance Index">{slot.entranceIndex}</Field>
+            <Field label="Cutscene">{slot.cutSceneNumber}</Field>
+            <Field label="World Time">{slot.worldTime}</Field>
+            <Field label="Day/Night">{enumLabel(Time, slot.nightFlag)}</Field>
+            <Field label="DD Only">
+              <BooleanCheckbox value={slot.ddOnly} />
+            </Field>
+            <Field label="Navi Timer">{slot.naviTimer}</Field>
+          </Section>
+
+          <Section title="Vitals & Currency">
+            <Field label="Health">
               {slot.currentHealth / 16} / {slot.maxHealth / 16}{" "}
               ({slot.doubleDefenseHearts / 16})
-            </span>
-          </div>
-          <div>
-            <span className="font-medium">Magic Meter:</span>{" "}
-            <span className="tabular-nums">
-              {enumLabel(MagicAmount, slot.currentMagic)} / {slot.maxMagic}
-            </span>
-            <span>{slot.magicFlag1 ? "Flag 1" : ""}</span>
-            <span>{slot.magicFlag2 ? "Flag 2" : ""}</span>
-          </div>
-          <div>
-            <span className="font-medium">Rupees:</span>{" "}
-            <span className="tabular-nums">{slot.rupees}</span>
-          </div>
-        </div>
-      )}
-      {expanded && (
-        <div className="grid grid-cols-3 gap-4">
-          <div>
-            <span className="font-medium">Biggoron Flag 1:</span>{" "}
-            <BooleanCheckbox value={slot.biggoronsSwordFlag1} />
-          </div>
-          <div>
-            <span className="font-medium">Biggoron Flag 2:</span>{" "}
-            <BooleanCheckbox value={slot.biggoronsSwordFlag2} />
-          </div>
-          <div>
-            <span className="font-medium">Saved Scene:</span>{" "}
-            <span className="tabular-nums">
+            </Field>
+            <Field label="Magic Meter">
+              <span>
+                {enumLabel(MagicAmount, slot.currentMagic)} / {slot.maxMagic}
+              </span>
+              <span className="ml-2 text-xs text-slate-600">
+                {slot.magicFlag1 ? "Flag 1 " : ""}
+                {slot.magicFlag2 ? "Flag 2" : ""}
+              </span>
+            </Field>
+            <Field label="Rupees">{slot.rupees}</Field>
+          </Section>
+
+          <Section title="Location & Progress">
+            <Field label="Biggoron Flag 1">
+              <BooleanCheckbox value={slot.biggoronsSwordFlag1} />
+            </Field>
+            <Field label="Biggoron Flag 2">
+              <BooleanCheckbox value={slot.biggoronsSwordFlag2} />
+            </Field>
+            <Field label="Saved Scene">
               {enumLabel(Scene, slot.savedSceneIndex)}
-            </span>
-          </div>
-        </div>
-      )}
-      {expanded && (
-        <div className="grid grid-cols-3 gap-4">
-          <div>
-            <span className="font-medium">Location:</span>{" "}
-            <span className="tabular-nums">
+            </Field>
+            <Field label="Location">
               {Room[slot.room]} ({Entrance[slot.entrance]})
-            </span>
-          </div>
-          <div>
-            <span className="font-medium">Magic Beans:</span>{" "}
-            <span className="tabular-nums">{slot.magicBeans}</span>
-          </div>
-          <div>
-            <span className="font-medium">Gold Skulltula Tokens:</span>{" "}
-            <span className="tabular-nums">{slot.goldSkulltulaTokens}</span>
-          </div>
-        </div>
-      )}
-      {expanded && (
-        <div className="grid grid-cols-3 gap-4">
-          <div>
-            <span className="font-medium">Button Equips:</span>{" "}
-            <span className="tabular-nums">
+            </Field>
+            <Field label="Magic Beans">{slot.magicBeans}</Field>
+            <Field label="Gold Skulltula Tokens">
+              {slot.goldSkulltulaTokens}
+            </Field>
+          </Section>
+
+          <Section title="Equipment & Buttons" cols="grid grid-cols-1 gap-3">
+            <Field label="Button Equips">
               B: {inventoryItemLabel(slot.bButtonEquip)}, C←:{" "}
               {inventoryItemLabel(slot.cLeftButtonEquip)}, C↓:{" "}
               {inventoryItemLabel(slot.cDownButtonEquip)}, C→:{" "}
               {inventoryItemLabel(slot.cRightButtonEquip)}
-            </span>
-          </div>
-          <div>
-            <span className="font-medium">Equip Offsets:</span>{" "}
-            <span className="tabular-nums">
+            </Field>
+            <Field label="Equip Offsets">
               C←: {slot.currentButtonEquips.cLeftOffset === 0xFF
                 ? "Unset"
                 : slot.currentButtonEquips.cLeftOffset}, C↓:{" "}
@@ -305,79 +307,50 @@ export default function Slot(props: SlotProps) {
               {slot.currentButtonEquips.cRightOffset === 0xFF
                 ? "Unset"
                 : slot.currentButtonEquips.cRightOffset}
-            </span>
-          </div>
-          <div>
-            <span className="font-medium">Equipped:</span>{" "}
-            <span className="tabular-nums">
-              <span>
-                Sword: {equipmentLabel(slot.currentlyEquippedEquipment.sword)},
-              </span>
-              <span>
-                Shield:{" "}
-                {equipmentLabel(slot.currentlyEquippedEquipment.shield)},
-              </span>
-              <span>
-                Tunic: {equipmentLabel(slot.currentlyEquippedEquipment.tunic)},
-              </span>
-              <span>
-                Boots: {equipmentLabel(slot.currentlyEquippedEquipment.boots)}
-              </span>
-            </span>
-          </div>
-        </div>
-      )}
-      {expanded && (
-        <div className="grid grid-cols-1 gap-4">
-          <div>
-            <span className="font-medium">Inventory:</span>{" "}
-            <span className="tabular-nums">
+            </Field>
+            <Field label="Currently Equipped">
+              Sword:{" "}
+              {equipmentLabel(slot.currentlyEquippedEquipment.sword)}, Shield:
+              {" "}
+              {equipmentLabel(slot.currentlyEquippedEquipment.shield)}, Tunic:
+              {" "}
+              {equipmentLabel(slot.currentlyEquippedEquipment.tunic)}, Boots:
+              {" "}
+              {equipmentLabel(slot.currentlyEquippedEquipment.boots)}
+            </Field>
+          </Section>
+
+          <Section title="Inventory" cols="grid grid-cols-1 gap-3">
+            <Field label="Inventory">
               {slot.inventory.map((item) => inventoryItemLabel(item)).join(
                 ", ",
               )}
-            </span>
-          </div>
-          <div>
-            <span className="font-medium">Inventory Amounts:</span>{" "}
-            <span className="tabular-nums">
+            </Field>
+            <Field label="Inventory Amounts">
               {slot.inventoryAmounts.join(", ")}
-            </span>
-          </div>
-        </div>
-      )}
-      {expanded && (
-        <div className="grid grid-cols-1 gap-4">
-          <div>
-            <span className="font-medium">Obtained Equipment:</span>{" "}
-            <span className="tabular-nums">
+            </Field>
+          </Section>
+
+          <Section title="Collected & Upgrades" cols="grid grid-cols-1 gap-3">
+            <Field label="Obtained Equipment">
               {slot.obtainedEquipment.map((item) => equipmentLabel(item)).join(
                 ", ",
               )}
-            </span>
-          </div>
-          <div>
-            <span className="font-medium">Obtained Upgrades:</span>{" "}
-            <span className="tabular-nums">
+            </Field>
+            <Field label="Obtained Upgrades">
               {slot.obtainedUpgrades.map((item) => upgradeLabel(item)).join(
                 ", ",
               )}
-            </span>
-          </div>
-          <div>
-            <span className="font-medium">Quest Items:</span>{" "}
-            <span className="tabular-nums">
+            </Field>
+            <Field label="Quest Items">
               {slot.questStatusItems.map((item) => questItemLabel(item)).join(
                 ", ",
               )}
-            </span>
-          </div>
-        </div>
-      )}
-      {expanded && (
-        <div className="grid grid-cols-1 gap-4">
-          <div>
-            <span className="font-medium">Dungeon Items:</span>{" "}
-            <span className="tabular-nums">
+            </Field>
+          </Section>
+
+          <Section title="Dungeon Status" cols="grid grid-cols-1 gap-3">
+            <Field label="Dungeon Items">
               {slot.dungeonItems.map((items, dungeonIndex) => (
                 `D${dungeonIndex + 1}: ${
                   items.map((item) => enumLabel(DungeonItems, item)).join(
@@ -385,117 +358,95 @@ export default function Slot(props: SlotProps) {
                   ) || "None"
                 }`
               )).join(", ")}
-            </span>
-          </div>
-          <div>
-            <span className="font-medium">Small Keys:</span>{" "}
-            <span className="tabular-nums">
+            </Field>
+            <Field label="Small Keys">
               {slot.smallKeyAmount.map((value, dungeonIndex) => (
                 `D${dungeonIndex + 1}: ${value === 0xFF ? "None" : value}`
               )).join(", ")}
-            </span>
-          </div>
-        </div>
-      )}
-      {expanded && (
-        <div className="grid grid-cols-3 gap-4">
-          <div>
-            <span className="font-medium">Big Poe Points:</span>{" "}
-            <span className="tabular-nums">
-              {slot.bigPoePoints}
-            </span>
-          </div>
-          <div>
-            <span className="font-medium">Farores Wind Warp:</span>{" "}
-            <span className="tabular-nums">
+            </Field>
+          </Section>
+
+          <Section
+            title="Advanced"
+            cols="grid grid-cols-1 gap-3 md:grid-cols-2"
+          >
+            <Field label="Big Poe Points">{slot.bigPoePoints}</Field>
+            <Field label="Farores Wind Warp">
               {slot.faroresWindWarp.x}, {slot.faroresWindWarp.y},{" "}
               {slot.faroresWindWarp.z}, {slot.faroresWindWarp.yRotation}
-            </span>
-          </div>
-          <div>
-            <span className="font-medium">Transport Scene:</span>{" "}
-            <span className="tabular-nums">
+            </Field>
+            <Field label="Transport Scene">
               {enumLabel(Scene, slot.entranceIndexTransport)}
-            </span>
-          </div>
-          <div>
-            <span className="font-medium">Map #:</span>{" "}
-            <span className="tabular-nums">{slot.mapNumber}</span>
-          </div>
-          <div>
-            <span className="font-medium">Warp Point Set:</span>{" "}
-            <BooleanCheckbox value={slot.warpPointSet} />
-          </div>
-          <div>
-            <span className="font-medium">Checksum:</span>{" "}
-            <span className="tabular-nums">{slot.checksum}</span>
-          </div>
-          <div>
-            <span className="font-medium">File Index:</span>{" "}
-            <span className="tabular-nums">{slot.fileIndex}</span>
-          </div>
-          <div>
-            <span className="font-medium">Valid:</span>{" "}
-            <BooleanCheckbox value={slot.isValid} />
-          </div>
-        </div>
-      )}
-      {expanded && (
-        <div className="grid grid-cols-1 gap-4">
-          <div>
-            <details>
-              <summary className="font-medium cursor-pointer">
-                Event Flags
-              </summary>
-              <div className="grid grid-cols-2 gap-2 mt-2">
-                {eventFlags.map((flag) => (
-                  <label
-                    className="inline-flex items-center gap-2"
-                    key={flag.name}
-                  >
-                    <BooleanCheckbox value={flag.value} />
-                    <span>{formatFlagName(flag.name)}</span>
-                  </label>
-                ))}
-              </div>
-            </details>
-          </div>
-          <div>
-            <details>
-              <summary className="font-medium cursor-pointer">
-                Item Flags
-              </summary>
-              <div className="grid grid-cols-2 gap-2 mt-2">
-                {itemFlags.map((flag) => (
-                  <label
-                    className="inline-flex items-center gap-2"
-                    key={flag.name}
-                  >
-                    <BooleanCheckbox value={flag.value} />
-                    <span>{formatFlagName(flag.name)}</span>
-                  </label>
-                ))}
-              </div>
-            </details>
-          </div>
-          <div>
-            <details>
-              <summary className="font-medium cursor-pointer">
-                Other Flags
-              </summary>
-              <div className="grid grid-cols-2 gap-2 mt-2">
-                {otherFlags.map((flag) => (
-                  <label
-                    className="inline-flex items-center gap-2"
-                    key={flag.name}
-                  >
-                    <BooleanCheckbox value={flag.value} />
-                    <span>{formatFlagName(flag.name)}</span>
-                  </label>
-                ))}
-              </div>
-            </details>
-          </div>
+            </Field>
+            <Field label="Map #">{slot.mapNumber}</Field>
+            <Field label="Warp Point Set">
+              <BooleanCheckbox value={slot.warpPointSet} />
+            </Field>
+            <Field label="Checksum">{slot.checksum}</Field>
+            <Field label="File Index">{slot.fileIndex}</Field>
+            <Field label="Valid">
+              <BooleanCheckbox value={slot.isValid} />
+            </Field>
+          </Section>
+
+          <Section title="Flags" cols="grid grid-cols-1 gap-3">
+            <div className="rounded-lg border border-slate-200 bg-white/80 p-3">
+              <details>
+                <summary className="cursor-pointer text-sm font-semibold text-slate-700">
+                  Event Flags
+                </summary>
+                <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-3">
+                  {eventFlags.map((flag) => (
+                    <label
+                      className="inline-flex items-center gap-2 text-sm"
+                      key={flag.name}
+                    >
+                      <BooleanCheckbox value={flag.value} />
+                      <span>{formatFlagName(flag.name)}</span>
+                    </label>
+                  ))}
+                </div>
+              </details>
+            </div>
+
+            <div className="rounded-lg border border-slate-200 bg-white/80 p-3">
+              <details>
+                <summary className="cursor-pointer text-sm font-semibold text-slate-700">
+                  Item Flags
+                </summary>
+                <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-3">
+                  {itemFlags.map((flag) => (
+                    <label
+                      className="inline-flex items-center gap-2 text-sm"
+                      key={flag.name}
+                    >
+                      <BooleanCheckbox value={flag.value} />
+                      <span>{formatFlagName(flag.name)}</span>
+                    </label>
+                  ))}
+                </div>
+              </details>
+            </div>
+
+            <div className="rounded-lg border border-slate-200 bg-white/80 p-3">
+              <details>
+                <summary className="cursor-pointer text-sm font-semibold text-slate-700">
+                  Other Flags
+                </summary>
+                <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-3">
+                  {otherFlags.map((flag) => (
+                    <label
+                      className="inline-flex items-center gap-2 text-sm"
+                      key={flag.name}
+                    >
+                      <BooleanCheckbox value={flag.value} />
+                      <span>{formatFlagName(flag.name)}</span>
+                    </label>
+                  ))}
+                </div>
+              </details>
+            </div>
+          </Section>
         </div>
       )}
     </div>

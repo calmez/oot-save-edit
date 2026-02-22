@@ -1,3 +1,4 @@
+import type { ComponentChildren } from "preact";
 import {
   LanguageOption,
   SoundOption,
@@ -14,18 +15,68 @@ interface SaveProps {
 }
 
 function BooleanCheckbox(props: { value: boolean }) {
-  return <input type="checkbox" checked={props.value} disabled />;
+  return (
+    <input
+      type="checkbox"
+      checked={props.value}
+      disabled
+      className="h-4 w-4 accent-blue-600"
+    />
+  );
+}
+
+interface FieldProps {
+  label: string;
+  children: ComponentChildren;
+  className?: string;
+}
+
+function Field(props: FieldProps) {
+  return (
+    <div
+      className={`rounded-lg border border-slate-200 bg-white/80 p-3 ${
+        props.className ?? ""
+      }`}
+    >
+      <span className="block text-xs font-semibold uppercase tracking-wide text-slate-500">
+        {props.label}
+      </span>
+      <div className="mt-1 tabular-nums break-words text-slate-900">
+        {props.children}
+      </div>
+    </div>
+  );
+}
+
+interface SectionProps {
+  title: string;
+  children: ComponentChildren;
+  cols?: string;
+}
+
+function Section(props: SectionProps) {
+  return (
+    <section className="space-y-2">
+      <h3 className="text-sm font-semibold tracking-wide text-slate-700">
+        {props.title}
+      </h3>
+      <div className={props.cols ?? "grid grid-cols-1 gap-3 md:grid-cols-3"}>
+        {props.children}
+      </div>
+    </section>
+  );
 }
 
 export default function Save(props: SaveProps) {
   const saveFile = FileUtil.loadFileFromBuffer(props.save);
+  const detectedFormat = FileUtil.detectFileFormatByBufferSize(props.save);
 
   return (
-    <div class="max-w-screen-md mx-auto flex flex-col items-center justify-center">
-      <div className="w-full bg-white rounded shadow p-6 mb-6">
-        <div className="grid grid-cols-2 space-y-6">
-          <h2 className="text-2xl font-bold mb-4">
-            Save File Details - {props.filename}
+    <div class="mx-auto flex max-w-screen-lg flex-col items-center justify-center px-4">
+      <div className="mb-6 w-full rounded-xl border border-slate-200 bg-slate-50/80 p-4 shadow-sm md:p-6">
+        <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+          <h2 className="text-2xl font-bold text-slate-900">
+            Save File Details
           </h2>
           <DownloadButton
             saveData={saveFile.getDataForWrite()}
@@ -34,81 +85,43 @@ export default function Save(props: SaveProps) {
           />
         </div>
 
-        <div className="space-y-6">
-          <div className="border rounded p-4 bg-gray-50">
-            <h3 className="text-xl font-semibold mb-2">File Info</h3>
-            <div className="grid grid-cols-3 gap-4">
-              <div>
-                <span className="font-medium">Filename:</span>
-                <span>{props.filename}</span>
-              </div>
-              <div>
-                <span className="font-medium">Word swapped:</span>
-                <BooleanCheckbox value={saveFile.isByteSwapped} />
-              </div>
-              <div>
-                <span className="font-medium">File format:</span>
-                <span>
-                  {FileFormat[
-                    FileUtil.detectFileFormatByBufferSize(props.save)
-                  ]}
-                </span>
-              </div>
-              <div>
-                <span className="font-medium">Data size:</span>
-                <span>{saveFile.data.byteLength}</span>
-              </div>
-              <div>
-                <span className="font-medium">Header valid:</span>
-                <BooleanCheckbox value={saveFile.header.isValid} />
-              </div>
-            </div>
-          </div>
+        <div className="space-y-4">
+          <Section title="File Info">
+            <Field label="Filename">{props.filename}</Field>
+            <Field label="Word Swapped">
+              <BooleanCheckbox value={saveFile.isByteSwapped} />
+            </Field>
+            <Field label="File Format">{FileFormat[detectedFormat]}</Field>
+            <Field label="Data Size">{saveFile.data.byteLength}</Field>
+            <Field label="Header Valid">
+              <BooleanCheckbox value={saveFile.header.isValid} />
+            </Field>
+          </Section>
 
-          <div className="border rounded p-4 bg-gray-50">
-            <h3 className="text-xl font-semibold mb-2">Save Options</h3>
-            <div className="grid grid-cols-3 gap-4">
-              <div>
-                <span className="font-medium">Output filename:</span>
-                <span>{props.filename}</span>
-              </div>
-              <div>
-                <span className="font-medium">Swap words:</span>
-                <BooleanCheckbox value={saveFile.isByteSwapped} />
-              </div>
-              <div>
-                <span className="font-medium">File format:</span>
-                <span>
-                  {FileFormat[
-                    FileUtil.detectFileFormatByBufferSize(props.save)
-                  ]}
-                </span>
-              </div>
-            </div>
-          </div>
+          <Section title="Save Options">
+            <Field label="Output Filename">{props.filename}</Field>
+            <Field label="Swap Words">
+              <BooleanCheckbox value={saveFile.isByteSwapped} />
+            </Field>
+            <Field label="File Format">{FileFormat[detectedFormat]}</Field>
+          </Section>
 
-          <div className="border rounded p-4 bg-gray-50">
-            <h3 className="text-xl font-semibold mb-2">General Info</h3>
-            <div className="grid grid-cols-3 gap-4">
-              <div>
-                <span className="font-medium">Language:</span>
-                <span>{LanguageOption[saveFile.header.languageOption]}</span>
-              </div>
-              <div>
-                <span className="font-medium">Z-Target:</span>
-                <span>{ZTargetOption[saveFile.header.zTargetOption]}</span>
-              </div>
-              <div>
-                <span className="font-medium">Sound:</span>
-                <span>{SoundOption[saveFile.header.soundOption]}</span>
-              </div>
-            </div>
-          </div>
+          <Section title="General Info">
+            <Field label="Language">
+              {LanguageOption[saveFile.header.languageOption]}
+            </Field>
+            <Field label="Z-Target">
+              {ZTargetOption[saveFile.header.zTargetOption]}
+            </Field>
+            <Field label="Sound">
+              {SoundOption[saveFile.header.soundOption]}
+            </Field>
+          </Section>
         </div>
 
-        <div className="divider my-6" />
+        <div className="my-6 border-t border-slate-200" />
 
-        <div className="space-y-6">
+        <div className="space-y-4">
           {saveFile.slots.map((slot: SaveSlot, idx: number) => (
             <Slot
               key={`save-slot-${idx}`}
@@ -118,13 +131,13 @@ export default function Save(props: SaveProps) {
           ))}
         </div>
 
-        <div className="divider my-6" />
+        <div className="my-6 border-t border-slate-200" />
 
-        <details className="space-y-6">
-          <summary className="text-xl font-semibold mb-2 cursor-pointer">
+        <details className="space-y-4">
+          <summary className="cursor-pointer text-lg font-semibold text-slate-900">
             Backup Slots
           </summary>
-          <div className="space-y-6 mt-4">
+          <div className="mt-4 space-y-4">
             {saveFile.backups.map((slot: SaveSlot, idx: number) => (
               <Slot
                 key={`backup-slot-${idx}`}
