@@ -4,6 +4,7 @@ export * from "./models/saveslot.ts";
 export * from "./models/scene.ts";
 export * from "./models/eventflags.ts";
 export * from "./models/itemflags.ts";
+export * from "./models/otherflags.ts";
 
 export * from "./utils/conversions.ts";
 export * from "./utils/fileutil.ts";

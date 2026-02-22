@@ -27,6 +27,7 @@ import {
 } from "./saveslot.ts";
 import { assertEquals, assertNotEquals, assertThrows } from "@std/assert";
 import { ItemFlags } from "./itemflags.ts";
+import { OtherFlags } from "./otherflags.ts";
 import { toNumber, toUint8Array } from "../utils/conversions.ts";
 import { OotText } from "../utils/text.ts";
 import { Entrance, Room, RoomWithEntranceFor, Scene } from "./scene.ts";
@@ -1186,6 +1187,41 @@ Deno.test({
     assertEquals(instance.itemFlags.obtainedBunnyHood, true);
     assertEquals(instance.itemFlags.soldSkullMaskUnlockedSpookyMask, true);
     assertEquals(instance.itemFlags.obtainedPoachersSawFromFado, true);
+  },
+});
+
+Deno.test({
+  name: "should get other flags",
+  fn() {
+    const testData = new Uint8Array(SaveSlot.requiredSize);
+    const expectedOtherFlags = new OtherFlags();
+    expectedOtherFlags.metMido = true;
+    expectedOtherFlags.spokeToKokiriGirlByJumpingStones = true;
+    expectedOtherFlags.swordlessMasterSwordKnockedAway = true;
+    testData.set(expectedOtherFlags.data, 0x0EF8);
+    const instance = new SaveSlot(testData);
+
+    const actualOtherFlags = instance.otherFlags;
+    assertEquals(actualOtherFlags.metMido, true);
+    assertEquals(actualOtherFlags.spokeToKokiriGirlByJumpingStones, true);
+    assertEquals(actualOtherFlags.swordlessMasterSwordKnockedAway, true);
+  },
+});
+
+Deno.test({
+  name: "should set other flags",
+  fn() {
+    const testData = new Uint8Array(SaveSlot.requiredSize);
+    const expectedOtherFlags = new OtherFlags();
+    expectedOtherFlags.metIngoAtRanch = true;
+    expectedOtherFlags.obtainedGerudoArcheryHeartPiece = true;
+    expectedOtherFlags.enteredShadowTemple = true;
+    const instance = new SaveSlot(testData);
+    instance.otherFlags = expectedOtherFlags;
+
+    assertEquals(instance.otherFlags.metIngoAtRanch, true);
+    assertEquals(instance.otherFlags.obtainedGerudoArcheryHeartPiece, true);
+    assertEquals(instance.otherFlags.enteredShadowTemple, true);
   },
 });
 
