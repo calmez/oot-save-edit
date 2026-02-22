@@ -240,7 +240,7 @@ export enum DungeonItems {
   DungeonMap = 0x04,
 }
 
-export enum Collecibles {
+export enum Collectibles {
   SmallMagicJar = 0x78,
   LargeMagicJar = 0x79,
   PieceofHeart = 0x7A,
