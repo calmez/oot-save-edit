@@ -59,19 +59,19 @@
     }
   },
   "imports": {
-    "@std/assert": "jsr:@std/assert@1",
-    "@std/path": "jsr:@std/path@1",
-    "@std/testing": "jsr:@std/testing@1",
+    "@std/assert": "jsr:@std/assert@^1.0.19",
+    "@std/path": "jsr:@std/path@^1.1.4",
+    "@std/testing": "jsr:@std/testing@^1.0.17",
     "@opentelemetry/api": "npm:@opentelemetry/api@^1.9.0",
 
-    "@webview/webview": "jsr:@webview/webview",
-    "react": "npm:react@18",
-    "ink": "npm:ink@5",
-    "react-devtools-core": "npm:react-devtools-core@5",
+    "@webview/webview": "jsr:@webview/webview@0.9.0",
+    "react": "npm:react@^19.2.4",
+    "ink": "npm:ink@^6.8.0",
+    "react-devtools-core": "npm:react-devtools-core@^7.0.1",
     "ink-big-text": "npm:ink-big-text@2",
-    "ink-gradient": "npm:ink-gradient@3",
-    "ink-form": "npm:ink-form@2",
-    "ink-select-input": "npm:ink-select-input@6",
+    "ink-gradient": "npm:ink-gradient@^4.0.0",
+    "ink-form": "npm:ink-form@^2.0.1",
+    "ink-select-input": "npm:ink-select-input@^6.2.0",
     "ink-text-input": "npm:ink-text-input@6"
   },
   "lint": {
