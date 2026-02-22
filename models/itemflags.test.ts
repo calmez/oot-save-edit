@@ -1,4 +1,4 @@
-import { assertEquals, assertThrows } from "jsr:@std/assert@1";
+import { assertEquals, assertThrows } from "@std/assert";
 import { ItemFlags } from "./itemflags.ts";
 
 interface FlagSpec {
