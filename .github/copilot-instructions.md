@@ -3,11 +3,16 @@
 - Use descriptive test names.
 - Write tests for all public methods and properties.
 - Do not add verbose comments.
-- Use enums and types from the project's models (e.g., [`models/saveslot.ts`](models/saveslot.ts), [`models/scene.ts`](models/scene.ts)).
-- Follow the Ocarina of Time save file format specification: https://wiki.cloudmodding.com/oot/Save_Format
+- Use enums and types from the project's models (e.g.,
+  [`models/saveslot.ts`](models/saveslot.ts),
+  [`models/scene.ts`](models/scene.ts)).
+- Follow the Ocarina of Time save file format specification:
+  https://wiki.cloudmodding.com/oot/Save_Format
 - For text encoding/decoding, use [`OotText`](utils/text.ts).
 - For file operations, use [`FileUtil`](utils/fileutil.ts).
-- UI code should use React/JSX and follow the structure in [`ui/web/components`](ui/web/components).
-- When displaying enum values, use their string representation (e.g., `Room[slot.room]`).
+- UI code should use React/JSX and follow the structure in
+  [`ui/web/components`](ui/web/components).
+- When displaying enum values, use their string representation (e.g.,
+  `Room[slot.room]`).
 - Use Tailwind CSS for styling in web UI components.
 - Do not use verbose comments in code.
