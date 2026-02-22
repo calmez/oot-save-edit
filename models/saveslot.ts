@@ -761,7 +761,7 @@ export class SaveSlot {
   }
 
   set obtainedEquipment(value: Array<EquippableItems>) {
-    const data = value.reduce((l, r) => l | r);
+    const data = value.reduce((l, r) => l | r, 0);
     this.bytes.set(toUint8Array(data, 2), 0x009C);
   }
 
@@ -783,7 +783,7 @@ export class SaveSlot {
   }
 
   set obtainedUpgrades(value: Array<ObtainableUpgrades>) {
-    const data = value.reduce((l, r) => l | r);
+    const data = value.reduce((l, r) => l | r, 0);
     this.bytes.set(toUint8Array(data, 4), 0x00A0);
   }
 
@@ -844,7 +844,7 @@ export class SaveSlot {
       );
     }
     this.bytes.set(
-      value.map((itemSet) => itemSet.reduce((l, r) => l | r)),
+      value.map((itemSet) => itemSet.reduce((l, r) => l | r, 0)),
       0x00A8,
     );
   }
