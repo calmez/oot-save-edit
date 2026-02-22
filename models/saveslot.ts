@@ -1146,6 +1146,10 @@ export class SaveSlot {
     return sum;
   }
 
+  isChecksumValid(): boolean {
+    return this.calculateChecksum() === this.checksum;
+  }
+
   updateChecksum() {
     const calculated = this.calculateChecksum();
     if (calculated !== this.checksum) {
@@ -1161,7 +1165,6 @@ export class SaveSlot {
   }
 
   get isValid(): boolean {
-    // TODO include checksum in here
-    return this.isPatternValid;
+    return this.isPatternValid && this.isChecksumValid();
   }
 }
