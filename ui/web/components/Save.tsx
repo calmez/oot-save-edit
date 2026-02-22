@@ -1,4 +1,3 @@
-import type { ComponentChildren } from "preact";
 import {
   LanguageOption,
   SoundOption,
@@ -8,6 +7,8 @@ import { SaveSlot } from "../../../models/saveslot.ts";
 import { FileFormat, FileUtil } from "../../../utils/fileutil.ts";
 import { DownloadButton } from "../islands/DownloadButton.tsx";
 import Slot from "../islands/Slot.tsx";
+import { Field } from "./Field.tsx";
+import { Section } from "./Section.tsx";
 
 interface SaveProps {
   filename: string;
@@ -22,48 +23,6 @@ function BooleanCheckbox(props: { value: boolean }) {
       disabled
       className="h-4 w-4 accent-blue-600"
     />
-  );
-}
-
-interface FieldProps {
-  label: string;
-  children: ComponentChildren;
-  className?: string;
-}
-
-function Field(props: FieldProps) {
-  return (
-    <div
-      className={`rounded-lg border border-slate-200 bg-white/80 p-3 ${
-        props.className ?? ""
-      }`}
-    >
-      <span className="block text-xs font-semibold uppercase tracking-wide text-slate-500">
-        {props.label}
-      </span>
-      <div className="mt-1 tabular-nums break-words text-slate-900">
-        {props.children}
-      </div>
-    </div>
-  );
-}
-
-interface SectionProps {
-  title: string;
-  children: ComponentChildren;
-  cols?: string;
-}
-
-function Section(props: SectionProps) {
-  return (
-    <section className="space-y-2">
-      <h3 className="text-sm font-semibold tracking-wide text-slate-700">
-        {props.title}
-      </h3>
-      <div className={props.cols ?? "grid grid-cols-1 gap-3 md:grid-cols-3"}>
-        {props.children}
-      </div>
-    </section>
   );
 }
 

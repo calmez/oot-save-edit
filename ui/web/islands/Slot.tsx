@@ -1,4 +1,3 @@
-import type { ComponentChildren } from "preact";
 import { useState } from "preact/hooks";
 import {
   Age,
@@ -25,6 +24,8 @@ import {
   Wallet,
 } from "../../../models/saveslot.ts";
 import { Entrance, Room, Scene, Time } from "../../../models/scene.ts";
+import { Field } from "../components/Field.tsx";
+import { Section } from "../components/Section.tsx";
 
 interface SlotProps {
   slotData: Uint8Array;
@@ -39,48 +40,6 @@ function BooleanCheckbox(props: { value: boolean }) {
       disabled
       className="h-4 w-4 accent-blue-600"
     />
-  );
-}
-
-interface FieldProps {
-  label: string;
-  children: ComponentChildren;
-  className?: string;
-}
-
-function Field(props: FieldProps) {
-  return (
-    <div
-      className={`rounded-lg border border-slate-200 bg-white/80 p-3 ${
-        props.className ?? ""
-      }`}
-    >
-      <span className="block text-xs font-semibold uppercase tracking-wide text-slate-500">
-        {props.label}
-      </span>
-      <div className="mt-1 tabular-nums break-words text-slate-900">
-        {props.children}
-      </div>
-    </div>
-  );
-}
-
-interface SectionProps {
-  title: string;
-  children: ComponentChildren;
-  cols?: string;
-}
-
-function Section(props: SectionProps) {
-  return (
-    <section className="space-y-2">
-      <h4 className="text-sm font-semibold tracking-wide text-slate-700">
-        {props.title}
-      </h4>
-      <div className={props.cols ?? "grid grid-cols-1 gap-3 md:grid-cols-3"}>
-        {props.children}
-      </div>
-    </section>
   );
 }
 
@@ -218,22 +177,19 @@ export default function Slot(props: SlotProps) {
           : "border-slate-200 bg-slate-50/80"
       }`}
     >
-      <button
-        type="button"
-        className="w-full text-left"
-        onClick={() => {
-          setExpanded(!expanded);
-        }}
-      >
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <h3 className="text-lg font-semibold text-slate-900 md:text-xl">
-            File {index + 1}
-          </h3>
-          <span className="text-sm font-medium text-blue-700">
-            {expanded ? "Hide details" : "Show details"}
-          </span>
-        </div>
-      </button>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h3 className="text-lg font-semibold text-slate-900 md:text-xl">
+          File {index + 1}
+        </h3>
+        <span
+          className="text-sm font-medium text-blue-700 cursor-pointer"
+          onClick={() => {
+            setExpanded(!expanded);
+          }}
+        >
+          {expanded ? "Hide details" : "Show details"}
+        </span>
+      </div>
 
       <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-3">
         <Field label="Player Name">{slot.playerName}</Field>
