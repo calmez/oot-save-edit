@@ -28,6 +28,7 @@ import {
 import { assertEquals, assertNotEquals, assertThrows } from "@std/assert";
 import { ItemFlags } from "./itemflags.ts";
 import { OtherFlags } from "./otherflags.ts";
+import { EventFlags } from "./eventflags.ts";
 import { toUint8Array } from "../utils/conversions.ts";
 import { OotText } from "../utils/text.ts";
 import { Entrance, Room, RoomWithEntranceFor, Scene } from "./scene.ts";
@@ -1152,6 +1153,41 @@ Deno.test({
     const instance = new SaveSlot(testData);
     instance.bigPoePoints = expectedPoints;
     assertEquals(instance.bigPoePoints, expectedPoints);
+  },
+});
+
+Deno.test({
+  name: "should get event flags",
+  fn() {
+    const testData = new Uint8Array(SaveSlot.requiredSize);
+    const expectedEventFlags = new EventFlags();
+    expectedEventFlags.metDekuTree = true;
+    expectedEventFlags.obtainedKokiriEmerald = true;
+    expectedEventFlags.learnedSongOfTime = true;
+    testData.set(expectedEventFlags.data, 0x0ED4);
+    const instance = new SaveSlot(testData);
+
+    const actualEventFlags = instance.eventFlags;
+    assertEquals(actualEventFlags.metDekuTree, true);
+    assertEquals(actualEventFlags.obtainedKokiriEmerald, true);
+    assertEquals(actualEventFlags.learnedSongOfTime, true);
+  },
+});
+
+Deno.test({
+  name: "should set event flags",
+  fn() {
+    const testData = new Uint8Array(SaveSlot.requiredSize);
+    const expectedEventFlags = new EventFlags();
+    expectedEventFlags.openedDoorOfTime = true;
+    expectedEventFlags.enteredTempleOfTime = true;
+    expectedEventFlags.enteredLakeHylia = true;
+    const instance = new SaveSlot(testData);
+    instance.eventFlags = expectedEventFlags;
+
+    assertEquals(instance.eventFlags.openedDoorOfTime, true);
+    assertEquals(instance.eventFlags.enteredTempleOfTime, true);
+    assertEquals(instance.eventFlags.enteredLakeHylia, true);
   },
 });
 
