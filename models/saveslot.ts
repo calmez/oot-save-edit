@@ -916,7 +916,7 @@ export class SaveSlot {
   private set permanentSceneFlags(value: Array<PermanentSceneFlags>) {
     if (value.length != (101)) {
       throw Error(
-        `permanent scene flags data needs to be ${101} bytes, got ${value.length}.`,
+        `permanent scene flags data needs to have ${101} scene entries (${101 * 0x1C} bytes), got ${value.length} entries.`,
       );
     }
 
