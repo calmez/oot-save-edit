@@ -805,7 +805,7 @@ export class SaveSlot {
   }
 
   set questStatusItems(value: Array<QuestItems>) {
-    const data = value.reduce((l, r) => l | r);
+    const data = value.reduce((l, r) => l | r, 0);
     this.bytes.set(toUint8Array(data, 4), 0x00A4);
   }
 
