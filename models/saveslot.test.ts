@@ -1271,6 +1271,22 @@ Deno.test({
 });
 
 Deno.test({
+  name: "should report whether checksum is valid",
+  fn() {
+    const testData = new Uint8Array(SaveSlot.requiredSize);
+    const instance = new SaveSlot(testData);
+
+    assertEquals(instance.isChecksumValid(), true);
+
+    instance.rupees = 42;
+    assertEquals(instance.isChecksumValid(), false);
+
+    instance.updateChecksum();
+    assertEquals(instance.isChecksumValid(), true);
+  },
+});
+
+Deno.test({
   name: "should report if slot is valid",
   fn() {
     const testData = new Uint8Array(SaveSlot.requiredSize);
@@ -1278,7 +1294,11 @@ Deno.test({
     const pattern = encoder.encode("ZELDAZ");
     testData.set(pattern, 0x001C);
     const instance = new SaveSlot(testData);
+    instance.updateChecksum();
     assertEquals(instance.isValid, true);
+
+    instance.rupees = 42;
+    assertEquals(instance.isValid, false);
   },
 });
 
