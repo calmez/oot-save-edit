@@ -1,4 +1,4 @@
-import { assertEquals } from "jsr:@std/assert@1";
+import { assertEquals } from "@std/assert";
 import { EventFlags } from "./eventflags.ts";
 
 // Helper: create EventFlags with specific bits set in a given word
