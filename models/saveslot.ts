@@ -91,36 +91,24 @@ export enum InventoryItems {
 }
 
 export enum Sword {
-  //Kokiri = 0x3B,
-  //Master = 0x3C,
-  //GiantKnife = 0x3D,
   KokiriSword = 0x0001,
   MasterSword = 0x0002,
   GiantKnife = 0x0004,
 }
 
 export enum Shield {
-  //Kokiri = 0x3E,
-  //Hylian = 0x3F,
-  //Mirror = 0x40,
   KokiriShield = 0x0010,
   HylianShield = 0x0020,
   MirrorShield = 0x0040,
 }
 
 export enum Tunic {
-  //Kokiri = 0x41,
-  //Goron = 0x42,
-  //Zora = 0x43,
   KokiriTunic = 0x0100,
   GoronTunic = 0x0200,
   ZoraTunic = 0x0400,
 }
 
 export enum Boots {
-  //Kokiri = 0x44,
-  //Iron = 0x45,
-  //Hover = 0x46,
   KokiriBoots = 0x1000,
   IronBoots = 0x2000,
   HoverBoots = 0x4000,
@@ -137,37 +125,6 @@ export const EquippableItems = {
   ...Tunic,
   ...Boots,
 };
-
-//export enum BulletBag {
-//  BulletBagHolds30 = 0x47,
-//  BulletBagHolds40 = 0x48,
-//  BulletBagHolds50 = 0x49,
-//}
-//
-//export enum Quiver {
-//  QuiverHolds30 = 0x4A,
-//  QuiverHolds40 = 0x4B,
-//  QuiverHolds50 = 0x4C,
-//}
-//
-//export enum BombBag {
-//  BombBagHolds20 = 0x4D,
-//  BombBagHolds30 = 0x4E,
-//  BombBagHolds40 = 0x4F,
-//}
-//
-//export enum OtherEquipment {
-//  GoronsBracelet = 0x50,
-//  SilverGauntlets = 0x51,
-//  GoldenGauntlets = 0x52,
-//  SilverScale = 0x53,
-//  GoldenScale = 0x54,
-//  GiantsKnifeBroken = 0x55,
-//  BombBagJapaneseName = 0x56,
-//  BombBag2JapaneseName = 0x57,
-//  SlingShotBulletsJapaneseName = 0x58,
-//  FishingRodJapaneseName = 0x59,
-//}
 
 export enum DekuNutUpgrades {
   DekuNutUpgradeHolds30Nuts = 0x0010_0000,
@@ -233,35 +190,6 @@ export const ObtainableUpgrades = {
   ...Quiver,
 };
 
-//export enum QuestItems {
-//  MinuetofForest = 0x5A,
-//  BoleroofFire = 0x5B,
-//  SerenadeofWater = 0x5C,
-//  RequiemofSpirit = 0x5D,
-//  NocturneofShadow = 0x5E,
-//  PreludeofLight = 0x5F,
-//  ZeldasLullaby = 0x60,
-//  EponasSong = 0x61,
-//  SariasSong = 0x62,
-//  SunsSong = 0x63,
-//  SongofTime = 0x64,
-//  SongofStorms = 0x65,
-//  ForestMedallion = 0x66,
-//  FireMedallion = 0x67,
-//  WaterMedallion = 0x68,
-//  SpiritMedallion = 0x69,
-//  ShadowMedallion = 0x6A,
-//  LightMedallion = 0x6B,
-//  KokirisEmerald = 0x6C,
-//  GoronsRuby = 0x6D,
-//  ZorasSapphire = 0x6E,
-//  StoneofAgony = 0x6F,
-//  GerudosCard = 0x70,
-//  GoldSkulltula = 0x71,
-//  HeartContainer = 0x72,
-//  PieceofHeart = 0x73,
-//}
-
 export enum Medallions {
   ForestMedallion = 0x0000_0001,
   FireMedallion = 0x0000_0002,
@@ -305,13 +233,6 @@ export const QuestItems = {
   ...SpiritualStones,
   ...Tokens,
 };
-
-//export enum DungeonItems {
-//  BigKey = 0x74,
-//  Compass = 0x75,
-//  DungeonMap = 0x76,
-//  SmallKey = 0x77,
-//}
 
 export enum DungeonItems {
   BossKey = 0x01,
@@ -966,13 +887,27 @@ export class SaveSlot {
     for (let i = 0; i < 101; i++) {
       const offset = i * 0x1C;
       sceneFlags.push({
-        chestFlags: toNumber(this.bytes.slice(0x00D4 + offset, 0x00D4 + offset + 4)),
-        switches: toNumber(this.bytes.slice(0x00D8 + offset, 0x00D8 + offset + 4)),
-        roomClearFlags: toNumber(this.bytes.slice(0x00DC + offset, 0x00DC + offset + 4)),
-        collectibleFlags: toNumber(this.bytes.slice(0x00E0 + offset, 0x00E0 + offset + 4)),
-        unused: toNumber(this.bytes.slice(0x00E4 + offset, 0x00E4 + offset + 4)),
-        visitedRooms: toNumber(this.bytes.slice(0x00E8 + offset, 0x00E8 + offset + 4)),
-        visitedFloors: toNumber(this.bytes.slice(0x00EC + offset, 0x00EC + offset + 4)),
+        chestFlags: toNumber(
+          this.bytes.slice(0x00D4 + offset, 0x00D4 + offset + 4),
+        ),
+        switches: toNumber(
+          this.bytes.slice(0x00D8 + offset, 0x00D8 + offset + 4),
+        ),
+        roomClearFlags: toNumber(
+          this.bytes.slice(0x00DC + offset, 0x00DC + offset + 4),
+        ),
+        collectibleFlags: toNumber(
+          this.bytes.slice(0x00E0 + offset, 0x00E0 + offset + 4),
+        ),
+        unused: toNumber(
+          this.bytes.slice(0x00E4 + offset, 0x00E4 + offset + 4),
+        ),
+        visitedRooms: toNumber(
+          this.bytes.slice(0x00E8 + offset, 0x00E8 + offset + 4),
+        ),
+        visitedFloors: toNumber(
+          this.bytes.slice(0x00EC + offset, 0x00EC + offset + 4),
+        ),
       });
     }
     return sceneFlags;
