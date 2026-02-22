@@ -50,6 +50,14 @@ export default function Save(props: SaveProps) {
                   ]}
                 </span>
               </div>
+              <div>
+                <span className="font-medium">Data size:</span>
+                <span>{saveFile.data.byteLength}</span>
+              </div>
+              <div>
+                <span className="font-medium">Header valid:</span>
+                <span>{saveFile.header.isValid ? "Yes" : "No"}</span>
+              </div>
             </div>
           </div>
 
@@ -98,9 +106,30 @@ export default function Save(props: SaveProps) {
 
         <div className="space-y-6">
           {saveFile.slots.map((slot: SaveSlot, idx: number) => (
-            <Slot slotData={slot.data} index={idx} />
+            <Slot
+              key={`save-slot-${idx}`}
+              slotData={slot.data}
+              index={idx}
+            />
           ))}
         </div>
+
+        <div className="divider my-6" />
+
+        <details className="space-y-6">
+          <summary className="text-xl font-semibold mb-2 cursor-pointer">
+            Backup Slots
+          </summary>
+          <div className="space-y-6 mt-4">
+            {saveFile.backups.map((slot: SaveSlot, idx: number) => (
+              <Slot
+                key={`backup-slot-${idx}`}
+                slotData={slot.data}
+                index={idx + saveFile.slots.length}
+              />
+            ))}
+          </div>
+        </details>
       </div>
 
       <a href="/" class="underline">Go back</a>

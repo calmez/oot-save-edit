@@ -88,6 +88,7 @@ export enum InventoryItems {
   FireArrowPoweredUp = 0x38,
   IceArrowPoweredUp = 0x39,
   LightArrowPoweredUp = 0x3A,
+  Empty = 0xFF,
 }
 
 export enum Sword {
