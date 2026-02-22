@@ -30,6 +30,10 @@ interface SlotProps {
   index: number;
 }
 
+function BooleanCheckbox(props: { value: boolean }) {
+  return <input type="checkbox" checked={props.value} disabled />;
+}
+
 function enumLabel<T extends number>(
   enumObject: Record<string, string | number>,
   value: T,
@@ -207,7 +211,7 @@ export default function Slot(props: SlotProps) {
           </div>
           <div>
             <span className="font-medium">DD Only:</span>{" "}
-            <span className="tabular-nums">{slot.ddOnly ? "Yes" : "No"}</span>
+            <BooleanCheckbox value={slot.ddOnly} />
           </div>
           <div>
             <span className="font-medium">Navi Timer:</span>{" "}
@@ -242,11 +246,11 @@ export default function Slot(props: SlotProps) {
         <div className="grid grid-cols-3 gap-4">
           <div>
             <span className="font-medium">Biggoron Flag 1:</span>{" "}
-            <span className="tabular-nums">{slot.biggoronsSwordFlag1 ? "Yes" : "No"}</span>
+            <BooleanCheckbox value={slot.biggoronsSwordFlag1} />
           </div>
           <div>
             <span className="font-medium">Biggoron Flag 2:</span>{" "}
-            <span className="tabular-nums">{slot.biggoronsSwordFlag2 ? "Yes" : "No"}</span>
+            <BooleanCheckbox value={slot.biggoronsSwordFlag2} />
           </div>
           <div>
             <span className="font-medium">Saved Scene:</span>{" "}
@@ -375,7 +379,7 @@ export default function Slot(props: SlotProps) {
           </div>
           <div>
             <span className="font-medium">Warp Point Set:</span>{" "}
-            <span className="tabular-nums">{slot.warpPointSet ? "Yes" : "No"}</span>
+            <BooleanCheckbox value={slot.warpPointSet} />
           </div>
           <div>
             <span className="font-medium">Checksum:</span>{" "}
@@ -387,7 +391,7 @@ export default function Slot(props: SlotProps) {
           </div>
           <div>
             <span className="font-medium">Valid:</span>{" "}
-            <span className="tabular-nums">{slot.isValid ? "Yes" : "No"}</span>
+            <BooleanCheckbox value={slot.isValid} />
           </div>
         </div>
       )}
@@ -399,7 +403,7 @@ export default function Slot(props: SlotProps) {
               <div className="grid grid-cols-2 gap-2 mt-2">
                 {eventFlags.map((flag) => (
                   <label className="inline-flex items-center gap-2" key={flag.name}>
-                    <input type="checkbox" checked={flag.value} disabled />
+                    <BooleanCheckbox value={flag.value} />
                     <span>{formatFlagName(flag.name)}</span>
                   </label>
                 ))}
@@ -412,7 +416,7 @@ export default function Slot(props: SlotProps) {
               <div className="grid grid-cols-2 gap-2 mt-2">
                 {itemFlags.map((flag) => (
                   <label className="inline-flex items-center gap-2" key={flag.name}>
-                    <input type="checkbox" checked={flag.value} disabled />
+                    <BooleanCheckbox value={flag.value} />
                     <span>{formatFlagName(flag.name)}</span>
                   </label>
                 ))}
@@ -425,7 +429,7 @@ export default function Slot(props: SlotProps) {
               <div className="grid grid-cols-2 gap-2 mt-2">
                 {otherFlags.map((flag) => (
                   <label className="inline-flex items-center gap-2" key={flag.name}>
-                    <input type="checkbox" checked={flag.value} disabled />
+                    <BooleanCheckbox value={flag.value} />
                     <span>{formatFlagName(flag.name)}</span>
                   </label>
                 ))}

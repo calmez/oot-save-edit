@@ -13,6 +13,10 @@ interface SaveProps {
   save: Uint8Array;
 }
 
+function BooleanCheckbox(props: { value: boolean }) {
+  return <input type="checkbox" checked={props.value} disabled />;
+}
+
 export default function Save(props: SaveProps) {
   const saveFile = FileUtil.loadFileFromBuffer(props.save);
 
@@ -40,7 +44,7 @@ export default function Save(props: SaveProps) {
               </div>
               <div>
                 <span className="font-medium">Word swapped:</span>
-                <span>{saveFile.isByteSwapped ? "Yes" : "No"}</span>
+                <BooleanCheckbox value={saveFile.isByteSwapped} />
               </div>
               <div>
                 <span className="font-medium">File format:</span>
@@ -56,7 +60,7 @@ export default function Save(props: SaveProps) {
               </div>
               <div>
                 <span className="font-medium">Header valid:</span>
-                <span>{saveFile.header.isValid ? "Yes" : "No"}</span>
+                <BooleanCheckbox value={saveFile.header.isValid} />
               </div>
             </div>
           </div>
@@ -70,7 +74,7 @@ export default function Save(props: SaveProps) {
               </div>
               <div>
                 <span className="font-medium">Swap words:</span>
-                <span>{saveFile.isByteSwapped ? "Yes" : "No"}</span>
+                <BooleanCheckbox value={saveFile.isByteSwapped} />
               </div>
               <div>
                 <span className="font-medium">File format:</span>
