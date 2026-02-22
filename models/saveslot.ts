@@ -1,6 +1,7 @@
 import { toNumber, toUint8Array } from "../utils/conversions.ts";
 import { OotText } from "../utils/text.ts";
 import { EventFlags } from "./eventflags.ts";
+import { ItemFlags } from "./itemflags.ts";
 import {
   Entrance,
   EntranceFromRoomWithEntrance,
@@ -1091,7 +1092,6 @@ export class SaveSlot {
     this.bytes.set(toUint8Array(value, 4), 0x0EBC);
   }
 
-  // Event flags (event_chk_inf) at 0x0ED4, uint16_t[14]
   get eventFlags(): EventFlags {
     const bytes = this.bytes.slice(0x0ED4, 0x0ED4 + 28);
     return new EventFlags(bytes);
@@ -1100,7 +1100,16 @@ export class SaveSlot {
   set eventFlags(value: EventFlags) {
     this.bytes.set(value.data, 0x0ED4);
   }
-  // TODO item get flags at 0x0EF0, uint16_t[4]
+
+  get itemFlags(): ItemFlags {
+    const bytes = this.bytes.slice(0x0EF0, 0x0EF0 + 8);
+    return new ItemFlags(bytes);
+  }
+
+  set itemFlags(value: ItemFlags) {
+    this.bytes.set(value.data, 0x0EF0);
+  }
+
   // TODO unknown flags at 0x0EF8, uint16_t[30]
 
   get checksum(): number {
