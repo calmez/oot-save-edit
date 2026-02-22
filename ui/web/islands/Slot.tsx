@@ -142,7 +142,7 @@ function equipmentLabel(value: number): string {
   if (fromBoots) {
     return String(fromBoots);
   }
-  return String(value);
+  return "None";
 }
 
 export default function Slot(props: SlotProps) {
@@ -159,10 +159,10 @@ export default function Slot(props: SlotProps) {
       key={index}
       className={`border rounded p-4 ${
         expanded ? "bg-blue-300/90 shadow-lg h-max" : "bg-gray-50 h-min"
-      } hover:cursor-pointer`}
+      }`}
     >
       <h3 
-        className="text-xl font-semibold mb-2"
+        className="text-xl font-semibold mb-2 hover:cursor-pointer"
         onClick={() => {
           setExpanded(!expanded);
         }}
@@ -343,7 +343,9 @@ export default function Slot(props: SlotProps) {
           <div>
             <span className="font-medium">Small Keys:</span>{" "}
             <span className="tabular-nums">
-              {slot.smallKeyAmount.map((value) => value === 0xFF ? "None" : String(value)).join(", ")}
+              {slot.smallKeyAmount.map((value, dungeonIndex) => (
+                `D${dungeonIndex + 1}: ${value === 0xFF ? "None" : value}`
+              )).join(", ")}
             </span>
           </div>
         </div>
