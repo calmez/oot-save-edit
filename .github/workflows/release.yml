@@ -51,7 +51,7 @@ jobs:
     steps:
       - name: Get Release by Tag
         id: get_release_by_tag
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const tag = "${{ needs.create_release.outputs.tag }}";
@@ -112,7 +112,7 @@ jobs:
     steps:
       - name: Get Release by Tag
         id: get_release_by_tag
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const tag = "${{ needs.create_release.outputs.tag }}";
@@ -173,7 +173,7 @@ jobs:
     steps:
       - name: Get Release by Tag
         id: get_release_by_tag
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const tag = "${{ needs.create_release.outputs.tag }}";
@@ -223,7 +223,7 @@ jobs:
         run: deno install --lock
       - name: Get Release by Tag
         id: get_release_by_tag
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const tag = "${{ needs.create_release.outputs.tag }}";
