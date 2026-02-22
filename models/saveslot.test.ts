@@ -26,6 +26,7 @@ import {
   Tunic,
 } from "./saveslot.ts";
 import { assertEquals, assertNotEquals, assertThrows } from "@std/assert";
+import { ItemFlags } from "./itemflags.ts";
 import { toNumber, toUint8Array } from "../utils/conversions.ts";
 import { OotText } from "../utils/text.ts";
 import { Entrance, Room, RoomWithEntranceFor, Scene } from "./scene.ts";
@@ -1150,6 +1151,41 @@ Deno.test({
     const instance = new SaveSlot(testData);
     instance.bigPoePoints = expectedPoints;
     assertEquals(instance.bigPoePoints, expectedPoints);
+  },
+});
+
+Deno.test({
+  name: "should get item flags",
+  fn() {
+    const testData = new Uint8Array(SaveSlot.requiredSize);
+    const expectedItemFlags = new ItemFlags();
+    expectedItemFlags.obtainedGerudoQuiverUpgrade = true;
+    expectedItemFlags.obtainedFaroresWind = true;
+    expectedItemFlags.obtainedOddPotionFromGranny = true;
+    testData.set(expectedItemFlags.data, 0x0EF0);
+    const instance = new SaveSlot(testData);
+
+    const actualItemFlags = instance.itemFlags;
+    assertEquals(actualItemFlags.obtainedGerudoQuiverUpgrade, true);
+    assertEquals(actualItemFlags.obtainedFaroresWind, true);
+    assertEquals(actualItemFlags.obtainedOddPotionFromGranny, true);
+  },
+});
+
+Deno.test({
+  name: "should set item flags",
+  fn() {
+    const testData = new Uint8Array(SaveSlot.requiredSize);
+    const expectedItemFlags = new ItemFlags();
+    expectedItemFlags.obtainedBunnyHood = true;
+    expectedItemFlags.soldSkullMaskUnlockedSpookyMask = true;
+    expectedItemFlags.obtainedPoachersSawFromFado = true;
+    const instance = new SaveSlot(testData);
+    instance.itemFlags = expectedItemFlags;
+
+    assertEquals(instance.itemFlags.obtainedBunnyHood, true);
+    assertEquals(instance.itemFlags.soldSkullMaskUnlockedSpookyMask, true);
+    assertEquals(instance.itemFlags.obtainedPoachersSawFromFado, true);
   },
 });
 
