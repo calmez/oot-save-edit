@@ -47,7 +47,7 @@ export class ItemFlags extends Flags<Uint8Array> {
   static readonly obtainedPoachersSawFromFado = { byte: 7, bit: 1 };
   static readonly obtainedOddPotionFromGranny = { byte: 7, bit: 0 };
 
-  protected override get minBytes(): number {
+  protected override get minElements(): number {
     return 8;
   }
 

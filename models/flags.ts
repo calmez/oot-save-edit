@@ -3,7 +3,7 @@ export abstract class Flags<
 > {
   private flags: TFlags;
 
-  protected get minBytes(): number {
+  protected get minElements(): number {
     return 0;
   }
 
@@ -11,14 +11,14 @@ export abstract class Flags<
 
   constructor(flags?: TFlags) {
     if (flags !== undefined) {
-      if (flags.length < this.minBytes) {
+      if (flags.length < this.minElements) {
         throw new Error(
-          `Flags data must be at least ${this.minBytes} bytes, got ${flags.length}.`,
+          `Flags data must be at least ${this.minElements} elements, got ${flags.length}.`,
         );
       }
-      this.flags = flags.slice(0, this.minBytes) as TFlags;
+      this.flags = flags.slice(0, this.minElements) as TFlags;
     } else {
-      this.flags = this.createArray(this.minBytes);
+      this.flags = this.createArray(this.minElements);
     }
   }
 

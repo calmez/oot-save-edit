@@ -4,7 +4,7 @@ class PermanentSceneFlag extends Flags<Uint32Array> {
   private static readonly minBitIndex = 0;
   private static readonly maxBitIndex = 31;
 
-  protected override get minBytes(): number {
+  protected override get minElements(): number {
     return 1;
   }
 

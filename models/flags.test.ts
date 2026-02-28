@@ -2,7 +2,7 @@ import { assert, assertInstanceOf, assertThrows } from "@std/assert";
 import { Flags } from "./flags.ts";
 
 class TestFlags extends Flags<Uint8Array> {
-  protected override get minBytes(): number {
+  protected override get minElements(): number {
     return 2;
   }
 

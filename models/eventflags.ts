@@ -156,7 +156,7 @@ export class EventFlags extends Flags<Uint16Array> {
   static readonly playedZeldasLullabyForFrogs = { byte: 13, bit: 1 };
   static readonly obtainedFrogsPieceOfHeart = { byte: 13, bit: 0 };
 
-  protected override get minBytes(): number {
+  protected override get minElements(): number {
     return 14;
   }
 

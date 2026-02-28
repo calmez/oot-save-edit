@@ -163,7 +163,7 @@ export class OtherFlags extends Flags<Uint8Array> {
   static readonly enteredDekuTree = { byte: 53, bit: 0 };
   static readonly swordlessMasterSwordKnockedAway = { byte: 59, bit: 0 };
 
-  protected override get minBytes(): number {
+  protected override get minElements(): number {
     return 60;
   }
 
