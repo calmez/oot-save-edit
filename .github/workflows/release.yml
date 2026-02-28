@@ -33,7 +33,7 @@ jobs:
           fetch-depth: 0
       - name: Version
         id: version
-        uses: python-semantic-release/python-semantic-release@v10.4.1
+        uses: python-semantic-release/python-semantic-release@v10.5.3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           config_file: .semantic-release.json
@@ -60,7 +60,7 @@ jobs:
             );
             return release.data.upload_url;
           result-encoding: string
-      - uses: actions/download-artifact@v5
+      - uses: actions/download-artifact@v7
         with:
           name: mac-build
           path: ./build
@@ -121,7 +121,7 @@ jobs:
             );
             return release.data.upload_url;
           result-encoding: string
-      - uses: actions/download-artifact@v5
+      - uses: actions/download-artifact@v7
         with:
           name: linux-build
           path: ./build
@@ -182,7 +182,7 @@ jobs:
             );
             return release.data.upload_url;
           result-encoding: string
-      - uses: actions/download-artifact@v5
+      - uses: actions/download-artifact@v7
         with:
           name: windows-build
           path: ./build
