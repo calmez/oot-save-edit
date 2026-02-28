@@ -29,6 +29,16 @@ import { assertEquals, assertNotEquals, assertThrows } from "@std/assert";
 import { ItemFlags } from "./itemflags.ts";
 import { OtherFlags } from "./otherflags.ts";
 import { EventFlags } from "./eventflags.ts";
+import {
+  ChestFlags,
+  CollectibleFlags,
+  PermanentSceneFlags,
+  RoomClearFlags,
+  SwitchFlags,
+  UnusedFlags,
+  VisitedFloorsFlags,
+  VisitedRoomsFlags,
+} from "./permanentsceneflags.ts";
 import { toUint8Array } from "../utils/conversions.ts";
 import { OotText } from "../utils/text.ts";
 import { Entrance, Room, RoomWithEntranceFor, Scene } from "./scene.ts";
@@ -1024,7 +1034,80 @@ Deno.test({
   },
 });
 
-// TODO permanent scene flags
+Deno.test({
+  name: "should provide permanent scene flags",
+  fn() {
+    const buildSceneFlags = (): PermanentSceneFlags[] =>
+      Array.from({ length: 101 }, () => ({
+        chestFlags: new ChestFlags(),
+        switches: new SwitchFlags(),
+        roomClearFlags: new RoomClearFlags(),
+        collectibleFlags: new CollectibleFlags(),
+        unused: new UnusedFlags(),
+        visitedRooms: new VisitedRoomsFlags(),
+        visitedFloors: new VisitedFloorsFlags(),
+      }));
+
+    const expectedFlags = buildSceneFlags();
+    expectedFlags[0].chestFlags.setFlag(1, true);
+    expectedFlags[17].switches.setFlag(31, true);
+    expectedFlags[33].roomClearFlags.setFlag(5, true);
+    expectedFlags[60].collectibleFlags.setFlag(7, true);
+    expectedFlags[88].unused.setFlag(9, true);
+    expectedFlags[99].visitedRooms.setFlag(12, true);
+    expectedFlags[100].visitedFloors.setFlag(0, true);
+
+    const writer = new SaveSlot(new Uint8Array(SaveSlot.requiredSize));
+    writer.permanentSceneFlags = expectedFlags;
+
+    const instance = new SaveSlot(new Uint8Array(writer.data));
+    const actualFlags = instance.permanentSceneFlags;
+
+    assertEquals(actualFlags.length, 101);
+    assertEquals(actualFlags[0].chestFlags.getFlag(1), true);
+    assertEquals(actualFlags[17].switches.getFlag(31), true);
+    assertEquals(actualFlags[33].roomClearFlags.getFlag(5), true);
+    assertEquals(actualFlags[60].collectibleFlags.getFlag(7), true);
+    assertEquals(actualFlags[88].unused.getFlag(9), true);
+    assertEquals(actualFlags[99].visitedRooms.getFlag(12), true);
+    assertEquals(actualFlags[100].visitedFloors.getFlag(0), true);
+  },
+});
+
+Deno.test({
+  name: "should set permanent scene flags",
+  fn() {
+    const sceneFlags: PermanentSceneFlags[] = Array.from({ length: 101 }, () => ({
+      chestFlags: new ChestFlags(),
+      switches: new SwitchFlags(),
+      roomClearFlags: new RoomClearFlags(),
+      collectibleFlags: new CollectibleFlags(),
+      unused: new UnusedFlags(),
+      visitedRooms: new VisitedRoomsFlags(),
+      visitedFloors: new VisitedFloorsFlags(),
+    }));
+
+    sceneFlags[12].chestFlags.setFlag(2, true);
+    sceneFlags[12].switches.setFlag(3, true);
+    sceneFlags[12].roomClearFlags.setFlag(4, true);
+    sceneFlags[12].collectibleFlags.setFlag(5, true);
+    sceneFlags[12].unused.setFlag(6, true);
+    sceneFlags[12].visitedRooms.setFlag(7, true);
+    sceneFlags[12].visitedFloors.setFlag(8, true);
+
+    const instance = new SaveSlot(new Uint8Array(SaveSlot.requiredSize));
+    instance.permanentSceneFlags = sceneFlags;
+    const actualFlags = instance.permanentSceneFlags;
+
+    assertEquals(actualFlags[12].chestFlags.getFlag(2), true);
+    assertEquals(actualFlags[12].switches.getFlag(3), true);
+    assertEquals(actualFlags[12].roomClearFlags.getFlag(4), true);
+    assertEquals(actualFlags[12].collectibleFlags.getFlag(5), true);
+    assertEquals(actualFlags[12].unused.getFlag(6), true);
+    assertEquals(actualFlags[12].visitedRooms.getFlag(7), true);
+    assertEquals(actualFlags[12].visitedFloors.getFlag(8), true);
+  },
+});
 
 Deno.test({
   name: "should get entrance index transport",

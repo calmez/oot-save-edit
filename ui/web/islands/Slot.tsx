@@ -25,6 +25,7 @@ import {
   Tunic,
   Wallet,
 } from "../../../models/saveslot.ts";
+import type { PermanentSceneFlags } from "../../../models/permanentsceneflags.ts";
 import {
   Entrance,
   Room,
@@ -287,6 +288,29 @@ const dungeonItemOptions: DungeonItems[] = enumValues<DungeonItems>(
   DungeonItems,
 );
 
+const permanentSceneCount = 101;
+const permanentSceneOptions = Array.from(
+  { length: permanentSceneCount },
+  (_, index) => index,
+);
+
+type PermanentSceneFlagGroupKey = keyof PermanentSceneFlags;
+
+const permanentSceneFlagGroups: Array<{
+  key: PermanentSceneFlagGroupKey;
+  label: string;
+}> = [
+  { key: "chestFlags", label: "Chest" },
+  { key: "switches", label: "Switches" },
+  { key: "roomClearFlags", label: "Room Clear" },
+  { key: "collectibleFlags", label: "Collectibles" },
+  { key: "unused", label: "Unused" },
+  { key: "visitedRooms", label: "Visited Rooms" },
+  { key: "visitedFloors", label: "Visited Floors" },
+];
+
+const permanentSceneFlagBits = Array.from({ length: 32 }, (_, index) => index);
+
 export default function Slot(props: SlotProps) {
   const { slot, index, onChange, readOnly = false } = props;
   const eventFlags = getBooleanFlags(slot.eventFlags);
@@ -294,6 +318,10 @@ export default function Slot(props: SlotProps) {
   const otherFlags = getBooleanFlags(slot.otherFlags);
 
   const [expanded, setExpanded] = useState(false);
+  const [selectedPermanentScene, setSelectedPermanentScene] = useState(0);
+  const [selectedPermanentGroup, setSelectedPermanentGroup] = useState<
+    PermanentSceneFlagGroupKey
+  >("chestFlags");
 
   function changed() {
     if (!readOnly) {
@@ -338,6 +366,41 @@ export default function Slot(props: SlotProps) {
 
     slot.maxMagic = 0;
   }
+
+  function setPermanentSceneFlag(
+    sceneIndex: number,
+    group: PermanentSceneFlagGroupKey,
+    bit: number,
+    value: boolean,
+  ) {
+    if (readOnly) {
+      return;
+    }
+
+    const allFlags = slot.permanentSceneFlags;
+    allFlags[sceneIndex][group].setFlag(bit, value);
+    slot.permanentSceneFlags = allFlags;
+    changed();
+  }
+
+  function countSetPermanentSceneFlags(
+    scene: PermanentSceneFlags,
+    group: PermanentSceneFlagGroupKey,
+  ): number {
+    let count = 0;
+    for (const bit of permanentSceneFlagBits) {
+      if (scene[group].getFlag(bit)) {
+        count += 1;
+      }
+    }
+    return count;
+  }
+
+  const activePermanentScene = Math.min(
+    Math.max(selectedPermanentScene, 0),
+    permanentSceneCount - 1,
+  );
+  const activePermanentSceneFlags = slot.permanentSceneFlags[activePermanentScene];
 
   return (
     <div
@@ -1221,6 +1284,100 @@ export default function Slot(props: SlotProps) {
                       <span>{formatFlagName(flag.name)}</span>
                     </label>
                   ))}
+                </div>
+              </details>
+            </div>
+
+            <div className="rounded-lg border border-slate-200 bg-white/80 p-3">
+              <details>
+                <summary className="cursor-pointer text-sm font-semibold text-slate-700">
+                  Permanent Scene Flags
+                </summary>
+                <div className="mt-3 space-y-3">
+                  <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                    <div>
+                      <label className="mb-1 block text-xs font-semibold text-slate-600">
+                        Scene
+                      </label>
+                      <select
+                        value={String(activePermanentScene)}
+                        onChange={(event) =>
+                          setSelectedPermanentScene(
+                            Math.min(
+                              Math.max(Number(event.currentTarget.value), 0),
+                              permanentSceneCount - 1,
+                            ),
+                          )}
+                        className="w-full rounded border border-slate-300 bg-white px-2 py-1"
+                      >
+                        {permanentSceneOptions.map((scene) => (
+                          <option
+                            key={`slot-${index}-permanent-scene-${scene}`}
+                            value={String(scene)}
+                          >
+                            Scene {scene}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="mb-1 block text-xs font-semibold text-slate-600">
+                        Group
+                      </label>
+                      <select
+                        value={selectedPermanentGroup}
+                        onChange={(event) =>
+                          setSelectedPermanentGroup(
+                            event.currentTarget.value as PermanentSceneFlagGroupKey,
+                          )}
+                        className="w-full rounded border border-slate-300 bg-white px-2 py-1"
+                      >
+                        {permanentSceneFlagGroups.map((group) => (
+                          <option
+                            key={`slot-${index}-permanent-group-${group.key}`}
+                            value={group.key}
+                          >
+                            {group.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                    {permanentSceneFlagGroups.map((group) => (
+                      <div
+                        className="rounded border border-slate-200 px-2 py-1 text-xs text-slate-700"
+                        key={`slot-${index}-permanent-summary-${group.key}`}
+                      >
+                        {group.label}: {countSetPermanentSceneFlags(activePermanentSceneFlags, group.key)} / 32
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="grid grid-cols-4 gap-2 sm:grid-cols-8 md:grid-cols-8 lg:grid-cols-8">
+                    {permanentSceneFlagBits.map((bit) => (
+                      <label
+                        className="inline-flex items-center gap-2 rounded border border-slate-200 px-2 py-1 text-xs"
+                        key={`slot-${index}-scene-${activePermanentScene}-${selectedPermanentGroup}-${bit}`}
+                      >
+                        <BooleanCheckbox
+                          value={activePermanentSceneFlags[selectedPermanentGroup]
+                            .getFlag(bit)}
+                          disabled={readOnly}
+                          onChange={(value) =>
+                            setPermanentSceneFlag(
+                              activePermanentScene,
+                              selectedPermanentGroup,
+                              bit,
+                              value,
+                            )}
+                        />
+                        <span>{bit}</span>
+                      </label>
+                    ))}
+                  </div>
                 </div>
               </details>
             </div>
