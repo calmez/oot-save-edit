@@ -2,6 +2,7 @@ import { assertEquals, assertThrows } from "@std/assert";
 import {
 	ChestFlags,
 	CollectibleFlags,
+	PermanentSceneFlags,
 	RoomClearFlags,
 	SwitchFlags,
 	UnusedFlags,
@@ -125,3 +126,26 @@ for (const spec of subclassSpecs) {
 		assertEquals(flags.getFlag(0), true);
 	});
 }
+
+Deno.test({
+	name: "PermanentSceneFlags: data property roundtrip preserves data",
+	fn() {
+		const input = new Uint32Array([0xDEAD_BEEF]);
+		const flags: PermanentSceneFlags = {
+			chestFlags: new ChestFlags(input),
+			switches: new SwitchFlags(input),
+			roomClearFlags: new RoomClearFlags(input),
+			collectibleFlags: new CollectibleFlags(input),
+			unused: new UnusedFlags(input),
+			visitedRooms: new VisitedRoomsFlags(input),
+			visitedFloors: new VisitedFloorsFlags(input),
+		};
+		assertEquals(flags.chestFlags.data, input);
+		assertEquals(flags.switches.data, input);
+		assertEquals(flags.roomClearFlags.data, input);
+		assertEquals(flags.collectibleFlags.data, input);
+		assertEquals(flags.unused.data, input);
+		assertEquals(flags.visitedRooms.data, input);
+		assertEquals(flags.visitedFloors.data, input);
+	},
+});
