@@ -2102,7 +2102,7 @@ export enum Scene {
   KakarikoVillage_FromKakarikoPotionShopBackEntrance_Child_Day = 0x04FF,
   KakarikoVillage_FromKakarikoPotionShopBackEntrance_Child_Night = 0x0500,
   KakarikoVillage_FromKakarikoPotionShopBackEntrance_Adult_Day = 0x0501,
-  KakarikoVillage_FromKakarikoPotionShopBackEntrance_Adult_Night = 0x0501,
+  KakarikoVillage_FromKakarikoPotionShopBackEntrance_Adult_Night = 0x0502,
   Unknown_WindmillAfterSongOfStorms_Child_Day = 0x0503,
   Unknown_WindmillAfterSongOfStorms_Child_Night = 0x0504,
   Unknown_WindmillAfterSongOfStorms_Adult_Day = 0x0505,
