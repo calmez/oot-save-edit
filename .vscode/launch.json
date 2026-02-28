@@ -74,6 +74,21 @@
         "--allow-all"
       ],
       "attachSimplePort": 9229
+    },
+    {
+      "name": "Launch Chrome",
+      "request": "launch",
+      "type": "chrome",
+      "url": "http://localhost:5174",
+      "webRoot": "${workspaceFolder}/ui/web"
+    },
+    {
+      "type": "firefox",
+      "request": "launch",
+      "reAttach": true,
+      "name": "Launch Firefox",
+      "url": "http://localhost:5174",
+      "webRoot": "${workspaceFolder}/ui/web"
     }
   ]
 }
