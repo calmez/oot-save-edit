@@ -400,7 +400,8 @@ export default function Slot(props: SlotProps) {
     Math.max(selectedPermanentScene, 0),
     permanentSceneCount - 1,
   );
-  const activePermanentSceneFlags = slot.permanentSceneFlags[activePermanentScene];
+  const activePermanentSceneFlags =
+    slot.permanentSceneFlags[activePermanentScene];
 
   return (
     <div
@@ -1329,7 +1330,8 @@ export default function Slot(props: SlotProps) {
                         value={selectedPermanentGroup}
                         onChange={(event) =>
                           setSelectedPermanentGroup(
-                            event.currentTarget.value as PermanentSceneFlagGroupKey,
+                            event.currentTarget
+                              .value as PermanentSceneFlagGroupKey,
                           )}
                         className="w-full rounded border border-slate-300 bg-white px-2 py-1"
                       >
@@ -1351,7 +1353,10 @@ export default function Slot(props: SlotProps) {
                         className="rounded border border-slate-200 px-2 py-1 text-xs text-slate-700"
                         key={`slot-${index}-permanent-summary-${group.key}`}
                       >
-                        {group.label}: {countSetPermanentSceneFlags(activePermanentSceneFlags, group.key)} / 32
+                        {group.label}: {countSetPermanentSceneFlags(
+                          activePermanentSceneFlags,
+                          group.key,
+                        )} / 32
                       </div>
                     ))}
                   </div>
@@ -1363,7 +1368,9 @@ export default function Slot(props: SlotProps) {
                         key={`slot-${index}-scene-${activePermanentScene}-${selectedPermanentGroup}-${bit}`}
                       >
                         <BooleanCheckbox
-                          value={activePermanentSceneFlags[selectedPermanentGroup]
+                          value={activePermanentSceneFlags[
+                            selectedPermanentGroup
+                          ]
                             .getFlag(bit)}
                           disabled={readOnly}
                           onChange={(value) =>
