@@ -36,6 +36,7 @@ import {
 } from "../../../models/scene.ts";
 import { Field } from "../components/Field.tsx";
 import { Section } from "../components/Section.tsx";
+import { JSX } from "preact/compat/jsx-dev-runtime";
 
 interface SlotProps {
   slot: SaveSlot;
@@ -372,7 +373,7 @@ export default function Slot(props: SlotProps) {
     group: PermanentSceneFlagGroupKey,
     bit: number,
     value: boolean,
-  ) {
+  ): JSX.Element | void {
     if (readOnly) {
       return;
     }
