@@ -416,14 +416,16 @@ export default function Slot(props: SlotProps) {
         <h3 className="text-lg font-semibold text-slate-900 md:text-xl">
           File {index + 1}
         </h3>
-        <span
-          className="text-sm font-medium text-blue-700 cursor-pointer"
+        <button
+          type="button"
+          className="text-sm font-medium text-blue-700 cursor-pointer bg-transparent border-0 p-0"
+          aria-expanded={expanded}
           onClick={() => {
             setExpanded(!expanded);
           }}
         >
           {expanded ? "Hide details" : "Show details"}
-        </span>
+        </button>
       </div>
 
       <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-3">
