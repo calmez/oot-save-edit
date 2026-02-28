@@ -3,6 +3,16 @@ import { OotText } from "../utils/text.ts";
 import { EventFlags } from "./eventflags.ts";
 import { ItemFlags } from "./itemflags.ts";
 import { OtherFlags } from "./otherflags.ts";
+import { 
+  ChestFlags,
+  CollectibleFlags,
+  PermanentSceneFlags,
+  RoomClearFlags,
+  SwitchFlags,
+  UnusedFlags,
+  VisitedFloorsFlags,
+  VisitedRoomsFlags 
+} from "./permanentsceneflags.ts";
 import {
   Entrance,
   EntranceFromRoomWithEntrance,
@@ -302,16 +312,6 @@ export interface CurrentEquipment {
   shield: Shield;
   tunic: Tunic;
   boots: Boots;
-}
-
-export interface PermanentSceneFlags {
-  chestFlags: number;
-  switches: number;
-  roomClearFlags: number;
-  collectibleFlags: number;
-  unused: number;
-  visitedRooms: number;
-  visitedFloors: number;
 }
 
 export interface FaroresWindWarp {
@@ -883,38 +883,30 @@ export class SaveSlot {
     this.bytes.set(toUint8Array(value, 2), 0x00D0);
   }
 
-  private get permanentSceneFlags(): Array<PermanentSceneFlags> {
+  private get32bitWord(offset: number): Uint32Array {
+    const bytes = this.bytes.slice(offset, offset + 4);
+    return new Uint32Array(bytes.buffer);
+  }
+
+  public get permanentSceneFlags(): Array<PermanentSceneFlags> {
     const sceneFlags: Array<PermanentSceneFlags> = [];
+
     for (let i = 0; i < 101; i++) {
       const offset = i * 0x1C;
       sceneFlags.push({
-        chestFlags: toNumber(
-          this.bytes.slice(0x00D4 + offset, 0x00D4 + offset + 4),
-        ),
-        switches: toNumber(
-          this.bytes.slice(0x00D8 + offset, 0x00D8 + offset + 4),
-        ),
-        roomClearFlags: toNumber(
-          this.bytes.slice(0x00DC + offset, 0x00DC + offset + 4),
-        ),
-        collectibleFlags: toNumber(
-          this.bytes.slice(0x00E0 + offset, 0x00E0 + offset + 4),
-        ),
-        unused: toNumber(
-          this.bytes.slice(0x00E4 + offset, 0x00E4 + offset + 4),
-        ),
-        visitedRooms: toNumber(
-          this.bytes.slice(0x00E8 + offset, 0x00E8 + offset + 4),
-        ),
-        visitedFloors: toNumber(
-          this.bytes.slice(0x00EC + offset, 0x00EC + offset + 4),
-        ),
+        chestFlags: new ChestFlags(this.get32bitWord(0x00D4 + offset)),
+        switches: new SwitchFlags(this.get32bitWord(0x00D8 + offset)),
+        roomClearFlags: new RoomClearFlags(this.get32bitWord(0x00DC + offset)),
+        collectibleFlags: new CollectibleFlags(this.get32bitWord(0x00E0 + offset)),
+        unused: new UnusedFlags(this.get32bitWord(0x00E4 + offset)),
+        visitedRooms: new VisitedRoomsFlags(this.get32bitWord(0x00E8 + offset)),
+        visitedFloors: new VisitedFloorsFlags(this.get32bitWord(0x00EC + offset)),
       });
     }
     return sceneFlags;
   }
 
-  private set permanentSceneFlags(value: Array<PermanentSceneFlags>) {
+  public set permanentSceneFlags(value: Array<PermanentSceneFlags>) {
     if (value.length != (101)) {
       throw Error(
         `permanent scene flags data needs to have ${101} scene entries (${
@@ -926,13 +918,13 @@ export class SaveSlot {
     const data = new Uint8Array(101 * 0x1C);
     for (let i = 0; i < value.length; i++) {
       const offset = i * 0x1C;
-      data.set(toUint8Array(value[i].chestFlags, 4), offset + 0);
-      data.set(toUint8Array(value[i].switches, 4), offset + 4);
-      data.set(toUint8Array(value[i].roomClearFlags, 4), offset + 8);
-      data.set(toUint8Array(value[i].collectibleFlags, 4), offset + 12);
-      data.set(toUint8Array(value[i].unused, 4), offset + 16);
-      data.set(toUint8Array(value[i].visitedRooms, 4), offset + 20);
-      data.set(toUint8Array(value[i].visitedFloors, 4), offset + 24);
+      data.set(new Uint8Array(value[i].chestFlags.data.buffer), offset + 0);
+      data.set(new Uint8Array(value[i].switches.data.buffer), offset + 4);
+      data.set(new Uint8Array(value[i].roomClearFlags.data.buffer), offset + 8);
+      data.set(new Uint8Array(value[i].collectibleFlags.data.buffer), offset + 12);
+      data.set(new Uint8Array(value[i].unused.data.buffer), offset + 16);
+      data.set(new Uint8Array(value[i].visitedRooms.data.buffer), offset + 20);
+      data.set(new Uint8Array(value[i].visitedFloors.data.buffer), offset + 24);
     }
 
     this.bytes.set(data, 0x00D4);
