@@ -8,9 +8,11 @@ import {
   DekuStickUpgrades,
   DiveMeter,
   DungeonItems,
+  EquippableItems,
   InventoryItems,
   MagicAmount,
   Medallions,
+  ObtainableUpgrades,
   QuestItems,
   Quiver,
   SaveSlot,
@@ -23,23 +25,102 @@ import {
   Tunic,
   Wallet,
 } from "../../../models/saveslot.ts";
-import { Entrance, Room, Scene, Time } from "../../../models/scene.ts";
+import {
+  Entrance,
+  Room,
+  RoomWithEntranceFor,
+  Scene,
+  Time,
+  ValidEntrancesForRoom,
+} from "../../../models/scene.ts";
 import { Field } from "../components/Field.tsx";
 import { Section } from "../components/Section.tsx";
 
 interface SlotProps {
-  slotData: Uint8Array;
+  slot: SaveSlot;
   index: number;
+  onChange?: () => void;
+  readOnly?: boolean;
 }
 
-function BooleanCheckbox(props: { value: boolean }) {
+function BooleanCheckbox(
+  props: {
+    value: boolean;
+    onChange?: (value: boolean) => void;
+    disabled?: boolean;
+  },
+) {
   return (
     <input
       type="checkbox"
       checked={props.value}
-      disabled
+      disabled={props.disabled}
+      onChange={(event) => props.onChange?.(event.currentTarget.checked)}
       className="h-4 w-4 accent-blue-600"
     />
+  );
+}
+
+function NumberInput(props: {
+  value: number;
+  onChange?: (value: number) => void;
+  min?: number;
+  max?: number;
+  step?: number;
+  disabled?: boolean;
+}) {
+  return (
+    <input
+      type="number"
+      value={String(props.value)}
+      min={props.min}
+      max={props.max}
+      step={props.step ?? 1}
+      disabled={props.disabled}
+      onInput={(event) => {
+        const next = Number(event.currentTarget.value);
+        if (!Number.isNaN(next)) {
+          props.onChange?.(next);
+        }
+      }}
+      className="w-full rounded border border-slate-300 px-2 py-1"
+    />
+  );
+}
+
+function enumValues<T extends number>(
+  enumObject: Record<string, string | number>,
+): T[] {
+  return Object.values(enumObject)
+    .filter((value): value is number => typeof value === "number")
+    .map((value) => value as T);
+}
+
+function EnumSelect<T extends number>(props: {
+  enumObject: Record<string, string | number>;
+  value: T;
+  onChange?: (value: T) => void;
+  disabled?: boolean;
+  options?: T[];
+  keyPrefix?: string;
+}) {
+  const values = props.options ?? enumValues<T>(props.enumObject);
+
+  return (
+    <select
+      name={props.keyPrefix}
+      value={String(props.value)}
+      disabled={props.disabled}
+      onChange={(event) =>
+        props.onChange?.(Number(event.currentTarget.value) as T)}
+      className="w-full rounded border border-slate-300 bg-white px-2 py-1"
+    >
+      {values.map((value) => (
+        <option key={`${props.keyPrefix ?? ""}${value}`} value={String(value)}>
+          {enumLabel(props.enumObject, value)}
+        </option>
+      ))}
+    </select>
   );
 }
 
@@ -78,10 +159,6 @@ function getBooleanFlags(
   }
 
   return flags;
-}
-
-function inventoryItemLabel(item: InventoryItems): string {
-  return enumLabel(InventoryItems, item);
 }
 
 function questItemLabel(item: QuestItems): string {
@@ -160,14 +237,107 @@ function equipmentLabel(value: number): string {
   return "None";
 }
 
+function toggleArrayValue<T extends number>(
+  values: T[],
+  value: T,
+  checked: boolean,
+): T[] {
+  if (checked) {
+    if (values.includes(value)) {
+      return values;
+    }
+    return [...values, value];
+  }
+
+  return values.filter((entry) => entry !== value);
+}
+
+const equipmentOptions: EquippableItems[] = Object.values({
+  ...Sword,
+  ...Shield,
+  ...Tunic,
+  ...Boots,
+})
+  .filter((value): value is number => typeof value === "number")
+  .map((value) => value as EquippableItems);
+
+const upgradeOptions: ObtainableUpgrades[] = Object.values({
+  ...DekuNutUpgrades,
+  ...DekuStickUpgrades,
+  ...BulletBag,
+  ...Wallet,
+  ...DiveMeter,
+  ...StrengthUpgrades,
+  ...BombBag,
+  ...Quiver,
+})
+  .filter((value): value is number => typeof value === "number")
+  .map((value) => value as ObtainableUpgrades);
+
+const questItemOptions: QuestItems[] = Object.values({
+  ...Medallions,
+  ...Songs,
+  ...SpiritualStones,
+  ...Tokens,
+})
+  .filter((value): value is number => typeof value === "number")
+  .map((value) => value as QuestItems);
+
+const dungeonItemOptions: DungeonItems[] = enumValues<DungeonItems>(
+  DungeonItems,
+);
+
 export default function Slot(props: SlotProps) {
-  const { slotData, index } = props;
-  const slot = new SaveSlot(slotData);
+  const { slot, index, onChange, readOnly = false } = props;
   const eventFlags = getBooleanFlags(slot.eventFlags);
   const itemFlags = getBooleanFlags(slot.itemFlags);
   const otherFlags = getBooleanFlags(slot.otherFlags);
 
   const [expanded, setExpanded] = useState(false);
+
+  function changed() {
+    if (!readOnly) {
+      slot.updateChecksum();
+      onChange?.();
+    }
+  }
+
+  function setRoom(nextRoom: Room) {
+    if (readOnly) {
+      return;
+    }
+
+    const validEntrances = ValidEntrancesForRoom(nextRoom);
+    const nextEntrance = validEntrances[0];
+    slot.roomWithEntrance = RoomWithEntranceFor(nextRoom, nextEntrance);
+    changed();
+  }
+
+  function setEntrance(nextEntrance: Entrance) {
+    if (readOnly) {
+      return;
+    }
+
+    const validEntrances = ValidEntrancesForRoom(slot.room);
+    if (validEntrances.includes(nextEntrance)) {
+      slot.entrance = nextEntrance;
+      changed();
+    }
+  }
+
+  function updateMagicMax() {
+    if (slot.magicFlag1 && slot.magicFlag2) {
+      slot.maxMagic = 2;
+      return;
+    }
+
+    if (slot.magicFlag1) {
+      slot.maxMagic = 1;
+      return;
+    }
+
+    slot.maxMagic = 0;
+  }
 
   return (
     <div
@@ -192,133 +362,636 @@ export default function Slot(props: SlotProps) {
       </div>
 
       <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-3">
-        <Field label="Player Name">{slot.playerName}</Field>
-        <Field label="Deaths">{slot.deathCounter}</Field>
-        <Field label="Age">{Age[slot.age]}</Field>
+        <Field label="Player Name">
+          <input
+            type="text"
+            value={slot.playerName}
+            disabled={readOnly}
+            maxLength={8}
+            onInput={(event) => {
+              slot.playerName = event.currentTarget.value;
+              changed();
+            }}
+            className="w-full rounded border border-slate-300 px-2 py-1"
+          />
+        </Field>
+        <Field label="Deaths">
+          <NumberInput
+            value={slot.deathCounter}
+            disabled={readOnly}
+            min={0}
+            max={0xFFFF}
+            onChange={(value) => {
+              slot.deathCounter = value;
+              changed();
+            }}
+          />
+        </Field>
+        <Field label="Age">
+          <EnumSelect
+            keyPrefix={`slot-${index}-age-`}
+            enumObject={Age}
+            value={slot.age}
+            disabled={readOnly}
+            options={[Age.Child, Age.Adult]}
+            onChange={(value) => {
+              slot.age = value;
+              changed();
+            }}
+          />
+        </Field>
       </div>
 
       {expanded && (
         <div className="mt-4 space-y-4">
           <Section title="World State">
-            <Field label="Entrance Index">{slot.entranceIndex}</Field>
-            <Field label="Cutscene">{slot.cutSceneNumber}</Field>
-            <Field label="World Time">{slot.worldTime}</Field>
-            <Field label="Day/Night">{enumLabel(Time, slot.nightFlag)}</Field>
-            <Field label="DD Only">
-              <BooleanCheckbox value={slot.ddOnly} />
+            <Field label="Entrance Index">
+              <NumberInput
+                value={slot.entranceIndex}
+                disabled={readOnly}
+                min={0}
+                max={0xFFFFFFFF}
+                onChange={(value) => {
+                  slot.entranceIndex = value;
+                  changed();
+                }}
+              />
             </Field>
-            <Field label="Navi Timer">{slot.naviTimer}</Field>
+            <Field label="Cutscene">
+              <NumberInput
+                value={slot.cutSceneNumber}
+                disabled={readOnly}
+                min={0}
+                max={0xFFFF}
+                onChange={(value) => {
+                  slot.cutSceneNumber = value;
+                  changed();
+                }}
+              />
+            </Field>
+            <Field label="World Time">
+              <NumberInput
+                value={slot.worldTime}
+                disabled={readOnly}
+                min={0}
+                max={0xFFFF}
+                onChange={(value) => {
+                  slot.worldTime = value;
+                  changed();
+                }}
+              />
+            </Field>
+            <Field label="Day/Night">
+              <EnumSelect
+                keyPrefix={`slot-${index}-time-`}
+                enumObject={Time}
+                value={slot.nightFlag}
+                disabled={readOnly}
+                onChange={(value) => {
+                  slot.nightFlag = value;
+                  changed();
+                }}
+              />
+            </Field>
+            <Field label="DD Only">
+              <BooleanCheckbox
+                value={slot.ddOnly}
+                disabled={readOnly}
+                onChange={(value) => {
+                  slot.ddOnly = value;
+                  changed();
+                }}
+              />
+            </Field>
+            <Field label="Navi Timer">
+              <NumberInput
+                value={slot.naviTimer}
+                disabled={readOnly}
+                min={0}
+                max={0xFFFF}
+                onChange={(value) => {
+                  slot.naviTimer = value;
+                  changed();
+                }}
+              />
+            </Field>
           </Section>
 
           <Section title="Vitals & Currency">
             <Field label="Health">
-              {slot.currentHealth / 16} / {slot.maxHealth / 16}{" "}
-              ({slot.doubleDefenseHearts / 16})
+              <div className="grid grid-cols-1 gap-2 md:grid-cols-3">
+                <NumberInput
+                  value={slot.currentHealth / 16}
+                  disabled={readOnly}
+                  min={0}
+                  max={slot.maxHealth / 16}
+                  step={0.25}
+                  onChange={(value) => {
+                    slot.currentHealth = Math.round(value * 16);
+                    if (slot.currentHealth > slot.maxHealth) {
+                      slot.currentHealth = slot.maxHealth;
+                    }
+                    changed();
+                  }}
+                />
+                <NumberInput
+                  value={slot.maxHealth / 16}
+                  disabled={readOnly}
+                  min={0}
+                  max={0xFFFF / 16}
+                  step={0.25}
+                  onChange={(value) => {
+                    slot.maxHealth = Math.round(value * 16);
+                    if (slot.currentHealth > slot.maxHealth) {
+                      slot.currentHealth = slot.maxHealth;
+                    }
+                    if (slot.doubleDefenseHearts > slot.maxHealth) {
+                      slot.doubleDefenseHearts = slot.maxHealth;
+                    }
+                    changed();
+                  }}
+                />
+                <NumberInput
+                  value={slot.doubleDefenseHearts / 16}
+                  disabled={readOnly}
+                  min={0}
+                  max={slot.maxHealth / 16}
+                  step={0.25}
+                  onChange={(value) => {
+                    slot.doubleDefenseHearts = Math.round(value * 16);
+                    if (slot.doubleDefenseHearts > slot.maxHealth) {
+                      slot.doubleDefenseHearts = slot.maxHealth;
+                    }
+                    changed();
+                  }}
+                />
+              </div>
             </Field>
             <Field label="Magic Meter">
-              <span>
-                {enumLabel(MagicAmount, slot.currentMagic)} / {slot.maxMagic}
-              </span>
-              <span className="ml-2 text-xs text-slate-600">
-                {slot.magicFlag1 ? "Flag 1 " : ""}
-                {slot.magicFlag2 ? "Flag 2" : ""}
-              </span>
+              <div className="grid grid-cols-1 gap-2 md:grid-cols-3">
+                <EnumSelect
+                  enumObject={MagicAmount}
+                  value={slot.currentMagic}
+                  disabled={readOnly || !slot.magicFlag1}
+                  keyPrefix={`slot-${index}-magic-`}
+                  onChange={(value) => {
+                    slot.currentMagic = value;
+                    changed();
+                  }}
+                />
+                <label className="inline-flex items-center gap-2 text-sm">
+                  <BooleanCheckbox
+                    value={slot.magicFlag1}
+                    disabled={readOnly}
+                    onChange={(value) => {
+                      slot.magicFlag1 = value;
+                      if (!value) {
+                        slot.magicFlag2 = false;
+                        slot.currentMagic = MagicAmount.Empty;
+                      }
+                      updateMagicMax();
+                      changed();
+                    }}
+                  />
+                  <span>Flag 1</span>
+                </label>
+                <label className="inline-flex items-center gap-2 text-sm">
+                  <BooleanCheckbox
+                    value={slot.magicFlag2}
+                    disabled={readOnly || !slot.magicFlag1}
+                    onChange={(value) => {
+                      slot.magicFlag2 = value;
+                      updateMagicMax();
+                      changed();
+                    }}
+                  />
+                  <span>Flag 2</span>
+                </label>
+              </div>
             </Field>
-            <Field label="Rupees">{slot.rupees}</Field>
+            <Field label="Rupees">
+              <NumberInput
+                value={slot.rupees}
+                disabled={readOnly}
+                min={0}
+                max={500}
+                onChange={(value) => {
+                  slot.rupees = value;
+                  changed();
+                }}
+              />
+            </Field>
           </Section>
 
           <Section title="Location & Progress">
             <Field label="Biggoron Flag 1">
-              <BooleanCheckbox value={slot.biggoronsSwordFlag1} />
+              <BooleanCheckbox
+                value={slot.biggoronsSwordFlag1}
+                disabled={readOnly}
+                onChange={(value) => {
+                  slot.biggoronsSwordFlag1 = value;
+                  changed();
+                }}
+              />
             </Field>
             <Field label="Biggoron Flag 2">
-              <BooleanCheckbox value={slot.biggoronsSwordFlag2} />
+              <BooleanCheckbox
+                value={slot.biggoronsSwordFlag2}
+                disabled={readOnly}
+                onChange={(value) => {
+                  slot.biggoronsSwordFlag2 = value;
+                  changed();
+                }}
+              />
             </Field>
             <Field label="Saved Scene">
-              {enumLabel(Scene, slot.savedSceneIndex)}
+              <EnumSelect
+                enumObject={Scene}
+                value={slot.savedSceneIndex}
+                disabled={readOnly}
+                keyPrefix={`slot-${index}-saved-scene-`}
+                onChange={(value) => {
+                  slot.savedSceneIndex = value;
+                  changed();
+                }}
+              />
             </Field>
             <Field label="Location">
-              {Room[slot.room]} ({Entrance[slot.entrance]})
+              <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+                <EnumSelect
+                  keyPrefix={`slot-${index}-room-`}
+                  enumObject={Room}
+                  value={slot.room}
+                  disabled={readOnly}
+                  onChange={(value) => setRoom(value)}
+                />
+                <EnumSelect
+                  keyPrefix={`slot-${index}-entrance-`}
+                  enumObject={Entrance}
+                  value={slot.entrance}
+                  disabled={readOnly}
+                  options={ValidEntrancesForRoom(slot.room)}
+                  onChange={(value) => setEntrance(value)}
+                />
+              </div>
             </Field>
-            <Field label="Magic Beans">{slot.magicBeans}</Field>
+            <Field label="Magic Beans">
+              <NumberInput
+                value={slot.magicBeans}
+                disabled={readOnly}
+                min={0}
+                max={0xFF}
+                onChange={(value) => {
+                  slot.magicBeans = value;
+                  changed();
+                }}
+              />
+            </Field>
             <Field label="Gold Skulltula Tokens">
-              {slot.goldSkulltulaTokens}
+              <NumberInput
+                value={slot.goldSkulltulaTokens}
+                disabled={readOnly}
+                min={0}
+                max={99}
+                onChange={(value) => {
+                  slot.goldSkulltulaTokens = value;
+                  changed();
+                }}
+              />
             </Field>
           </Section>
 
           <Section title="Equipment & Buttons" cols="grid grid-cols-1 gap-3">
             <Field label="Button Equips">
-              B: {inventoryItemLabel(slot.bButtonEquip)}, C←:{" "}
-              {inventoryItemLabel(slot.cLeftButtonEquip)}, C↓:{" "}
-              {inventoryItemLabel(slot.cDownButtonEquip)}, C→:{" "}
-              {inventoryItemLabel(slot.cRightButtonEquip)}
+              <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+                <EnumSelect
+                  keyPrefix={`slot-${index}-b-button-equip-`}
+                  enumObject={InventoryItems}
+                  value={slot.bButtonEquip}
+                  disabled={readOnly}
+                  onChange={(value) => {
+                    slot.bButtonEquip = value;
+                    changed();
+                  }}
+                />
+                <EnumSelect
+                  keyPrefix={`slot-${index}-c-left-button-equip-`}
+                  enumObject={InventoryItems}
+                  value={slot.cLeftButtonEquip}
+                  disabled={readOnly}
+                  onChange={(value) => {
+                    slot.cLeftButtonEquip = value;
+                    changed();
+                  }}
+                />
+                <EnumSelect
+                  keyPrefix={`slot-${index}-c-down-button-equip-`}
+                  enumObject={InventoryItems}
+                  value={slot.cDownButtonEquip}
+                  disabled={readOnly}
+                  onChange={(value) => {
+                    slot.cDownButtonEquip = value;
+                    changed();
+                  }}
+                />
+                <EnumSelect
+                  keyPrefix={`slot-${index}-c-right-button-equip-`}
+                  enumObject={InventoryItems}
+                  value={slot.cRightButtonEquip}
+                  disabled={readOnly}
+                  onChange={(value) => {
+                    slot.cRightButtonEquip = value;
+                    changed();
+                  }}
+                />
+              </div>
             </Field>
             <Field label="Equip Offsets">
-              C←: {slot.currentButtonEquips.cLeftOffset === 0xFF
-                ? "Unset"
-                : slot.currentButtonEquips.cLeftOffset}, C↓:{" "}
-              {slot.currentButtonEquips.cDownOffset === 0xFF
-                ? "Unset"
-                : slot.currentButtonEquips.cDownOffset}, C→:{" "}
-              {slot.currentButtonEquips.cRightOffset === 0xFF
-                ? "Unset"
-                : slot.currentButtonEquips.cRightOffset}
+              <div className="grid grid-cols-1 gap-2 md:grid-cols-3">
+                <NumberInput
+                  value={slot.currentButtonEquips.cLeftOffset}
+                  disabled={readOnly}
+                  min={0}
+                  max={0xFF}
+                  onChange={(value) => {
+                    slot.currentButtonEquips = {
+                      ...slot.currentButtonEquips,
+                      cLeftOffset: value,
+                    };
+                    changed();
+                  }}
+                />
+                <NumberInput
+                  value={slot.currentButtonEquips.cDownOffset}
+                  disabled={readOnly}
+                  min={0}
+                  max={0xFF}
+                  onChange={(value) => {
+                    slot.currentButtonEquips = {
+                      ...slot.currentButtonEquips,
+                      cDownOffset: value,
+                    };
+                    changed();
+                  }}
+                />
+                <NumberInput
+                  value={slot.currentButtonEquips.cRightOffset}
+                  disabled={readOnly}
+                  min={0}
+                  max={0xFF}
+                  onChange={(value) => {
+                    slot.currentButtonEquips = {
+                      ...slot.currentButtonEquips,
+                      cRightOffset: value,
+                    };
+                    changed();
+                  }}
+                />
+              </div>
             </Field>
             <Field label="Currently Equipped">
-              Sword:{" "}
-              {equipmentLabel(slot.currentlyEquippedEquipment.sword)}, Shield:
-              {" "}
-              {equipmentLabel(slot.currentlyEquippedEquipment.shield)}, Tunic:
-              {" "}
-              {equipmentLabel(slot.currentlyEquippedEquipment.tunic)}, Boots:
-              {" "}
-              {equipmentLabel(slot.currentlyEquippedEquipment.boots)}
+              <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+                <EnumSelect
+                  keyPrefix={`slot-${index}-currently-equipped-sword-`}
+                  enumObject={Sword}
+                  value={slot.currentlyEquippedEquipment.sword}
+                  disabled={readOnly}
+                  onChange={(value) => {
+                    slot.currentlyEquippedEquipment = {
+                      ...slot.currentlyEquippedEquipment,
+                      sword: value,
+                    };
+                    changed();
+                  }}
+                />
+                <EnumSelect
+                  keyPrefix={`slot-${index}-currently-equipped-shield-`}
+                  enumObject={Shield}
+                  value={slot.currentlyEquippedEquipment.shield}
+                  disabled={readOnly}
+                  onChange={(value) => {
+                    slot.currentlyEquippedEquipment = {
+                      ...slot.currentlyEquippedEquipment,
+                      shield: value,
+                    };
+                    changed();
+                  }}
+                />
+                <EnumSelect
+                  keyPrefix={`slot-${index}-currently-equipped-tunic-`}
+                  enumObject={Tunic}
+                  value={slot.currentlyEquippedEquipment.tunic}
+                  disabled={readOnly}
+                  onChange={(value) => {
+                    slot.currentlyEquippedEquipment = {
+                      ...slot.currentlyEquippedEquipment,
+                      tunic: value,
+                    };
+                    changed();
+                  }}
+                />
+                <EnumSelect
+                  keyPrefix={`slot-${index}-currently-equipped-boots-`}
+                  enumObject={Boots}
+                  value={slot.currentlyEquippedEquipment.boots}
+                  disabled={readOnly}
+                  onChange={(value) => {
+                    slot.currentlyEquippedEquipment = {
+                      ...slot.currentlyEquippedEquipment,
+                      boots: value,
+                    };
+                    changed();
+                  }}
+                />
+              </div>
             </Field>
           </Section>
 
           <Section title="Inventory" cols="grid grid-cols-1 gap-3">
             <Field label="Inventory">
-              {slot.inventory.map((item) => inventoryItemLabel(item)).join(
-                ", ",
-              )}
+              <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+                {slot.inventory.map((item, inventoryIndex) => (
+                  <div key={`slot-${index}-inventory-${inventoryIndex}`}>
+                    <span className="mb-1 block text-xs text-slate-600">
+                      Slot {inventoryIndex + 1}
+                    </span>
+                    <EnumSelect
+                      keyPrefix={`slot-${index}-inventory-${inventoryIndex}-`}
+                      enumObject={InventoryItems}
+                      value={item}
+                      disabled={readOnly}
+                      onChange={(value) => {
+                        const inventory = [...slot.inventory];
+                        inventory[inventoryIndex] = value;
+                        slot.inventory = inventory;
+                        changed();
+                      }}
+                    />
+                  </div>
+                ))}
+              </div>
             </Field>
             <Field label="Inventory Amounts">
-              {slot.inventoryAmounts.join(", ")}
+              <div className="grid grid-cols-1 gap-2 md:grid-cols-3">
+                {slot.inventoryAmounts.map((amount, amountIndex) => (
+                  <div key={`slot-${index}-inventory-amount-${amountIndex}`}>
+                    <span className="mb-1 block text-xs text-slate-600">
+                      Amount {amountIndex + 1}
+                    </span>
+                    <NumberInput
+                      value={amount}
+                      disabled={readOnly}
+                      min={0}
+                      max={0xFF}
+                      onChange={(value) => {
+                        const amounts = [...slot.inventoryAmounts];
+                        amounts[amountIndex] = value;
+                        slot.inventoryAmounts = amounts;
+                        changed();
+                      }}
+                    />
+                  </div>
+                ))}
+              </div>
             </Field>
           </Section>
 
           <Section title="Collected & Upgrades" cols="grid grid-cols-1 gap-3">
             <Field label="Obtained Equipment">
-              {slot.obtainedEquipment.map((item) => equipmentLabel(item)).join(
-                ", ",
-              )}
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-3">
+                {equipmentOptions.map((item) => (
+                  <label
+                    key={`slot-${index}-equipment-${item}`}
+                    className="inline-flex items-center gap-2 text-sm"
+                  >
+                    <BooleanCheckbox
+                      value={slot.obtainedEquipment.includes(item)}
+                      disabled={readOnly}
+                      onChange={(checked) => {
+                        slot.obtainedEquipment = toggleArrayValue(
+                          slot.obtainedEquipment,
+                          item,
+                          checked,
+                        );
+                        changed();
+                      }}
+                    />
+                    <span>{equipmentLabel(item)}</span>
+                  </label>
+                ))}
+              </div>
             </Field>
             <Field label="Obtained Upgrades">
-              {slot.obtainedUpgrades.map((item) => upgradeLabel(item)).join(
-                ", ",
-              )}
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-3">
+                {upgradeOptions.map((item) => (
+                  <label
+                    key={`slot-${index}-upgrade-${item}`}
+                    className="inline-flex items-center gap-2 text-sm"
+                  >
+                    <BooleanCheckbox
+                      value={slot.obtainedUpgrades.includes(item)}
+                      disabled={readOnly}
+                      onChange={(checked) => {
+                        slot.obtainedUpgrades = toggleArrayValue(
+                          slot.obtainedUpgrades,
+                          item,
+                          checked,
+                        );
+                        changed();
+                      }}
+                    />
+                    <span>{upgradeLabel(item)}</span>
+                  </label>
+                ))}
+              </div>
             </Field>
             <Field label="Quest Items">
-              {slot.questStatusItems.map((item) => questItemLabel(item)).join(
-                ", ",
-              )}
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-3">
+                {questItemOptions.map((item) => (
+                  <label
+                    key={`slot-${index}-quest-item-${item}`}
+                    className="inline-flex items-center gap-2 text-sm"
+                  >
+                    <BooleanCheckbox
+                      value={slot.questStatusItems.includes(item)}
+                      disabled={readOnly}
+                      onChange={(checked) => {
+                        slot.questStatusItems = toggleArrayValue(
+                          slot.questStatusItems,
+                          item,
+                          checked,
+                        );
+                        changed();
+                      }}
+                    />
+                    <span>{questItemLabel(item)}</span>
+                  </label>
+                ))}
+              </div>
             </Field>
           </Section>
 
           <Section title="Dungeon Status" cols="grid grid-cols-1 gap-3">
             <Field label="Dungeon Items">
-              {slot.dungeonItems.map((items, dungeonIndex) => (
-                `D${dungeonIndex + 1}: ${
-                  items.map((item) => enumLabel(DungeonItems, item)).join(
-                    "|",
-                  ) || "None"
-                }`
-              )).join(", ")}
+              <div className="grid grid-cols-1 gap-3">
+                {slot.dungeonItems.map((items, dungeonIndex) => (
+                  <div
+                    key={`slot-${index}-dungeon-items-${dungeonIndex}`}
+                    className="rounded border border-slate-200 p-2"
+                  >
+                    <span className="mb-2 block text-xs font-semibold text-slate-600">
+                      Dungeon {dungeonIndex + 1}
+                    </span>
+                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+                      {dungeonItemOptions.map((item) => (
+                        <label
+                          key={`slot-${index}-dungeon-${dungeonIndex}-${item}`}
+                          className="inline-flex items-center gap-2 text-sm"
+                        >
+                          <BooleanCheckbox
+                            value={items.includes(item)}
+                            disabled={readOnly}
+                            onChange={(checked) => {
+                              const dungeonItems = [...slot.dungeonItems];
+                              dungeonItems[dungeonIndex] = toggleArrayValue(
+                                dungeonItems[dungeonIndex],
+                                item,
+                                checked,
+                              );
+                              slot.dungeonItems = dungeonItems;
+                              changed();
+                            }}
+                          />
+                          <span>{enumLabel(DungeonItems, item)}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
             </Field>
             <Field label="Small Keys">
-              {slot.smallKeyAmount.map((value, dungeonIndex) => (
-                `D${dungeonIndex + 1}: ${value === 0xFF ? "None" : value}`
-              )).join(", ")}
+              <div className="grid grid-cols-1 gap-2 md:grid-cols-3">
+                {slot.smallKeyAmount.map((value, dungeonIndex) => (
+                  <div key={`slot-${index}-small-key-${dungeonIndex}`}>
+                    <span className="mb-1 block text-xs text-slate-600">
+                      Dungeon {dungeonIndex + 1}
+                    </span>
+                    <NumberInput
+                      value={value}
+                      disabled={readOnly}
+                      min={0}
+                      max={0xFF}
+                      onChange={(next) => {
+                        const keys = [...slot.smallKeyAmount];
+                        keys[dungeonIndex] = next;
+                        slot.smallKeyAmount = keys;
+                        changed();
+                      }}
+                    />
+                  </div>
+                ))}
+              </div>
             </Field>
           </Section>
 
@@ -326,22 +999,135 @@ export default function Slot(props: SlotProps) {
             title="Advanced"
             cols="grid grid-cols-1 gap-3 md:grid-cols-2"
           >
-            <Field label="Big Poe Points">{slot.bigPoePoints}</Field>
+            <Field label="Big Poe Points">
+              <NumberInput
+                value={slot.bigPoePoints}
+                disabled={readOnly}
+                min={0}
+                max={0xFFFFFFFF}
+                step={100}
+                onChange={(value) => {
+                  slot.bigPoePoints = value;
+                  changed();
+                }}
+              />
+            </Field>
             <Field label="Farores Wind Warp">
-              {slot.faroresWindWarp.x}, {slot.faroresWindWarp.y},{" "}
-              {slot.faroresWindWarp.z}, {slot.faroresWindWarp.yRotation}
+              <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+                <NumberInput
+                  value={slot.faroresWindWarp.x}
+                  disabled={readOnly}
+                  min={0}
+                  max={0xFFFFFFFF}
+                  onChange={(value) => {
+                    slot.faroresWindWarp = {
+                      ...slot.faroresWindWarp,
+                      x: value,
+                    };
+                    changed();
+                  }}
+                />
+                <NumberInput
+                  value={slot.faroresWindWarp.y}
+                  disabled={readOnly}
+                  min={0}
+                  max={0xFFFFFFFF}
+                  onChange={(value) => {
+                    slot.faroresWindWarp = {
+                      ...slot.faroresWindWarp,
+                      y: value,
+                    };
+                    changed();
+                  }}
+                />
+                <NumberInput
+                  value={slot.faroresWindWarp.z}
+                  disabled={readOnly}
+                  min={0}
+                  max={0xFFFFFFFF}
+                  onChange={(value) => {
+                    slot.faroresWindWarp = {
+                      ...slot.faroresWindWarp,
+                      z: value,
+                    };
+                    changed();
+                  }}
+                />
+                <NumberInput
+                  value={slot.faroresWindWarp.yRotation}
+                  disabled={readOnly}
+                  min={0}
+                  max={0xFFFF}
+                  onChange={(value) => {
+                    slot.faroresWindWarp = {
+                      ...slot.faroresWindWarp,
+                      yRotation: value,
+                    };
+                    changed();
+                  }}
+                />
+              </div>
             </Field>
             <Field label="Transport Scene">
-              {enumLabel(Scene, slot.entranceIndexTransport)}
+              <EnumSelect
+                enumObject={Scene}
+                value={slot.entranceIndexTransport}
+                disabled={readOnly}
+                keyPrefix={`slot-${index}-transport-scene-`}
+                onChange={(value) => {
+                  slot.entranceIndexTransport = value;
+                  changed();
+                }}
+              />
             </Field>
-            <Field label="Map #">{slot.mapNumber}</Field>
+            <Field label="Map #">
+              <NumberInput
+                value={slot.mapNumber}
+                disabled={readOnly}
+                min={0}
+                max={0xFF}
+                onChange={(value) => {
+                  slot.mapNumber = value;
+                  changed();
+                }}
+              />
+            </Field>
             <Field label="Warp Point Set">
-              <BooleanCheckbox value={slot.warpPointSet} />
+              <BooleanCheckbox
+                value={slot.warpPointSet}
+                disabled={readOnly}
+                onChange={(value) => {
+                  slot.warpPointSet = value;
+                  changed();
+                }}
+              />
             </Field>
-            <Field label="Checksum">{slot.checksum}</Field>
-            <Field label="File Index">{slot.fileIndex}</Field>
+            <Field label="Checksum">
+              <NumberInput
+                value={slot.checksum}
+                disabled={readOnly}
+                min={0}
+                max={0xFFFF}
+                onChange={(value) => {
+                  slot.checksum = value;
+                  changed();
+                }}
+              />
+            </Field>
+            <Field label="File Index">
+              <NumberInput
+                value={slot.fileIndex}
+                disabled={readOnly}
+                min={0}
+                max={0xFFFFFFFF}
+                onChange={(value) => {
+                  slot.fileIndex = value;
+                  changed();
+                }}
+              />
+            </Field>
             <Field label="Valid">
-              <BooleanCheckbox value={slot.isValid} />
+              <BooleanCheckbox value={slot.isValid} disabled />
             </Field>
           </Section>
 
@@ -355,9 +1141,21 @@ export default function Slot(props: SlotProps) {
                   {eventFlags.map((flag) => (
                     <label
                       className="inline-flex items-center gap-2 text-sm"
-                      key={flag.name}
+                      key={`slot-${index}-event-flag-${flag.name}`}
                     >
-                      <BooleanCheckbox value={flag.value} />
+                      <BooleanCheckbox
+                        value={flag.value}
+                        disabled={readOnly}
+                        onChange={(value) => {
+                          (slot.eventFlags as unknown as Record<
+                            string,
+                            unknown
+                          >)[
+                            flag.name
+                          ] = value;
+                          changed();
+                        }}
+                      />
                       <span>{formatFlagName(flag.name)}</span>
                     </label>
                   ))}
@@ -374,9 +1172,21 @@ export default function Slot(props: SlotProps) {
                   {itemFlags.map((flag) => (
                     <label
                       className="inline-flex items-center gap-2 text-sm"
-                      key={flag.name}
+                      key={`slot-${index}-item-flag-${flag.name}`}
                     >
-                      <BooleanCheckbox value={flag.value} />
+                      <BooleanCheckbox
+                        value={flag.value}
+                        disabled={readOnly}
+                        onChange={(value) => {
+                          (slot.itemFlags as unknown as Record<
+                            string,
+                            unknown
+                          >)[
+                            flag.name
+                          ] = value;
+                          changed();
+                        }}
+                      />
                       <span>{formatFlagName(flag.name)}</span>
                     </label>
                   ))}
@@ -393,9 +1203,21 @@ export default function Slot(props: SlotProps) {
                   {otherFlags.map((flag) => (
                     <label
                       className="inline-flex items-center gap-2 text-sm"
-                      key={flag.name}
+                      key={`slot-${index}-other-flag-${flag.name}`}
                     >
-                      <BooleanCheckbox value={flag.value} />
+                      <BooleanCheckbox
+                        value={flag.value}
+                        disabled={readOnly}
+                        onChange={(value) => {
+                          (slot.otherFlags as unknown as Record<
+                            string,
+                            unknown
+                          >)[
+                            flag.name
+                          ] = value;
+                          changed();
+                        }}
+                      />
                       <span>{formatFlagName(flag.name)}</span>
                     </label>
                   ))}

@@ -8,7 +8,9 @@ export interface DownloadButtonProps {
 }
 
 export function DownloadButton(props: DownloadButtonProps) {
-  const blob = new Blob([props.saveData], { type: "application/octet-stream" });
+  const bytes = new Uint8Array(props.saveData.byteLength);
+  bytes.set(props.saveData);
+  const blob = new Blob([bytes.buffer], { type: "application/octet-stream" });
   const url = URL.createObjectURL(blob);
 
   return (
