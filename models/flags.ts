@@ -1,4 +1,6 @@
-export abstract class Flags<TFlags extends Uint8Array | Uint16Array | Uint32Array> {
+export abstract class Flags<
+  TFlags extends Uint8Array | Uint16Array | Uint32Array,
+> {
   private flags: TFlags;
 
   protected get minBytes(): number {

@@ -1077,15 +1077,18 @@ Deno.test({
 Deno.test({
   name: "should set permanent scene flags",
   fn() {
-    const sceneFlags: PermanentSceneFlags[] = Array.from({ length: 101 }, () => ({
-      chestFlags: new ChestFlags(),
-      switches: new SwitchFlags(),
-      roomClearFlags: new RoomClearFlags(),
-      collectibleFlags: new CollectibleFlags(),
-      unused: new UnusedFlags(),
-      visitedRooms: new VisitedRoomsFlags(),
-      visitedFloors: new VisitedFloorsFlags(),
-    }));
+    const sceneFlags: PermanentSceneFlags[] = Array.from(
+      { length: 101 },
+      () => ({
+        chestFlags: new ChestFlags(),
+        switches: new SwitchFlags(),
+        roomClearFlags: new RoomClearFlags(),
+        collectibleFlags: new CollectibleFlags(),
+        unused: new UnusedFlags(),
+        visitedRooms: new VisitedRoomsFlags(),
+        visitedFloors: new VisitedFloorsFlags(),
+      }),
+    );
 
     sceneFlags[12].chestFlags.setFlag(2, true);
     sceneFlags[12].switches.setFlag(3, true);

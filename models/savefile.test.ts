@@ -318,5 +318,8 @@ Deno.test("should return correct SraSaveFile from saveFile getter", () => {
   srm.sram.fill(0x88);
   const sra = srm.saveFile;
   assertInstanceOf(sra, SraSaveFile);
-  assertEquals(sra.data.slice(0, SraSaveFile.requiredSize), srm.sram.slice(0, SraSaveFile.requiredSize));
+  assertEquals(
+    sra.data.slice(0, SraSaveFile.requiredSize),
+    srm.sram.slice(0, SraSaveFile.requiredSize),
+  );
 });

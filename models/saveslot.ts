@@ -3,7 +3,7 @@ import { OotText } from "../utils/text.ts";
 import { EventFlags } from "./eventflags.ts";
 import { ItemFlags } from "./itemflags.ts";
 import { OtherFlags } from "./otherflags.ts";
-import { 
+import {
   ChestFlags,
   CollectibleFlags,
   PermanentSceneFlags,
@@ -11,7 +11,7 @@ import {
   SwitchFlags,
   UnusedFlags,
   VisitedFloorsFlags,
-  VisitedRoomsFlags 
+  VisitedRoomsFlags,
 } from "./permanentsceneflags.ts";
 import {
   Entrance,
@@ -897,10 +897,14 @@ export class SaveSlot {
         chestFlags: new ChestFlags(this.get32bitWord(0x00D4 + offset)),
         switches: new SwitchFlags(this.get32bitWord(0x00D8 + offset)),
         roomClearFlags: new RoomClearFlags(this.get32bitWord(0x00DC + offset)),
-        collectibleFlags: new CollectibleFlags(this.get32bitWord(0x00E0 + offset)),
+        collectibleFlags: new CollectibleFlags(
+          this.get32bitWord(0x00E0 + offset),
+        ),
         unused: new UnusedFlags(this.get32bitWord(0x00E4 + offset)),
         visitedRooms: new VisitedRoomsFlags(this.get32bitWord(0x00E8 + offset)),
-        visitedFloors: new VisitedFloorsFlags(this.get32bitWord(0x00EC + offset)),
+        visitedFloors: new VisitedFloorsFlags(
+          this.get32bitWord(0x00EC + offset),
+        ),
       });
     }
     return sceneFlags;
@@ -921,7 +925,10 @@ export class SaveSlot {
       data.set(new Uint8Array(value[i].chestFlags.data.buffer), offset + 0);
       data.set(new Uint8Array(value[i].switches.data.buffer), offset + 4);
       data.set(new Uint8Array(value[i].roomClearFlags.data.buffer), offset + 8);
-      data.set(new Uint8Array(value[i].collectibleFlags.data.buffer), offset + 12);
+      data.set(
+        new Uint8Array(value[i].collectibleFlags.data.buffer),
+        offset + 12,
+      );
       data.set(new Uint8Array(value[i].unused.data.buffer), offset + 16);
       data.set(new Uint8Array(value[i].visitedRooms.data.buffer), offset + 20);
       data.set(new Uint8Array(value[i].visitedFloors.data.buffer), offset + 24);

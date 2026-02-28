@@ -37,13 +37,13 @@ class PermanentSceneFlag extends Flags<Uint32Array> {
   }
 }
 
-export class ChestFlags extends PermanentSceneFlag {};
-export class SwitchFlags extends PermanentSceneFlag {};
-export class RoomClearFlags extends PermanentSceneFlag {};
-export class CollectibleFlags extends PermanentSceneFlag {};
-export class UnusedFlags extends PermanentSceneFlag {};
-export class VisitedRoomsFlags extends PermanentSceneFlag {};
-export class VisitedFloorsFlags extends PermanentSceneFlag {};
+export class ChestFlags extends PermanentSceneFlag {}
+export class SwitchFlags extends PermanentSceneFlag {}
+export class RoomClearFlags extends PermanentSceneFlag {}
+export class CollectibleFlags extends PermanentSceneFlag {}
+export class UnusedFlags extends PermanentSceneFlag {}
+export class VisitedRoomsFlags extends PermanentSceneFlag {}
+export class VisitedFloorsFlags extends PermanentSceneFlag {}
 
 export interface PermanentSceneFlags {
   chestFlags: ChestFlags;
