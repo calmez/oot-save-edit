@@ -1033,11 +1033,21 @@ export class SaveSlot {
 
   get eventFlags(): EventFlags {
     const bytes = this.bytes.slice(0x0ED4, 0x0ED4 + 28);
-    return new EventFlags(bytes);
+    const twoWordArray = new Uint16Array(
+      bytes.buffer,
+      bytes.byteOffset,
+      bytes.byteLength / 2,
+    );
+    return new EventFlags(twoWordArray);
   }
 
   set eventFlags(value: EventFlags) {
-    this.bytes.set(value.data, 0x0ED4);
+    const bytes = new Uint8Array(
+      value.data.buffer,
+      value.data.byteOffset,
+      value.data.byteLength,
+    );
+    this.bytes.set(bytes, 0x0ED4);
   }
 
   get itemFlags(): ItemFlags {

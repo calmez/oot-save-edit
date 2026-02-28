@@ -1164,7 +1164,12 @@ Deno.test({
     expectedEventFlags.metDekuTree = true;
     expectedEventFlags.obtainedKokiriEmerald = true;
     expectedEventFlags.learnedSongOfTime = true;
-    testData.set(expectedEventFlags.data, 0x0ED4);
+    const singleWordArray = new Uint8Array(
+      expectedEventFlags.data.buffer,
+      expectedEventFlags.data.byteOffset,
+      expectedEventFlags.data.byteLength,
+    );
+    testData.set(singleWordArray, 0x0ED4);
     const instance = new SaveSlot(testData);
 
     const actualEventFlags = instance.eventFlags;

@@ -1,200 +1,167 @@
-// Ocarina of Time event_chk_inf (event flags) structure
-// See: https://wiki.cloudmodding.com/oot/Save_Format#Event_Flags
+import { Flags } from "./flags.ts";
 
-export class EventFlags {
-  // Bit coordinates for each flag property, ordered by word and bit
-  static readonly metDekuTree = { word: 0, bit: 12 };
-  static readonly playedSariasSongForMidoAsAdult = { word: 0, bit: 10 };
-  static readonly usedBlueWarpInGohmasLair = { word: 0, bit: 9 };
-  static readonly obtainedKokiriEmeraldAndDekuTreeDead = { word: 0, bit: 7 };
-  static readonly spokeToSariaAfterDekuTreeDeath = { word: 0, bit: 6 };
-  static readonly dekuTreeOpenedMouth = { word: 0, bit: 5 };
-  static readonly showedMidoSwordAndShield = { word: 0, bit: 4 };
-  static readonly complainedAboutMidoToSaria = { word: 0, bit: 3 };
-  static readonly firstSpokeToMido = { word: 0, bit: 2 };
+export class EventFlags extends Flags<Uint16Array> {
+  static readonly metDekuTree = { byte: 0, bit: 12 };
+  static readonly playedSariasSongForMidoAsAdult = { byte: 0, bit: 10 };
+  static readonly usedBlueWarpInGohmasLair = { byte: 0, bit: 9 };
+  static readonly obtainedKokiriEmeraldAndDekuTreeDead = { byte: 0, bit: 7 };
+  static readonly spokeToSariaAfterDekuTreeDeath = { byte: 0, bit: 6 };
+  static readonly dekuTreeOpenedMouth = { byte: 0, bit: 5 };
+  static readonly showedMidoSwordAndShield = { byte: 0, bit: 4 };
+  static readonly complainedAboutMidoToSaria = { byte: 0, bit: 3 };
+  static readonly firstSpokeToMido = { byte: 0, bit: 2 };
 
-  static readonly wonCowInMalonRace = { word: 1, bit: 14 };
-  static readonly destroyedRoyalFamilyTomb = { word: 1, bit: 13 };
-  static readonly spokeToMidoAfterDekuTreeDeath = { word: 1, bit: 12 };
-  static readonly rentedHorseFromIngo = { word: 1, bit: 11 };
-  static readonly obtainedKokiriEmerald = { word: 1, bit: 9 };
-  static readonly obtainedEpona = { word: 1, bit: 8 };
-  static readonly dekuTreeIsDead = { word: 1, bit: 7 };
-  static readonly invitedToSingWithChildMalon = { word: 1, bit: 6 };
-  static readonly spokeToChildMalonAtRanch = { word: 1, bit: 5 };
-  static readonly talonFledHyruleCastle = { word: 1, bit: 4 };
-  static readonly wokeTalon = { word: 1, bit: 3 };
-  static readonly obtainedPocketEgg = { word: 1, bit: 2 };
-  static readonly spokeToIngoAtRanchBeforeTalonReturns = { word: 1, bit: 1 };
-  static readonly spokeToChildMalonAtCastleOrMarket = { word: 1, bit: 0 };
+  static readonly wonCowInMalonRace = { byte: 1, bit: 14 };
+  static readonly destroyedRoyalFamilyTomb = { byte: 1, bit: 13 };
+  static readonly spokeToMidoAfterDekuTreeDeath = { byte: 1, bit: 12 };
+  static readonly rentedHorseFromIngo = { byte: 1, bit: 11 };
+  static readonly obtainedKokiriEmerald = { byte: 1, bit: 9 };
+  static readonly obtainedEpona = { byte: 1, bit: 8 };
+  static readonly dekuTreeIsDead = { byte: 1, bit: 7 };
+  static readonly invitedToSingWithChildMalon = { byte: 1, bit: 6 };
+  static readonly spokeToChildMalonAtRanch = { byte: 1, bit: 5 };
+  static readonly talonFledHyruleCastle = { byte: 1, bit: 4 };
+  static readonly wokeTalon = { byte: 1, bit: 3 };
+  static readonly obtainedPocketEgg = { byte: 1, bit: 2 };
+  static readonly spokeToIngoAtRanchBeforeTalonReturns = { byte: 1, bit: 1 };
+  static readonly spokeToChildMalonAtCastleOrMarket = { byte: 1, bit: 0 };
 
-  static readonly deathMountainErupted = { word: 2, bit: 15 };
-  static readonly completedDodongosCavern = { word: 2, bit: 5 };
-  static readonly bombedDodongosCavernEntrance = { word: 2, bit: 3 };
+  static readonly deathMountainErupted = { byte: 2, bit: 15 };
+  static readonly completedDodongosCavern = { byte: 2, bit: 5 };
+  static readonly bombedDodongosCavernEntrance = { byte: 2, bit: 3 };
 
-  static readonly finishedNabooruBattle = { word: 3, bit: 12 };
-  static readonly beganNabooruBattle = { word: 3, bit: 11 };
-  static readonly offeredFishToJabuJabu = { word: 3, bit: 10 };
-  static readonly openedEntranceToZorasDomain = { word: 3, bit: 9 };
-  static readonly obtainedSilverScale = { word: 3, bit: 8 };
-  static readonly obtainedZorasSapphire = { word: 3, bit: 7 };
-  static readonly kingZoraMovedAside = { word: 3, bit: 3 };
-  static readonly obtainedRutosLetter = { word: 3, bit: 1 };
-  static readonly spokeToAZora = { word: 3, bit: 0 };
+  static readonly finishedNabooruBattle = { byte: 3, bit: 12 };
+  static readonly beganNabooruBattle = { byte: 3, bit: 11 };
+  static readonly offeredFishToJabuJabu = { byte: 3, bit: 10 };
+  static readonly openedEntranceToZorasDomain = { byte: 3, bit: 9 };
+  static readonly obtainedSilverScale = { byte: 3, bit: 8 };
+  static readonly obtainedZorasSapphire = { byte: 3, bit: 7 };
+  static readonly kingZoraMovedAside = { byte: 3, bit: 3 };
+  static readonly obtainedRutosLetter = { byte: 3, bit: 1 };
+  static readonly spokeToAZora = { byte: 3, bit: 0 };
 
-  static readonly enteredMasterSwordChamber = { word: 4, bit: 15 };
-  static readonly caughtByHyruleCastleGuards = { word: 4, bit: 14 };
-  static readonly rainbowBridgeBuiltBySages = { word: 4, bit: 13 };
-  static readonly openedDoorOfTime = { word: 4, bit: 11 };
-  static readonly obtainedWaterMedallion = { word: 4, bit: 10 };
-  static readonly obtainedFireMedallion = { word: 4, bit: 9 };
-  static readonly obtainedForestMedallion = { word: 4, bit: 8 };
-  static readonly pulledMasterSwordFromPedestal = { word: 4, bit: 5 };
-  static readonly obtainedOcarinaOfTime = { word: 4, bit: 3 };
-  static readonly obtainedZeldasLetter = { word: 4, bit: 0 };
+  static readonly enteredMasterSwordChamber = { byte: 4, bit: 15 };
+  static readonly caughtByHyruleCastleGuards = { byte: 4, bit: 14 };
+  static readonly rainbowBridgeBuiltBySages = { byte: 4, bit: 13 };
+  static readonly openedDoorOfTime = { byte: 4, bit: 11 };
+  static readonly obtainedWaterMedallion = { byte: 4, bit: 10 };
+  static readonly obtainedFireMedallion = { byte: 4, bit: 9 };
+  static readonly obtainedForestMedallion = { byte: 4, bit: 8 };
+  static readonly pulledMasterSwordFromPedestal = { byte: 4, bit: 5 };
+  static readonly obtainedOcarinaOfTime = { byte: 4, bit: 3 };
+  static readonly obtainedZeldasLetter = { byte: 4, bit: 0 };
 
-  static readonly learnedSongOfStorms = { word: 5, bit: 11 };
-  static readonly learnedSunsSong = { word: 5, bit: 10 };
-  static readonly learnedZeldasLullaby = { word: 5, bit: 9 };
-  static readonly sheikMovedFromSwordPedestal = { word: 5, bit: 5 };
-  static readonly learnedNocturneOfShadow = { word: 5, bit: 4 };
-  static readonly learnedSerenadeOfWater = { word: 5, bit: 2 };
-  static readonly learnedBoleroOfFire = { word: 5, bit: 1 };
-  static readonly learnedMinuetOfForest = { word: 5, bit: 0 };
+  static readonly learnedSongOfStorms = { byte: 5, bit: 11 };
+  static readonly learnedSunsSong = { byte: 5, bit: 10 };
+  static readonly learnedZeldasLullaby = { byte: 5, bit: 9 };
+  static readonly sheikMovedFromSwordPedestal = { byte: 5, bit: 5 };
+  static readonly learnedNocturneOfShadow = { byte: 5, bit: 4 };
+  static readonly learnedSerenadeOfWater = { byte: 5, bit: 2 };
+  static readonly learnedBoleroOfFire = { byte: 5, bit: 1 };
+  static readonly learnedMinuetOfForest = { byte: 5, bit: 0 };
 
-  static readonly spokeToKaeporaGaeboraByLostWoods = { word: 6, bit: 15 };
-  static readonly spokeToTalonAfterSavingRanch = { word: 6, bit: 11 };
-  static readonly wokeTalonInKakariko = { word: 6, bit: 10 };
-  static readonly restoredLakeHyliaWater = { word: 6, bit: 9 };
-  static readonly playedGerudoArcheryMinigame = { word: 6, bit: 8 };
-  static readonly drainedWellInKakariko = { word: 6, bit: 7 };
-  static readonly playedSongOfStormsInWindmill = { word: 6, bit: 5 };
+  static readonly spokeToKaeporaGaeboraByLostWoods = { byte: 6, bit: 15 };
+  static readonly spokeToTalonAfterSavingRanch = { byte: 6, bit: 11 };
+  static readonly wokeTalonInKakariko = { byte: 6, bit: 10 };
+  static readonly restoredLakeHyliaWater = { byte: 6, bit: 9 };
+  static readonly playedGerudoArcheryMinigame = { byte: 6, bit: 8 };
+  static readonly drainedWellInKakariko = { byte: 6, bit: 7 };
+  static readonly playedSongOfStormsInWindmill = { byte: 6, bit: 5 };
 
-  static readonly beganGanondorfBattle = { word: 7, bit: 8 };
-  static readonly beganBongoBongoBattle = { word: 7, bit: 7 };
-  static readonly beganBarinadeBattle = { word: 7, bit: 6 };
-  static readonly beganTwinrovaBattle = { word: 7, bit: 5 };
-  static readonly beganMorphaBattle = { word: 7, bit: 4 };
-  static readonly beganVolvagiaBattle = { word: 7, bit: 3 };
-  static readonly beganPhantomGanonBattle = { word: 7, bit: 2 };
-  static readonly beganKingDodongoBattle = { word: 7, bit: 1 };
-  static readonly beganGhmaBattle = { word: 7, bit: 0 };
+  static readonly beganGanondorfBattle = { byte: 7, bit: 8 };
+  static readonly beganBongoBongoBattle = { byte: 7, bit: 7 };
+  static readonly beganBarinadeBattle = { byte: 7, bit: 6 };
+  static readonly beganTwinrovaBattle = { byte: 7, bit: 5 };
+  static readonly beganMorphaBattle = { byte: 7, bit: 4 };
+  static readonly beganVolvagiaBattle = { byte: 7, bit: 3 };
+  static readonly beganPhantomGanonBattle = { byte: 7, bit: 2 };
+  static readonly beganKingDodongoBattle = { byte: 7, bit: 1 };
+  static readonly beganGhmaBattle = { byte: 7, bit: 0 };
 
-  static readonly paidBackBunnyHoodFee = { word: 8, bit: 15 };
-  static readonly paidBackSpookyMaskFee = { word: 8, bit: 14 };
-  static readonly paidBackSkullMaskFee = { word: 8, bit: 13 };
-  static readonly paidBackKeatonMaskFee = { word: 8, bit: 12 };
-  static readonly bridgeUnlockedAfterZeldaEscape = { word: 8, bit: 2 };
-  static readonly zeldaFledHyruleCastle = { word: 8, bit: 0 };
+  static readonly paidBackBunnyHoodFee = { byte: 8, bit: 15 };
+  static readonly paidBackSpookyMaskFee = { byte: 8, bit: 14 };
+  static readonly paidBackSkullMaskFee = { byte: 8, bit: 13 };
+  static readonly paidBackKeatonMaskFee = { byte: 8, bit: 12 };
+  static readonly bridgeUnlockedAfterZeldaEscape = { byte: 8, bit: 2 };
+  static readonly zeldaFledHyruleCastle = { byte: 8, bit: 0 };
 
-  static readonly playedSongForScarecrowAsAdult = { word: 9, bit: 12 };
-  static readonly spokeToCursedManInSkulltulaHouse = { word: 9, bit: 6 };
-  static readonly nabooruCapturedByTwinrova = { word: 9, bit: 5 };
-  static readonly spokeToNabooruInSpiritTemple = { word: 9, bit: 4 };
-  static readonly rescuedGreenCarpenter = { word: 9, bit: 3 };
-  static readonly rescuedBlueCarpenter = { word: 9, bit: 2 };
-  static readonly rescuedYellowCarpenter = { word: 9, bit: 1 };
-  static readonly rescuedRedCarpenter = { word: 9, bit: 0 };
+  static readonly playedSongForScarecrowAsAdult = { byte: 9, bit: 12 };
+  static readonly spokeToCursedManInSkulltulaHouse = { byte: 9, bit: 6 };
+  static readonly nabooruCapturedByTwinrova = { byte: 9, bit: 5 };
+  static readonly spokeToNabooruInSpiritTemple = { byte: 9, bit: 4 };
+  static readonly rescuedGreenCarpenter = { byte: 9, bit: 3 };
+  static readonly rescuedBlueCarpenter = { byte: 9, bit: 2 };
+  static readonly rescuedYellowCarpenter = { byte: 9, bit: 1 };
+  static readonly rescuedRedCarpenter = { byte: 9, bit: 0 };
 
-  static readonly completedSpiritTrial = { word: 10, bit: 13 };
-  static readonly learnedRequiemOfSpirit = { word: 10, bit: 12 };
-  static readonly bongoBongoEscapedWell = { word: 10, bit: 10 };
-  static readonly learnedSongOfTime = { word: 10, bit: 9 };
-  static readonly enteredDekuTree = { word: 10, bit: 8 };
-  static readonly enteredTempleOfTime = { word: 10, bit: 7 };
-  static readonly enteredGoronCity = { word: 10, bit: 6 };
-  static readonly enteredHyruleCastle = { word: 10, bit: 5 };
-  static readonly enteredZorasDomain = { word: 10, bit: 4 };
-  static readonly enteredKakarikoVillage = { word: 10, bit: 3 };
-  static readonly enteredDeathMountainTrail = { word: 10, bit: 1 };
-  static readonly enteredHyruleField = { word: 10, bit: 0 };
+  static readonly completedSpiritTrial = { byte: 10, bit: 13 };
+  static readonly learnedRequiemOfSpirit = { byte: 10, bit: 12 };
+  static readonly bongoBongoEscapedWell = { byte: 10, bit: 10 };
+  static readonly learnedSongOfTime = { byte: 10, bit: 9 };
+  static readonly enteredDekuTree = { byte: 10, bit: 8 };
+  static readonly enteredTempleOfTime = { byte: 10, bit: 7 };
+  static readonly enteredGoronCity = { byte: 10, bit: 6 };
+  static readonly enteredHyruleCastle = { byte: 10, bit: 5 };
+  static readonly enteredZorasDomain = { byte: 10, bit: 4 };
+  static readonly enteredKakarikoVillage = { byte: 10, bit: 3 };
+  static readonly enteredDeathMountainTrail = { byte: 10, bit: 1 };
+  static readonly enteredHyruleField = { byte: 10, bit: 0 };
 
-  static readonly completedLightTrial = { word: 11, bit: 15 };
-  static readonly completedFireTrial = { word: 11, bit: 14 };
-  static readonly completedShadowTrial = { word: 11, bit: 13 };
-  static readonly completedWaterTrial = { word: 11, bit: 12 };
-  static readonly completedForestTrial = { word: 11, bit: 11 };
-  static readonly enteredGanonsCastleExterior = { word: 11, bit: 10 };
-  static readonly enteredDeathMountainCrater = { word: 11, bit: 9 };
-  static readonly enteredDesertColossus = { word: 11, bit: 8 };
-  static readonly enteredZorasFountain = { word: 11, bit: 7 };
-  static readonly enteredGraveyard = { word: 11, bit: 6 };
-  static readonly enteredJabuJabusBelly = { word: 11, bit: 5 };
-  static readonly enteredLonLonRanch = { word: 11, bit: 4 };
-  static readonly enteredGerudoFortress = { word: 11, bit: 3 };
-  static readonly enteredGerudoValley = { word: 11, bit: 2 };
-  static readonly enteredLakeHylia = { word: 11, bit: 1 };
-  static readonly enteredDodongosCavern = { word: 11, bit: 0 };
+  static readonly completedLightTrial = { byte: 11, bit: 15 };
+  static readonly completedFireTrial = { byte: 11, bit: 14 };
+  static readonly completedShadowTrial = { byte: 11, bit: 13 };
+  static readonly completedWaterTrial = { byte: 11, bit: 12 };
+  static readonly completedForestTrial = { byte: 11, bit: 11 };
+  static readonly enteredGanonsCastleExterior = { byte: 11, bit: 10 };
+  static readonly enteredDeathMountainCrater = { byte: 11, bit: 9 };
+  static readonly enteredDesertColossus = { byte: 11, bit: 8 };
+  static readonly enteredZorasFountain = { byte: 11, bit: 7 };
+  static readonly enteredGraveyard = { byte: 11, bit: 6 };
+  static readonly enteredJabuJabusBelly = { byte: 11, bit: 5 };
+  static readonly enteredLonLonRanch = { byte: 11, bit: 4 };
+  static readonly enteredGerudoFortress = { byte: 11, bit: 3 };
+  static readonly enteredGerudoValley = { byte: 11, bit: 2 };
+  static readonly enteredLakeHylia = { byte: 11, bit: 1 };
+  static readonly enteredDodongosCavern = { byte: 11, bit: 0 };
 
-  static readonly demoEffectTempleOfTimeWarp = { word: 12, bit: 9 };
-  static readonly obtainedSpiritMedallion = { word: 12, bit: 8 };
+  static readonly demoEffectTempleOfTimeWarp = { byte: 12, bit: 9 };
+  static readonly obtainedSpiritMedallion = { byte: 12, bit: 8 };
   static readonly watchedGanonsTowerCollapseOrCaughtByGerudo = {
-    word: 12,
+    byte: 12,
     bit: 7,
   };
-  static readonly spokeToDekuTreeSprout = { word: 12, bit: 6 };
+  static readonly spokeToDekuTreeSprout = { byte: 12, bit: 6 };
   static readonly sheikSpawnedAtMasterSwordPedestalAsAdult = {
-    word: 12,
+    byte: 12,
     bit: 5,
   };
   static readonly returnedToTempleOfTimeWithAllMedallions = {
-    word: 12,
+    byte: 12,
     bit: 4,
   };
-  static readonly dispelledGanonsTowerBarrier = { word: 12, bit: 3 };
-  static readonly spokeToSariaOnLostWoodsBridge = { word: 12, bit: 1 };
-  static readonly nabooruOrderedToFightByTwinrova = { word: 12, bit: 0 };
+  static readonly dispelledGanonsTowerBarrier = { byte: 12, bit: 3 };
+  static readonly spokeToSariaOnLostWoodsBridge = { byte: 12, bit: 1 };
+  static readonly nabooruOrderedToFightByTwinrova = { byte: 12, bit: 0 };
 
-  static readonly obtainedSkulltulaHousePieceOfHeart = { word: 13, bit: 14 };
-  static readonly obtainedSkulltulaHouseBombchu = { word: 13, bit: 13 };
-  static readonly obtainedGiantsWallet = { word: 13, bit: 12 };
-  static readonly obtainedStoneOfAgony = { word: 13, bit: 11 };
-  static readonly obtainedAdultsWallet = { word: 13, bit: 10 };
-  static readonly playedSongOfStormsForFrogs = { word: 13, bit: 6 };
-  static readonly playedSongOfTimeForFrogs = { word: 13, bit: 5 };
-  static readonly playedSariasSongForFrogs = { word: 13, bit: 4 };
-  static readonly playedSunsSongForFrogs = { word: 13, bit: 3 };
-  static readonly playedEponasSongForFrogs = { word: 13, bit: 2 };
-  static readonly playedZeldasLullabyForFrogs = { word: 13, bit: 1 };
-  static readonly obtainedFrogsPieceOfHeart = { word: 13, bit: 0 };
+  static readonly obtainedSkulltulaHousePieceOfHeart = { byte: 13, bit: 14 };
+  static readonly obtainedSkulltulaHouseBombchu = { byte: 13, bit: 13 };
+  static readonly obtainedGiantsWallet = { byte: 13, bit: 12 };
+  static readonly obtainedStoneOfAgony = { byte: 13, bit: 11 };
+  static readonly obtainedAdultsWallet = { byte: 13, bit: 10 };
+  static readonly playedSongOfStormsForFrogs = { byte: 13, bit: 6 };
+  static readonly playedSongOfTimeForFrogs = { byte: 13, bit: 5 };
+  static readonly playedSariasSongForFrogs = { byte: 13, bit: 4 };
+  static readonly playedSunsSongForFrogs = { byte: 13, bit: 3 };
+  static readonly playedEponasSongForFrogs = { byte: 13, bit: 2 };
+  static readonly playedZeldasLullabyForFrogs = { byte: 13, bit: 1 };
+  static readonly obtainedFrogsPieceOfHeart = { byte: 13, bit: 0 };
 
-  private flags: Uint16Array;
-
-  constructor(flags?: Uint16Array | Uint8Array) {
-    if (flags instanceof Uint8Array) {
-      if (flags.length < 28) {
-        throw new Error("EventFlags: byte array must be at least 28 bytes");
-      }
-      const arr = new Uint16Array(14);
-      for (let i = 0; i < 14; i++) {
-        arr[i] = ((flags[i * 2] << 8) | flags[i * 2 + 1]) & 0xffff;
-      }
-      this.flags = arr;
-    } else if (flags instanceof Uint16Array) {
-      this.flags = flags.slice();
-    } else {
-      this.flags = new Uint16Array(14);
-    }
+  protected override get minBytes(): number {
+    return 14;
   }
 
-  private getBit(coord: { word: number; bit: number }): boolean {
-    return (this.flags[coord.word] & (1 << coord.bit)) !== 0;
-  }
-  private setBit(coord: { word: number; bit: number }, value: boolean) {
-    if (value) {
-      this.flags[coord.word] |= 1 << coord.bit;
-    } else {
-      this.flags[coord.word] &= ~(1 << coord.bit);
-    }
-  }
-
-  get data(): Uint8Array {
-    const bytes = new Uint8Array(28);
-    for (let i = 0; i < 14; i++) {
-      bytes[i * 2] = (this.flags[i] >> 8) & 0xFF;
-      bytes[i * 2 + 1] = this.flags[i] & 0xFF;
-    }
-    return bytes;
+  protected override createArray(length: number): Uint16Array {
+    return new Uint16Array(length);
   }
 
   get metDekuTree(): boolean {
