@@ -40,6 +40,7 @@ import { JSX } from "preact/compat/jsx-dev-runtime";
 
 interface SlotProps {
   slot: SaveSlot;
+  slotType?: "regular" | "backup";
   index: number;
   onChange?: () => void;
   readOnly?: boolean;
@@ -118,7 +119,10 @@ function EnumSelect<T extends number>(props: {
       className="w-full rounded border border-slate-300 bg-white px-2 py-1"
     >
       {values.map((value) => (
-        <option key={`${props.keyPrefix ?? ""}${value}`} value={String(value)}>
+        <option
+          key={`${props.keyPrefix ? `${props.keyPrefix}-` : ""}${value}`}
+          value={String(value)}
+        >
           {enumLabel(props.enumObject, value)}
         </option>
       ))}
@@ -314,6 +318,7 @@ const permanentSceneFlagBits = Array.from({ length: 32 }, (_, index) => index);
 
 export default function Slot(props: SlotProps) {
   const { slot, index, onChange, readOnly = false } = props;
+  const slotType = props.slotType ?? "regular";
   const eventFlags = getBooleanFlags(slot.eventFlags);
   const itemFlags = getBooleanFlags(slot.itemFlags);
   const otherFlags = getBooleanFlags(slot.otherFlags);
@@ -456,7 +461,7 @@ export default function Slot(props: SlotProps) {
         </Field>
         <Field label="Age">
           <EnumSelect
-            keyPrefix={`slot-${index}-age-`}
+            keyPrefix={`slot-${slotType}-${index}-age`}
             enumObject={Age}
             value={slot.age}
             disabled={readOnly}
@@ -510,7 +515,7 @@ export default function Slot(props: SlotProps) {
             </Field>
             <Field label="Day/Night">
               <EnumSelect
-                keyPrefix={`slot-${index}-time-`}
+                keyPrefix={`slot-${slotType}-${index}-time`}
                 enumObject={Time}
                 value={slot.nightFlag}
                 disabled={readOnly}
@@ -600,7 +605,7 @@ export default function Slot(props: SlotProps) {
                   enumObject={MagicAmount}
                   value={slot.currentMagic}
                   disabled={readOnly || !slot.magicFlag1}
-                  keyPrefix={`slot-${index}-magic-`}
+                  keyPrefix={`slot-${slotType}-${index}-magic`}
                   onChange={(value) => {
                     slot.currentMagic = value;
                     changed();
@@ -676,7 +681,7 @@ export default function Slot(props: SlotProps) {
                 enumObject={Scene}
                 value={slot.savedSceneIndex}
                 disabled={readOnly}
-                keyPrefix={`slot-${index}-saved-scene-`}
+                keyPrefix={`slot-${slotType}-${index}-saved-scene`}
                 onChange={(value) => {
                   slot.savedSceneIndex = value;
                   changed();
@@ -686,14 +691,14 @@ export default function Slot(props: SlotProps) {
             <Field label="Location">
               <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
                 <EnumSelect
-                  keyPrefix={`slot-${index}-room-`}
+                  keyPrefix={`slot-${slotType}-${index}-room`}
                   enumObject={Room}
                   value={slot.room}
                   disabled={readOnly}
                   onChange={(value) => setRoom(value)}
                 />
                 <EnumSelect
-                  keyPrefix={`slot-${index}-entrance-`}
+                  keyPrefix={`slot-${slotType}-${index}-entrance`}
                   enumObject={Entrance}
                   value={slot.entrance}
                   disabled={readOnly}
@@ -732,7 +737,7 @@ export default function Slot(props: SlotProps) {
             <Field label="Button Equips">
               <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
                 <EnumSelect
-                  keyPrefix={`slot-${index}-b-button-equip-`}
+                  keyPrefix={`slot-${slotType}-${index}-b-button-equip`}
                   enumObject={InventoryItems}
                   value={slot.bButtonEquip}
                   disabled={readOnly}
@@ -742,7 +747,7 @@ export default function Slot(props: SlotProps) {
                   }}
                 />
                 <EnumSelect
-                  keyPrefix={`slot-${index}-c-left-button-equip-`}
+                  keyPrefix={`slot-${slotType}-${index}-c-left-button-equip`}
                   enumObject={InventoryItems}
                   value={slot.cLeftButtonEquip}
                   disabled={readOnly}
@@ -752,7 +757,7 @@ export default function Slot(props: SlotProps) {
                   }}
                 />
                 <EnumSelect
-                  keyPrefix={`slot-${index}-c-down-button-equip-`}
+                  keyPrefix={`slot-${slotType}-${index}-c-down-button-equip`}
                   enumObject={InventoryItems}
                   value={slot.cDownButtonEquip}
                   disabled={readOnly}
@@ -762,7 +767,7 @@ export default function Slot(props: SlotProps) {
                   }}
                 />
                 <EnumSelect
-                  keyPrefix={`slot-${index}-c-right-button-equip-`}
+                  keyPrefix={`slot-${slotType}-${index}-c-right-button-equip`}
                   enumObject={InventoryItems}
                   value={slot.cRightButtonEquip}
                   disabled={readOnly}
@@ -819,7 +824,7 @@ export default function Slot(props: SlotProps) {
             <Field label="Currently Equipped">
               <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
                 <EnumSelect
-                  keyPrefix={`slot-${index}-currently-equipped-sword-`}
+                  keyPrefix={`slot-${slotType}-${index}-currently-equipped-sword`}
                   enumObject={Sword}
                   value={slot.currentlyEquippedEquipment.sword}
                   disabled={readOnly}
@@ -832,7 +837,7 @@ export default function Slot(props: SlotProps) {
                   }}
                 />
                 <EnumSelect
-                  keyPrefix={`slot-${index}-currently-equipped-shield-`}
+                  keyPrefix={`slot-${slotType}-${index}-currently-equipped-shield`}
                   enumObject={Shield}
                   value={slot.currentlyEquippedEquipment.shield}
                   disabled={readOnly}
@@ -845,7 +850,7 @@ export default function Slot(props: SlotProps) {
                   }}
                 />
                 <EnumSelect
-                  keyPrefix={`slot-${index}-currently-equipped-tunic-`}
+                  keyPrefix={`slot-${slotType}-${index}-currently-equipped-tunic`}
                   enumObject={Tunic}
                   value={slot.currentlyEquippedEquipment.tunic}
                   disabled={readOnly}
@@ -858,7 +863,7 @@ export default function Slot(props: SlotProps) {
                   }}
                 />
                 <EnumSelect
-                  keyPrefix={`slot-${index}-currently-equipped-boots-`}
+                  keyPrefix={`slot-${slotType}-${index}-currently-equipped-boots`}
                   enumObject={Boots}
                   value={slot.currentlyEquippedEquipment.boots}
                   disabled={readOnly}
@@ -883,7 +888,7 @@ export default function Slot(props: SlotProps) {
                       Slot {inventoryIndex + 1}
                     </span>
                     <EnumSelect
-                      keyPrefix={`slot-${index}-inventory-${inventoryIndex}-`}
+                      keyPrefix={`slot-${slotType}-${index}-inventory-${inventoryIndex}`}
                       enumObject={InventoryItems}
                       value={item}
                       disabled={readOnly}
@@ -1140,7 +1145,7 @@ export default function Slot(props: SlotProps) {
                 enumObject={Scene}
                 value={slot.entranceIndexTransport}
                 disabled={readOnly}
-                keyPrefix={`slot-${index}-transport-scene-`}
+                keyPrefix={`slot-${slotType}-${index}-transport-scene`}
                 onChange={(value) => {
                   slot.entranceIndexTransport = value;
                   changed();
