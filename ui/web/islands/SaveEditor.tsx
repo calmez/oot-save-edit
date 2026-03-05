@@ -57,7 +57,7 @@ function extensionFor(format: FileFormat): "sra" | "srm" {
 
 function createSaveFile(bytes: Uint8Array): SraSaveFile {
   const saveFile = new SraSaveFile();
-  saveFile.data = new Uint8Array(bytes);
+  saveFile.read(bytes);
   return saveFile;
 }
 
