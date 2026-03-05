@@ -1,5 +1,5 @@
 import { assertEquals, assertThrows } from "@std/assert";
-import { toNumber, toUint8Array } from "./conversions.ts";
+import { toNumber, toUint16Array, toUint8Array } from "./conversions.ts";
 
 Deno.test({
   name: "should convert a 1 byte number",
@@ -62,6 +62,24 @@ Deno.test({
     const testNumber = 0xBEEF0;
     assertThrows(() => toUint8Array(testNumber, 2));
   },
+});
+
+Deno.test({
+  name: "should convert a Uint8Array to a Uint16Array keeping endianness",
+  fn() {
+    const testBytes = new Uint8Array([0xDE, 0xAD, 0xBE, 0xEF]);
+    const result = toUint16Array(testBytes);
+    assertEquals(result[0], 0xDEAD);
+    assertEquals(result[1], 0xBEEF);
+  },
+});
+
+Deno.test({
+  name: "should throw an error trying to convert an uneven Uint8Array to Uint16Array",
+  fn() {
+    const testBytes = new Uint8Array([0x42]);
+    assertThrows(() => toUint16Array(testBytes));
+  }
 });
 
 Deno.test({

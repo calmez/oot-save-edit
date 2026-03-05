@@ -43,6 +43,17 @@ export function toUint8Array(
   return data;
 }
 
+export function toUint16Array(input: Uint8Array) {
+    if (input.length % 2 !== 0) {
+        throw new Error("Uint8Array length must be even for conversion to Uint16Array.");
+    }
+    const data = new Uint16Array(input.length / 2);
+    for (let i = 0; i < data.length; i++) {
+        data[i] = (input[2 * i] << 8) | input[2 * i + 1];
+    }
+    return data;
+}
+
 function determineUpperBound(value: number) {
   let upperBound = MAX_BYTES_PER_NUMBER;
   for (let i = 1; i < MAX_BYTES_PER_NUMBER; i++) {

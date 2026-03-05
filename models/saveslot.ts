@@ -1,4 +1,4 @@
-import { toNumber, toUint8Array } from "../utils/conversions.ts";
+import { toNumber, toUint16Array, toUint8Array } from "../utils/conversions.ts";
 import { OotText } from "../utils/text.ts";
 import { EventFlags } from "./eventflags.ts";
 import { ItemFlags } from "./itemflags.ts";
@@ -1032,12 +1032,7 @@ export class SaveSlot {
 
   get eventFlags(): EventFlags {
     const bytes = this.bytes.slice(0x0ED4, 0x0ED4 + 28);
-    const twoWordArray = new Uint16Array(
-      bytes.buffer,
-      bytes.byteOffset,
-      bytes.byteLength / 2,
-    );
-    return new EventFlags(twoWordArray);
+    return new EventFlags(toUint16Array(bytes));
   }
 
   set eventFlags(value: EventFlags) {
