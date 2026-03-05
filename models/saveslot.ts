@@ -39,9 +39,9 @@ export enum MagicAmount {
 }
 
 export enum InventoryItems {
-  DekuStick = 0x01,
-  DekuNut = 0x02,
-  Bomb = 0x03,
+  DekuStick = 0x00,
+  DekuNut = 0x01,
+  Bomb = 0x02,
   RegularArrow = 0x03,
   FireArrowUpgrade = 0x04,
   DinsFire = 0x05,

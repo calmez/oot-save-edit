@@ -2322,7 +2322,7 @@ export enum Scene {
   ImpasHouse_RoofEntranceFromKakarikoVillage_Adult_Night = 0x05CB,
   BottomOfTheWell_Unknown_Child_Day = 0x05CC,
   BottomOfTheWell_Unknown_Child_Night = 0x05CD,
-  BottomOfTheWell_Unknown_Adult_Day = 0x05CF,
+  BottomOfTheWell_Unknown_Adult_Day = 0x05CE,
   BottomOfTheWell_Unknown_Adult_Night = 0x05CF,
   LonLonRanchBuildings_BackTowerFromLonLonRanch_Child_Day = 0x05D0,
   LonLonRanchBuildings_BackTowerFromLonLonRanch_Child_Night = 0x05D1,
