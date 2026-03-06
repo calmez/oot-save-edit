@@ -99,7 +99,7 @@ export class SraSaveFile extends SaveFile {
   }
 
   override getData(forceSwap = false): Uint8Array {
-    const bytes = new Uint8Array(SraSaveFile.requiredSize);
+    const bytes = new Uint8Array(SraSaveFile.acceptedSize);
 
     let currentOffset = 0x00;
 
@@ -220,7 +220,7 @@ export class SrmSaveFile extends SaveFile {
   }
 
   override getData(forceSwap = false): Uint8Array {
-    const bytes = new Uint8Array(SrmSaveFile.requiredSize);
+    const bytes = new Uint8Array(SrmSaveFile.acceptedSize);
     let currentOffset = 0x00;
 
     bytes.set(this.eeprom, currentOffset);

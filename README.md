@@ -12,6 +12,8 @@ save file on an N64 play-through very late in the game.
 Researching my options I found excellent sources that explained the binary
 format of the save file. <https://wiki.cloudmodding.com/oot/Save_Format>
 
+Permanent scene flags are listed here <https://pastebin.com/nFCh8W8s>.
+
 Also this work is based on [@AdmiralCurtiss](https://github.com/AdmiralCurtiss)'
 very helpful [OotSaveEditor](https://github.com/AdmiralCurtiss/OoTSaveEditor).
 

@@ -1,4 +1,6 @@
-export class ItemFlags {
+import { Flags } from "./flags.ts";
+
+export class ItemFlags extends Flags<Uint8Array> {
   static readonly obtainedGerudoQuiverUpgrade = { byte: 0, bit: 7 };
   static readonly obtainedKakarikoQuiverUpgrade = { byte: 0, bit: 6 };
   static readonly obtainedBottleFromCuccoLady = { byte: 0, bit: 4 };
@@ -45,33 +47,12 @@ export class ItemFlags {
   static readonly obtainedPoachersSawFromFado = { byte: 7, bit: 1 };
   static readonly obtainedOddPotionFromGranny = { byte: 7, bit: 0 };
 
-  private flags: Uint8Array;
-
-  constructor(flags?: Uint8Array) {
-    if (flags instanceof Uint8Array) {
-      if (flags.length < 8) {
-        throw new Error("ItemFlags: byte array must be at least 8 bytes");
-      }
-      this.flags = flags.slice(0, 8);
-    } else {
-      this.flags = new Uint8Array(8);
-    }
+  protected override get minElements(): number {
+    return 8;
   }
 
-  private getBit(coord: { byte: number; bit: number }): boolean {
-    return (this.flags[coord.byte] & (1 << coord.bit)) !== 0;
-  }
-
-  private setBit(coord: { byte: number; bit: number }, value: boolean): void {
-    if (value) {
-      this.flags[coord.byte] |= 1 << coord.bit;
-    } else {
-      this.flags[coord.byte] &= ~(1 << coord.bit);
-    }
-  }
-
-  get data(): Uint8Array {
-    return this.flags.slice();
+  protected createArray(length: number): Uint8Array {
+    return new Uint8Array(length);
   }
 
   get obtainedGerudoQuiverUpgrade(): boolean {
