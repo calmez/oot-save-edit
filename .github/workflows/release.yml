@@ -60,7 +60,7 @@ jobs:
             );
             return release.data.upload_url;
           result-encoding: string
-      - uses: actions/download-artifact@v7
+      - uses: actions/download-artifact@v8
         with:
           name: mac-build
           path: ./build
@@ -121,7 +121,7 @@ jobs:
             );
             return release.data.upload_url;
           result-encoding: string
-      - uses: actions/download-artifact@v7
+      - uses: actions/download-artifact@v8
         with:
           name: linux-build
           path: ./build
@@ -182,7 +182,7 @@ jobs:
             );
             return release.data.upload_url;
           result-encoding: string
-      - uses: actions/download-artifact@v7
+      - uses: actions/download-artifact@v8
         with:
           name: windows-build
           path: ./build
