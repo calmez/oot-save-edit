@@ -28,8 +28,8 @@ export function toUint8Array(
   if (input instanceof Uint16Array) {
     const data = new Uint8Array(input.length * 2);
     for (let i = 0; i < input.length; i++) {
-        data[2 * i] = (input[i] >> 8) & 0xFF;
-        data[2 * i + 1] = input[i] & 0xFF;
+      data[2 * i] = (input[i] >> 8) & 0xFF;
+      data[2 * i + 1] = input[i] & 0xFF;
     }
     return data;
   }
@@ -37,16 +37,18 @@ export function toUint8Array(
   if (input instanceof Uint32Array) {
     const data = new Uint8Array(input.length * 4);
     for (let i = 0; i < input.length; i++) {
-        data[4 * i] = (input[i] >> 24) & 0xFF;
-        data[4 * i + 1] = (input[i] >> 16) & 0xFF;
-        data[4 * i + 2] = (input[i] >> 8) & 0xFF;
-        data[4 * i + 3] = input[i] & 0xFF;
+      data[4 * i] = (input[i] >> 24) & 0xFF;
+      data[4 * i + 1] = (input[i] >> 16) & 0xFF;
+      data[4 * i + 2] = (input[i] >> 8) & 0xFF;
+      data[4 * i + 3] = input[i] & 0xFF;
     }
     return data;
   }
 
   if (typeof value !== "number") {
-    throw new Error('Input conversion failed - value should be a number by now!');
+    throw new Error(
+      "Input conversion failed - value should be a number by now!",
+    );
   }
 
   if (value > MAX_NUMBER) {
@@ -75,14 +77,30 @@ export function toUint8Array(
 }
 
 export function toUint16Array(input: Uint8Array) {
-    if (input.length % 2 !== 0) {
-        throw new Error("Uint8Array length must be even for conversion to Uint16Array.");
-    }
-    const data = new Uint16Array(input.length / 2);
-    for (let i = 0; i < data.length; i++) {
-        data[i] = (input[2 * i] << 8) | input[2 * i + 1];
-    }
-    return data;
+  if (input.length % 2 !== 0) {
+    throw new Error(
+      "Uint8Array length must be even for conversion to Uint16Array.",
+    );
+  }
+  const data = new Uint16Array(input.length / 2);
+  for (let i = 0; i < data.length; i++) {
+    data[i] = (input[2 * i] << 8) | input[2 * i + 1];
+  }
+  return data;
+}
+
+export function toUint32Array(input: Uint8Array) {
+  if (input.length % 4 !== 0) {
+    throw new Error(
+      "Uint8Array length must be a multiple of 4 for conversion to Uint32Array.",
+    );
+  }
+  const data = new Uint32Array(input.length / 4);
+  for (let i = 0; i < data.length; i++) {
+    data[i] = (input[4 * i] << 24) | (input[4 * i + 1] << 16) |
+      (input[4 * i + 2] << 8) | input[4 * i + 3];
+  }
+  return data;
 }
 
 function determineUpperBound(value: number) {

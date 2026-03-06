@@ -1,4 +1,9 @@
-import { toNumber, toUint16Array, toUint8Array } from "../utils/conversions.ts";
+import {
+  toNumber,
+  toUint16Array,
+  toUint32Array,
+  toUint8Array,
+} from "../utils/conversions.ts";
 import { OotText } from "../utils/text.ts";
 import { EventFlags } from "./eventflags.ts";
 import { ItemFlags } from "./itemflags.ts";
@@ -885,7 +890,7 @@ export class SaveSlot {
 
   private get32bitWord(offset: number): Uint32Array {
     const bytes = this.bytes.slice(offset, offset + 4);
-    return new Uint32Array(bytes.buffer);
+    return toUint32Array(bytes);
   }
 
   public get permanentSceneFlags(): Array<PermanentSceneFlags> {
