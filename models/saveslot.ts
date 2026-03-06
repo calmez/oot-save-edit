@@ -927,16 +927,13 @@ export class SaveSlot {
     const data = new Uint8Array(101 * 0x1C);
     for (let i = 0; i < value.length; i++) {
       const offset = i * 0x1C;
-      data.set(new Uint8Array(value[i].chestFlags.data.buffer), offset + 0);
-      data.set(new Uint8Array(value[i].switches.data.buffer), offset + 4);
-      data.set(new Uint8Array(value[i].roomClearFlags.data.buffer), offset + 8);
-      data.set(
-        new Uint8Array(value[i].collectibleFlags.data.buffer),
-        offset + 12,
-      );
-      data.set(new Uint8Array(value[i].unused.data.buffer), offset + 16);
-      data.set(new Uint8Array(value[i].visitedRooms.data.buffer), offset + 20);
-      data.set(new Uint8Array(value[i].visitedFloors.data.buffer), offset + 24);
+      data.set(value[i].chestFlags.dataAsUint8Array, offset + 0);
+      data.set(value[i].switches.dataAsUint8Array, offset + 4);
+      data.set(value[i].roomClearFlags.dataAsUint8Array, offset + 8);
+      data.set(value[i].collectibleFlags.dataAsUint8Array, offset + 12);
+      data.set(value[i].unused.dataAsUint8Array, offset + 16);
+      data.set(value[i].visitedRooms.dataAsUint8Array, offset + 20);
+      data.set(value[i].visitedFloors.dataAsUint8Array, offset + 24);
     }
 
     this.bytes.set(data, 0x00D4);
