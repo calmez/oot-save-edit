@@ -3,10 +3,10 @@ const MAX_BYTES_PER_NUMBER = 4; // supporting up to long, but not long long
 const MAX_NUMBER = determineMaxNumber(MAX_BYTES_PER_NUMBER);
 
 export function toUint8Array(
-  input: number | boolean,
+  input: number | boolean | Uint8Array | Uint16Array | Uint32Array,
   fixLengthBytes?: number,
 ): Uint8Array {
-  let value: number;
+  let value: number | Uint8Array | Uint16Array | Uint32Array;
   switch (typeof input) {
     case "number":
       value = input;
@@ -14,8 +14,39 @@ export function toUint8Array(
     case "boolean":
       value = input ? 1 : 0;
       break;
+    case "object":
+      value = input;
+      break;
     default:
       throw new Error(`Unsupported input type ${typeof input}.`);
+  }
+
+  if (input instanceof Uint8Array) {
+    return input;
+  }
+
+  if (input instanceof Uint16Array) {
+    const data = new Uint8Array(input.length * 2);
+    for (let i = 0; i < input.length; i++) {
+        data[2 * i] = (input[i] >> 8) & 0xFF;
+        data[2 * i + 1] = input[i] & 0xFF;
+    }
+    return data;
+  }
+
+  if (input instanceof Uint32Array) {
+    const data = new Uint8Array(input.length * 4);
+    for (let i = 0; i < input.length; i++) {
+        data[4 * i] = (input[i] >> 24) & 0xFF;
+        data[4 * i + 1] = (input[i] >> 16) & 0xFF;
+        data[4 * i + 2] = (input[i] >> 8) & 0xFF;
+        data[4 * i + 3] = input[i] & 0xFF;
+    }
+    return data;
+  }
+
+  if (typeof value !== "number") {
+    throw new Error('Input conversion failed - value should be a number by now!');
   }
 
   if (value > MAX_NUMBER) {

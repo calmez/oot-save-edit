@@ -1,3 +1,5 @@
+import { toUint8Array } from "../utils/conversions.ts";
+
 export abstract class Flags<
   TFlags extends Uint8Array | Uint16Array | Uint32Array,
 > {
@@ -24,6 +26,10 @@ export abstract class Flags<
 
   get data(): TFlags {
     return this.flags.slice() as TFlags;
+  }
+
+  get dataAsUint8Array(): Uint8Array {
+    return toUint8Array(this.data);
   }
 
   protected getBit(coord: { byte: number; bit: number }): boolean {

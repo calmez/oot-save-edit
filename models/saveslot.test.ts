@@ -1250,12 +1250,7 @@ Deno.test({
     expectedEventFlags.metDekuTree = true;
     expectedEventFlags.obtainedKokiriEmerald = true;
     expectedEventFlags.learnedSongOfTime = true;
-    const singleWordArray = new Uint8Array(
-      expectedEventFlags.data.buffer,
-      expectedEventFlags.data.byteOffset,
-      expectedEventFlags.data.byteLength,
-    );
-    testData.set(singleWordArray, 0x0ED4);
+    testData.set(expectedEventFlags.dataAsUint8Array, 0x0ED4);
     const instance = new SaveSlot(testData);
 
     const actualEventFlags = instance.eventFlags;
@@ -1273,7 +1268,12 @@ Deno.test({
     expectedEventFlags.openedDoorOfTime = true;
     expectedEventFlags.enteredTempleOfTime = true;
     expectedEventFlags.enteredLakeHylia = true;
+
     const instance = new SaveSlot(testData);
+    assertEquals(instance.eventFlags.openedDoorOfTime, false);
+    assertEquals(instance.eventFlags.enteredTempleOfTime, false);
+    assertEquals(instance.eventFlags.enteredLakeHylia, false);
+
     instance.eventFlags = expectedEventFlags;
 
     assertEquals(instance.eventFlags.openedDoorOfTime, true);

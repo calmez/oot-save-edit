@@ -1036,12 +1036,7 @@ export class SaveSlot {
   }
 
   set eventFlags(value: EventFlags) {
-    const bytes = new Uint8Array(
-      value.data.buffer,
-      value.data.byteOffset,
-      value.data.byteLength,
-    );
-    this.bytes.set(bytes, 0x0ED4);
+    this.bytes.set(value.dataAsUint8Array, 0x0ED4);
   }
 
   get itemFlags(): ItemFlags {

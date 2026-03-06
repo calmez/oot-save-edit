@@ -65,6 +65,33 @@ Deno.test({
 });
 
 Deno.test({
+  name: "should convert a Uint8Array to itself",
+  fn() {
+    const testBytes = new Uint8Array([0xDE, 0xAD, 0xBE, 0xEF]);
+    const result = toUint8Array(testBytes);
+    assertEquals(result, testBytes);
+  },
+});
+
+Deno.test({
+  name: "should convert a Uint16Array to a Uint8Array keeping endianness",
+  fn() {
+    const testArray = new Uint16Array([0xDEAD, 0xBEEF]);
+    const result = toUint8Array(testArray);
+    assertEquals(result, new Uint8Array([0xDE, 0xAD, 0xBE, 0xEF]));
+  },
+});
+
+Deno.test({
+  name: "should convert a Uint32Array to a Uint8Array keeping endianness",
+  fn() {
+    const testArray = new Uint32Array([0xDEADBEEF]);
+    const result = toUint8Array(testArray);
+    assertEquals(result, new Uint8Array([0xDE, 0xAD, 0xBE, 0xEF]));
+  },
+});
+
+Deno.test({
   name: "should convert a Uint8Array to a Uint16Array keeping endianness",
   fn() {
     const testBytes = new Uint8Array([0xDE, 0xAD, 0xBE, 0xEF]);
