@@ -1,5 +1,5 @@
 import { FileUtil } from "../utils/fileutil.ts";
-import { LanguageOption, SaveHeader, SoundOption, ZTargetOption } from "./saveheader.ts";
+import { SaveHeader } from "./saveheader.ts";
 import { SaveSlot } from "./saveslot.ts";
 
 export class SaveFile {
