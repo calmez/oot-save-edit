@@ -1,5 +1,5 @@
 import { FileUtil } from "../utils/fileutil.ts";
-import { SaveHeader } from "./saveheader.ts";
+import { LanguageOption, SaveHeader, SoundOption, ZTargetOption } from "./saveheader.ts";
 import { SaveSlot } from "./saveslot.ts";
 
 export class SaveFile {
@@ -68,16 +68,16 @@ export class SaveFile {
 }
 
 export class SraSaveFile extends SaveFile {
-  header = new SaveHeader();
+  header = SaveHeader.createBlank();
   slots: [SaveSlot, SaveSlot, SaveSlot] = [
-    new SaveSlot(),
-    new SaveSlot(),
-    new SaveSlot(),
+    SaveSlot.createBlank(),
+    SaveSlot.createBlank(),
+    SaveSlot.createBlank(),
   ];
   backups: [SaveSlot, SaveSlot, SaveSlot] = [
-    new SaveSlot(),
-    new SaveSlot(),
-    new SaveSlot(),
+    SaveSlot.createBlank(),
+    SaveSlot.createBlank(),
+    SaveSlot.createBlank(),
   ];
   private byteSwapped: boolean = false;
 

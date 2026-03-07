@@ -87,7 +87,7 @@ Deno.test({
     const instance = new SraSaveFile();
     instance.write(testFile);
     assertSpyCallArgs(writeSyncStub, 0, 0, [
-      new Uint8Array(SraSaveFile.acceptedSize),
+      new Uint8Array(instance.data),
     ]);
   },
 });
