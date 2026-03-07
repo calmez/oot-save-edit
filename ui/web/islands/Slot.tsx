@@ -447,6 +447,9 @@ export default function Slot(props: SlotProps) {
             className="w-full rounded border border-slate-300 px-2 py-1"
           />
         </Field>
+        <Field label="File Valid">
+          <BooleanCheckbox value={slot.isValid} disabled />
+        </Field>
         <Field label="Deaths">
           <NumberInput
             value={slot.deathCounter}
@@ -459,19 +462,21 @@ export default function Slot(props: SlotProps) {
             }}
           />
         </Field>
-        <Field label="Age">
-          <EnumSelect
-            keyPrefix={`slot-${slotType}-${index}-age`}
-            enumObject={Age}
-            value={slot.age}
-            disabled={readOnly}
-            options={[Age.Child, Age.Adult]}
-            onChange={(value) => {
-              slot.age = value;
-              changed();
-            }}
-          />
-        </Field>
+        {expanded && (
+          <Field label="Age">
+            <EnumSelect
+              keyPrefix={`slot-${slotType}-${index}-age`}
+              enumObject={Age}
+              value={slot.age}
+              disabled={readOnly}
+              options={[Age.Child, Age.Adult]}
+              onChange={(value) => {
+                slot.age = value;
+                changed();
+              }}
+            />
+          </Field>
+        )}
       </div>
 
       {expanded && (

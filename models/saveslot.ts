@@ -344,6 +344,16 @@ export class SaveSlot {
     }
   }
 
+  static createBlank(): SaveSlot {
+    const slot = new SaveSlot();
+
+    slot.checkPattern = SaveSlot.validCheckPattern;
+    slot.playerName = "";
+    slot.updateChecksum();
+
+    return slot;
+  }
+
   get data(): Uint8Array {
     return this.bytes;
   }

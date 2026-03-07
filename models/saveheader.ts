@@ -50,6 +50,17 @@ export class SaveHeader {
     }
   }
 
+  static createBlank(): SaveHeader {
+    const header = new SaveHeader();
+
+    header.languageOption = LanguageOption.English;
+    header.soundOption = SoundOption.Stereo;
+    header.zTargetOption = ZTargetOption.Switch;
+    header.makeValid();
+
+    return header;
+  }
+
   get data(): Uint8Array {
     return this.bytes;
   }
