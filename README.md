@@ -9,24 +9,9 @@ moment. ⚠️
 This project was started out of desperation when having accidentally deleting my
 save file on an N64 play-through very late in the game.
 
-Researching my options I found excellent sources that explained the binary
-format of the save file. <https://wiki.cloudmodding.com/oot/Save_Format>
-
-Permanent scene flags are listed here <https://pastebin.com/nFCh8W8s>.
-
-Also this work is based on [@AdmiralCurtiss](https://github.com/AdmiralCurtiss)'
-very helpful [OotSaveEditor](https://github.com/AdmiralCurtiss/OoTSaveEditor).
-
-Another helpful resource was
-[this implementation](https://github.com/libretro/parallel-n64/blob/master/tools/pj64tosrm.c)
-for handling `srm` files. In order to be compatible with libretro emulators.
-
 My idea was to make it more accessible to developers by rewriting this in
 Typescript. And it gave me a good excuse to try out Deno - spoiler alert: it's
 awesome.
-
-<https://github.com/libretro/parallel-n64/blob/master/tools/pj64tosrm.c> was
-very helpful to support libretro srm formats.
 
 ## How this all started
 
@@ -46,6 +31,23 @@ also to less techy people is what I aim for here.
 - [Game Tools Collection](https://github.com/RyudoSynbios/game-tools-collection)
 - [OotSaveEditor](https://github.com/AdmiralCurtiss/OoTSaveEditor)
 - [ZeldaSaveTool](https://github.com/xoascf/ZeldaSaveTool)
+
+## More information about the save file
+
+Researching my options I found excellent sources that explained the binary
+format of the save file. <https://wiki.cloudmodding.com/oot/Save_Format>
+
+Permanent scene flags are listed here <https://pastebin.com/nFCh8W8s>.
+
+Also this work is based on [@AdmiralCurtiss](https://github.com/AdmiralCurtiss)'
+very helpful [OotSaveEditor](https://github.com/AdmiralCurtiss/OoTSaveEditor).
+
+Another helpful resource was
+[this implementation](https://github.com/libretro/parallel-n64/blob/master/tools/pj64tosrm.c)
+for handling `srm` files. In order to be compatible with libretro emulators.
+
+<https://github.com/libretro/parallel-n64/blob/master/tools/pj64tosrm.c> was
+very helpful to support libretro srm formats.
 
 ## Ideas for what to come next
 
