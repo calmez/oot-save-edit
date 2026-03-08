@@ -38,7 +38,7 @@ export default define.page<typeof handler>(function Save(props) {
       <Head>
         <title>Create or Load a Savefile</title>
       </Head>
-      <div class="max-w-screen-md mx-auto flex flex-col items-center justify-center mb-6">
+      <div class="max-w-3xl mx-auto flex flex-col items-center justify-center mb-6">
         <form
           method="post"
           encType="multipart/form-data"
@@ -67,7 +67,7 @@ export default define.page<typeof handler>(function Save(props) {
           </Button>
         </form>
       </div>
-      <div class="max-w-screen-md mx-auto flex flex-col items-center justify-center mb-6">
+      <div class="max-w-3xl mx-auto flex flex-col items-center justify-center mb-6">
         <form
           method="post"
           encType="multipart/form-data"
@@ -82,7 +82,7 @@ export default define.page<typeof handler>(function Save(props) {
           </Button>
         </form>
       </div>
-      <div class="max-w-screen-md mx-auto flex flex-col items-center justify-center mb-6">
+      <div class="max-w-3xl mx-auto flex flex-col items-center justify-center mb-6">
         {message && (
           <div className="w-full bg-red-100 text-red-700 p-4 rounded">
             {message}
