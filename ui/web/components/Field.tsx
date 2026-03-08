@@ -15,7 +15,7 @@ export function Field(props: FieldProps) {
       <span className="block text-xs font-semibold uppercase tracking-wide text-slate-500">
         {props.label}
       </span>
-      <div className="mt-1 tabular-nums break-words text-slate-900">
+      <div className="mt-1 tabular-nums wrap-break-word text-slate-900">
         {props.children}
       </div>
     </div>

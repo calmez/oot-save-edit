@@ -114,7 +114,7 @@ export default function SaveEditor(props: SaveEditorProps) {
   }
 
   return (
-    <div class="mx-auto flex max-w-screen-lg flex-col items-center justify-center px-4">
+    <div class="mx-auto flex max-w-5xl flex-col items-center justify-center px-4">
       <div className="mb-6 w-full rounded-xl border border-slate-200 bg-slate-50/80 p-4 shadow-sm md:p-6">
         <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
           <h2 className="text-2xl font-bold text-slate-900">
