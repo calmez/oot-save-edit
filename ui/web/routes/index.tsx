@@ -6,10 +6,26 @@ export default define.page(function Home(_ctx) {
     <>
       <Head>
         <title>OOT Save Edit</title>
-        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon-180x180.png"></link>
-        <link rel="apple-touch-icon" sizes="167x167" href="/apple-touch-icon-167x167.png"></link>
-        <link rel="apple-touch-icon" sizes="152x152" href="/apple-touch-icon-152x152.png"></link>
-        <link rel="apple-touch-icon" sizes="120x120" href="/apple-touch-icon-120x120.png"></link>
+        <link
+          rel="apple-touch-icon"
+          sizes="180x180"
+          href="/apple-touch-icon-180x180.png"
+        />
+        <link
+          rel="apple-touch-icon"
+          sizes="167x167"
+          href="/apple-touch-icon-167x167.png"
+        />
+        <link
+          rel="apple-touch-icon"
+          sizes="152x152"
+          href="/apple-touch-icon-152x152.png"
+        />
+        <link
+          rel="apple-touch-icon"
+          sizes="120x120"
+          href="/apple-touch-icon-120x120.png"
+        />
       </Head>
       <div class="max-w-screen-md mx-auto flex flex-col items-center justify-center">
         <img
