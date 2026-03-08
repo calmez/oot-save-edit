@@ -46,7 +46,7 @@ export default define.page<typeof handler>(function Save(props) {
         >
           <label className="w-full flex flex-col items-center cursor-pointer">
             <span className="mb-2 text-lg font-medium text-gray-700">
-              Select Save File
+              Select save file
             </span>
             <input type="hidden" name="action" value="load" />
             <input

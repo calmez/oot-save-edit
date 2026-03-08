@@ -1,5 +1,6 @@
 import { Head } from "fresh/runtime";
 import { define } from "../utils.ts";
+import { FAQ } from "../components/FAQ.tsx";
 
 export default define.page(function Home(_ctx) {
   return (
@@ -27,7 +28,7 @@ export default define.page(function Home(_ctx) {
           href="/apple-touch-icon-120x120.png"
         />
       </Head>
-      <div class="max-w-screen-md mx-auto flex flex-col items-center justify-center">
+      <div class="max-w-3xl mx-auto flex flex-col items-center justify-center">
         <img
           class="my-6"
           src="/ocarina.png"
@@ -44,8 +45,11 @@ export default define.page(function Home(_ctx) {
           usable at this moment. ⚠️
         </p>
         <a class="rounded-full bg-blue-500 text-white py-2 px-4" href="/save">
-          Upload a save file to get started
+          Get Started
         </a>
+        <div class="my-4 w-full">
+          <FAQ />
+        </div>
       </div>
     </>
   );
