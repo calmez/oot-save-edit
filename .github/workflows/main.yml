@@ -1,5 +1,11 @@
 name: Publish
 
+permissions:
+  contents: write
+  packages: write
+  attestations: write
+  id-token: write
+
 on:
   push:
     branches: ["main"]

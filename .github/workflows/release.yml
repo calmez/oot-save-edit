@@ -28,12 +28,12 @@ jobs:
       version: ${{ steps.version.outputs.version }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           fetch-depth: 0
       - name: Version
         id: version
-        uses: python-semantic-release/python-semantic-release@v10.5.3
+        uses: python-semantic-release/python-semantic-release@350c48fcb3ffcdfd2e0a235206bc2ecea6b69df0
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           config_file: .semantic-release.json
@@ -51,7 +51,7 @@ jobs:
     steps:
       - name: Get Release by Tag
         id: get_release_by_tag
-        uses: actions/github-script@v8
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd
         with:
           script: |
             const tag = "${{ needs.create_release.outputs.tag }}";
@@ -60,12 +60,12 @@ jobs:
             );
             return release.data.upload_url;
           result-encoding: string
-      - uses: actions/download-artifact@v8
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
           name: mac-build
           path: ./build
       - name: Upload release asset TUI MacOS ARM
-        uses: actions/upload-release-asset@v1
+        uses: actions/upload-release-asset@e8f9f06c4b078e705bd2ea027f0926603fc9b4d5
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -74,7 +74,7 @@ jobs:
           asset_name: oot-save-edit_tui_macos-apple-silicon
           asset_content_type: application/x-mach-binary
       - name: Upload release asset TUI MacOS Intel
-        uses: actions/upload-release-asset@v1
+        uses: actions/upload-release-asset@e8f9f06c4b078e705bd2ea027f0926603fc9b4d5
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -83,7 +83,7 @@ jobs:
           asset_name: oot-save-edit_tui_macos-intel
           asset_content_type: application/x-mach-binary
       - name: Upload release asset GUI MacOS ARM
-        uses: actions/upload-release-asset@v1
+        uses: actions/upload-release-asset@e8f9f06c4b078e705bd2ea027f0926603fc9b4d5
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -92,7 +92,7 @@ jobs:
           asset_name: oot-save-edit_gui_macos-apple-silicon.app.zip
           asset_content_type: application/zip
       - name: Upload release asset GUI MacOS Intel
-        uses: actions/upload-release-asset@v1
+        uses: actions/upload-release-asset@e8f9f06c4b078e705bd2ea027f0926603fc9b4d5
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -112,7 +112,7 @@ jobs:
     steps:
       - name: Get Release by Tag
         id: get_release_by_tag
-        uses: actions/github-script@v8
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd
         with:
           script: |
             const tag = "${{ needs.create_release.outputs.tag }}";
@@ -121,12 +121,12 @@ jobs:
             );
             return release.data.upload_url;
           result-encoding: string
-      - uses: actions/download-artifact@v8
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
           name: linux-build
           path: ./build
       - name: Upload release asset TUI Linux ARM
-        uses: actions/upload-release-asset@v1
+        uses: actions/upload-release-asset@e8f9f06c4b078e705bd2ea027f0926603fc9b4d5
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -135,7 +135,7 @@ jobs:
           asset_name: oot-save-edit_tui_linux-intel
           asset_content_type: application/x-pie-executable
       - name: Upload release asset TUI Linux Intel
-        uses: actions/upload-release-asset@v1
+        uses: actions/upload-release-asset@e8f9f06c4b078e705bd2ea027f0926603fc9b4d5
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -144,7 +144,7 @@ jobs:
           asset_name: oot-save-edit_tui_linux-arm
           asset_content_type: application/x-pie-executable
       - name: Upload release asset GUI Linux ARM
-        uses: actions/upload-release-asset@v1
+        uses: actions/upload-release-asset@e8f9f06c4b078e705bd2ea027f0926603fc9b4d5
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -153,7 +153,7 @@ jobs:
           asset_name: oot-save-edit_gui_linux-arm
           asset_content_type: application/x-pie-executable
       - name: Upload release asset GUI Linux Intel
-        uses: actions/upload-release-asset@v1
+        uses: actions/upload-release-asset@e8f9f06c4b078e705bd2ea027f0926603fc9b4d5
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -173,7 +173,7 @@ jobs:
     steps:
       - name: Get Release by Tag
         id: get_release_by_tag
-        uses: actions/github-script@v8
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd
         with:
           script: |
             const tag = "${{ needs.create_release.outputs.tag }}";
@@ -182,12 +182,12 @@ jobs:
             );
             return release.data.upload_url;
           result-encoding: string
-      - uses: actions/download-artifact@v8
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
           name: windows-build
           path: ./build
       - name: Upload release asset TUI Windows
-        uses: actions/upload-release-asset@v1
+        uses: actions/upload-release-asset@e8f9f06c4b078e705bd2ea027f0926603fc9b4d5
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -196,7 +196,7 @@ jobs:
           asset_name: oot-save-edit_tui.exe
           asset_content_type: application/x-dosexec
       - name: Upload release asset GUI Windows
-        uses: actions/upload-release-asset@v1
+        uses: actions/upload-release-asset@e8f9f06c4b078e705bd2ea027f0926603fc9b4d5
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -215,15 +215,15 @@ jobs:
     needs: create_release
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
-      - uses: denoland/setup-deno@v2
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+      - uses: denoland/setup-deno@667a34cdef165d8d2b2e98dde39547c9daac7282
         with:
           deno-version: "v2.x"
       - name: Install
         run: deno install --lock
       - name: Get Release by Tag
         id: get_release_by_tag
-        uses: actions/github-script@v8
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd
         with:
           script: |
             const tag = "${{ needs.create_release.outputs.tag }}";
@@ -234,7 +234,7 @@ jobs:
           result-encoding: string
       - name: Build
         id: build
-        uses: redhat-actions/buildah-build@v2
+        uses: redhat-actions/buildah-build@7a95fa7ee0f02d552a32753e7414641a04307056
         with:
           image: ${{ github.event.repository.name }}
           tags: latest ${{ github.sha }} ${{ needs.create_release.outputs.version }}
@@ -244,7 +244,7 @@ jobs:
             GIT_REVISION=${{ github.sha }}
       - name: Push Image to Registry
         id: push_container_image
-        uses: redhat-actions/push-to-registry@v2
+        uses: redhat-actions/push-to-registry@5ed88d269cf581ea9ef6dd6806d01562096bee9c
         with:
           image: ${{ steps.build.outputs.image }}
           tags: ${{ steps.build.outputs.tags }}
@@ -256,8 +256,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
-      - uses: denoland/setup-deno@v2
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+      - uses: denoland/setup-deno@667a34cdef165d8d2b2e98dde39547c9daac7282
         with:
           deno-version: v2.x
       - name: Install
@@ -265,7 +265,7 @@ jobs:
       - name: Generate docs
         run: deno task build:docs
       - name: Deploy docs
-        uses: JamesIves/github-pages-deploy-action@v4
+        uses: JamesIves/github-pages-deploy-action@d92aa235d04922e8f08b40ce78cc5442fcfbfa2f
         with:
           ssh-key: ${{ secrets.DEPLOY_KEY }}
           folder: docs
