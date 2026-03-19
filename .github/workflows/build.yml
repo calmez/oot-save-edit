@@ -1,5 +1,8 @@
 name: Build
 
+permissions:
+  contents: read
+
 on:
   workflow_call:
 
@@ -9,8 +12,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
-      - uses: denoland/setup-deno@v2
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+      - uses: denoland/setup-deno@667a34cdef165d8d2b2e98dde39547c9daac7282
         with:
           deno-version: "v2.x"
       - name: Install
@@ -20,7 +23,7 @@ jobs:
         run: |
           deno task build
       - name: Store Artifact
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f
         with:
           name: web-build
           path: ./ui/web/_fresh
@@ -29,8 +32,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
-      - uses: denoland/setup-deno@v2
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+      - uses: denoland/setup-deno@667a34cdef165d8d2b2e98dde39547c9daac7282
         with:
           deno-version: "v2.x"
       - name: Install
@@ -42,7 +45,7 @@ jobs:
           deno task build:gui:linux-x86
           deno task build:gui:linux-aarch64
       - name: Store Artifacts
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f
         with:
           name: linux-build
           path: |
@@ -55,8 +58,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
-      - uses: denoland/setup-deno@v2
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+      - uses: denoland/setup-deno@667a34cdef165d8d2b2e98dde39547c9daac7282
         with:
           deno-version: "v2.x"
       - name: Install
@@ -72,7 +75,7 @@ jobs:
       - name: Zip release asset GUI MacOS Intel
         run: zip -r ./build/x86_64-apple-darwin/oot-save-edit_intel.app.zip ./build/x86_64-apple-darwin/oot-save-edit_intel.app
       - name: Store Artifacts
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f
         with:
           name: mac-build
           path: |
@@ -85,8 +88,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
-      - uses: denoland/setup-deno@v2
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+      - uses: denoland/setup-deno@667a34cdef165d8d2b2e98dde39547c9daac7282
         with:
           deno-version: "v2.x"
       - name: Install
@@ -96,7 +99,7 @@ jobs:
           deno task build:tui:win
           deno task build:gui:win
       - name: Store Artifacts
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f
         with:
           name: windows-build
           path: |
@@ -110,15 +113,15 @@ jobs:
       container_tags: ${{ steps.build.outputs.tags }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
-      - uses: denoland/setup-deno@v2
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+      - uses: denoland/setup-deno@667a34cdef165d8d2b2e98dde39547c9daac7282
         with:
           deno-version: "v2.x"
       - name: Install
         run: deno install --lock
       - name: Build
         id: build
-        uses: redhat-actions/buildah-build@v2
+        uses: redhat-actions/buildah-build@7a95fa7ee0f02d552a32753e7414641a04307056
         with:
           image: ${{ github.event.repository.name }}
           tags: latest ${{ github.sha }}
