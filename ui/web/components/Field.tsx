@@ -4,6 +4,7 @@ interface FieldProps {
   label: string;
   children: ComponentChildren;
   className?: string;
+  help?: string;
 }
 export function Field(props: FieldProps) {
   return (
@@ -15,6 +16,9 @@ export function Field(props: FieldProps) {
       <span className="block text-xs font-semibold uppercase tracking-wide text-slate-500">
         {props.label}
       </span>
+      {props.help && (
+        <div className="mt-0.5 text-xs text-slate-500 italic">{props.help}</div>
+      )}
       <div className="mt-1 tabular-nums wrap-break-word text-slate-900">
         {props.children}
       </div>
