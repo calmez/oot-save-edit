@@ -785,7 +785,7 @@ export default function Slot(props: SlotProps) {
                   value={slot.room}
                   disabled={readOnly}
                   onChange={(value) => setRoom(value)}
-                  help="Where Link is currently located. Use the auto-suggested entrance."
+                  help="Where Link is currently saved. Choose the room you're in when you last saved the game."
                 />
                 <EnumSelect
                   keyPrefix={`slot-${slotType}-${index}-entrance`}
@@ -794,7 +794,7 @@ export default function Slot(props: SlotProps) {
                   disabled={readOnly}
                   options={ValidEntrancesForRoom(slot.room)}
                   onChange={(value) => setEntrance(value)}
-                  help="Choose an entrance point for reappearing after death or warp."
+                  help="Where you respawn after death or when using warp points."
                 />
               </div>
             </Field>
@@ -844,6 +844,7 @@ export default function Slot(props: SlotProps) {
                     slot.bButtonEquip = value;
                     changed();
                   }}
+                  help="Select item displayed when pressing B button."
                 />
                 <EnumSelect
                   keyPrefix={`slot-${slotType}-${index}-c-left-button-equip`}
@@ -854,6 +855,7 @@ export default function Slot(props: SlotProps) {
                     slot.cLeftButtonEquip = value;
                     changed();
                   }}
+                  help="Select item displayed when pressing C-Left button."
                 />
                 <EnumSelect
                   keyPrefix={`slot-${slotType}-${index}-c-down-button-equip`}
@@ -864,6 +866,7 @@ export default function Slot(props: SlotProps) {
                     slot.cDownButtonEquip = value;
                     changed();
                   }}
+                  help="Select item displayed when pressing C-Down button."
                 />
                 <EnumSelect
                   keyPrefix={`slot-${slotType}-${index}-c-right-button-equip`}
@@ -874,6 +877,7 @@ export default function Slot(props: SlotProps) {
                     slot.cRightButtonEquip = value;
                     changed();
                   }}
+                  help="Select item displayed when pressing C-Right button."
                 />
               </div>
             </Field>
@@ -891,6 +895,7 @@ export default function Slot(props: SlotProps) {
                     };
                     changed();
                   }}
+                  help="Offset of C-Left button."
                 />
                 <NumberInput
                   value={slot.currentButtonEquips.cDownOffset}
@@ -904,6 +909,7 @@ export default function Slot(props: SlotProps) {
                     };
                     changed();
                   }}
+                  help="Offset of C-Down button."
                 />
                 <NumberInput
                   value={slot.currentButtonEquips.cRightOffset}
@@ -917,6 +923,7 @@ export default function Slot(props: SlotProps) {
                     };
                     changed();
                   }}
+                  help="Offset of C-Right button."
                 />
               </div>
             </Field>
@@ -934,6 +941,7 @@ export default function Slot(props: SlotProps) {
                     };
                     changed();
                   }}
+                  help="Equipped sword."
                 />
                 <EnumSelect
                   keyPrefix={`slot-${slotType}-${index}-currently-equipped-shield`}
@@ -947,6 +955,7 @@ export default function Slot(props: SlotProps) {
                     };
                     changed();
                   }}
+                  help="Equipped shield."
                 />
                 <EnumSelect
                   keyPrefix={`slot-${slotType}-${index}-currently-equipped-tunic`}
@@ -960,6 +969,7 @@ export default function Slot(props: SlotProps) {
                     };
                     changed();
                   }}
+                  help="Equipped tunic."
                 />
                 <EnumSelect
                   keyPrefix={`slot-${slotType}-${index}-currently-equipped-boots`}
@@ -973,6 +983,7 @@ export default function Slot(props: SlotProps) {
                     };
                     changed();
                   }}
+                  help="Equipped boots."
                 />
               </div>
             </Field>
@@ -1181,6 +1192,7 @@ export default function Slot(props: SlotProps) {
                   slot.bigPoePoints = value;
                   changed();
                 }}
+                help="Points for cought and sold poes."
               />
             </Field>
             <Field label="Farores Wind Warp">
@@ -1197,6 +1209,7 @@ export default function Slot(props: SlotProps) {
                     };
                     changed();
                   }}
+                  help="X coordinate."
                 />
                 <NumberInput
                   value={slot.faroresWindWarp.y}
@@ -1210,6 +1223,7 @@ export default function Slot(props: SlotProps) {
                     };
                     changed();
                   }}
+                  help="Y coordinate."
                 />
                 <NumberInput
                   value={slot.faroresWindWarp.z}
@@ -1223,6 +1237,7 @@ export default function Slot(props: SlotProps) {
                     };
                     changed();
                   }}
+                  help="Z coordinate."
                 />
                 <NumberInput
                   value={slot.faroresWindWarp.yRotation}
@@ -1236,6 +1251,7 @@ export default function Slot(props: SlotProps) {
                     };
                     changed();
                   }}
+                  help="Rotation."
                 />
               </div>
             </Field>

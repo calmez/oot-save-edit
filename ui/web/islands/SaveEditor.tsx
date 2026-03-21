@@ -203,7 +203,7 @@ export default function SaveEditor(props: SaveEditorProps) {
             </Field>
             <Field
               label="Z-Target"
-              help="Sets how targeting is handled: "
+              help="Sets how targeting is handled: the Z button can either be held or toggled to target an enemy."
             >
               <select
                 value={String(saveFile.header.zTargetOption)}
