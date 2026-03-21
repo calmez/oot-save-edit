@@ -71,23 +71,36 @@ function NumberInput(props: {
   max?: number;
   step?: number;
   disabled?: boolean;
+  help?: string;
 }) {
+  const helpText = props.help
+    ? `
+    `
+    : "";
+
   return (
-    <input
-      type="number"
-      value={String(props.value)}
-      min={props.min}
-      max={props.max}
-      step={props.step ?? 1}
-      disabled={props.disabled}
-      onInput={(event) => {
-        const next = Number(event.currentTarget.value);
-        if (!Number.isNaN(next)) {
-          props.onChange?.(next);
-        }
-      }}
-      className="w-full rounded border border-slate-300 px-2 py-1"
-    />
+    <div>
+      <input
+        type="number"
+        value={String(props.value)}
+        min={props.min}
+        max={props.max}
+        step={props.step ?? 1}
+        disabled={props.disabled}
+        onInput={(event) => {
+          const next = Number(event.currentTarget.value);
+          if (!Number.isNaN(next)) {
+            props.onChange?.(next);
+          }
+        }}
+        className="w-full rounded border border-slate-300 px-2 py-1"
+      />
+      {props.help && (
+        <div className="mt-1 text-xs text-slate-500 italic">
+          {props.help}
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -106,27 +119,35 @@ function EnumSelect<T extends number>(props: {
   disabled?: boolean;
   options?: T[];
   keyPrefix?: string;
+  help?: string;
 }) {
   const values = props.options ?? enumValues<T>(props.enumObject);
 
   return (
-    <select
-      name={props.keyPrefix}
-      value={String(props.value)}
-      disabled={props.disabled}
-      onChange={(event) =>
-        props.onChange?.(Number(event.currentTarget.value) as T)}
-      className="w-full rounded border border-slate-300 bg-white px-2 py-1"
-    >
-      {values.map((value) => (
-        <option
-          key={`${props.keyPrefix ? `${props.keyPrefix}-` : ""}${value}`}
-          value={String(value)}
-        >
-          {enumLabel(props.enumObject, value)}
-        </option>
-      ))}
-    </select>
+    <div>
+      <select
+        name={props.keyPrefix}
+        value={String(props.value)}
+        disabled={props.disabled}
+        onChange={(event) =>
+          props.onChange?.(Number(event.currentTarget.value) as T)}
+        className="w-full rounded border border-slate-300 bg-white px-2 py-1"
+      >
+        {values.map((value) => (
+          <option
+            key={`${props.keyPrefix ? `${props.keyPrefix}-` : ""}${value}`}
+            value={String(value)}
+          >
+            {enumLabel(props.enumObject, value)}
+          </option>
+        ))}
+      </select>
+      {props.help && (
+        <div className="mt-1 text-xs text-slate-500 italic">
+          {props.help}
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -681,7 +702,10 @@ export default function Slot(props: SlotProps) {
                 }}
               />
             </Field>
-            <Field label="Saved Scene">
+            <Field
+              label="Saved Scene"
+              help="The scene you last saved at. Used for auto-reload if you die."
+            >
               <EnumSelect
                 enumObject={Scene}
                 value={slot.savedSceneIndex}
@@ -701,6 +725,7 @@ export default function Slot(props: SlotProps) {
                   value={slot.room}
                   disabled={readOnly}
                   onChange={(value) => setRoom(value)}
+                  help="Where Link is currently located. Use the auto-suggested entrance."
                 />
                 <EnumSelect
                   keyPrefix={`slot-${slotType}-${index}-entrance`}
@@ -709,27 +734,36 @@ export default function Slot(props: SlotProps) {
                   disabled={readOnly}
                   options={ValidEntrancesForRoom(slot.room)}
                   onChange={(value) => setEntrance(value)}
+                  help="Choose an entrance point for reappearing after death or warp."
                 />
               </div>
             </Field>
-            <Field label="Magic Beans">
+            <Field
+              label="Magic Beans"
+              help="Collected magic beans from plants throughout Hyrule."
+            >
               <NumberInput
                 value={slot.magicBeans}
                 disabled={readOnly}
                 min={0}
                 max={0xFF}
+                help={`Min: 0 | Max: ${0xFF}.`}
                 onChange={(value) => {
                   slot.magicBeans = value;
                   changed();
                 }}
               />
             </Field>
-            <Field label="Gold Skulltula Tokens">
+            <Field
+              label="Gold Skulltula Tokens"
+              help="Tokens collected by defeating Gold Skulltulas."
+            >
               <NumberInput
                 value={slot.goldSkulltulaTokens}
                 disabled={readOnly}
                 min={0}
                 max={99}
+                help={`Min: 0 | Max: 99.`}
                 onChange={(value) => {
                   slot.goldSkulltulaTokens = value;
                   changed();
