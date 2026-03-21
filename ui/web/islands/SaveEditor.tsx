@@ -130,15 +130,15 @@ export default function SaveEditor(props: SaveEditorProps) {
         <div className="space-y-4">
           <Section title="File Info">
             <Field label="Filename">{props.filename}</Field>
+            <Field label="Data Size">{saveFile.data.byteLength}</Field>
+            <Field label="Header Valid">
+              <BooleanCheckbox value={saveFile.header.isValid} disabled />
+            </Field>
             <Field label="Word Swapped">
               <BooleanCheckbox value={props.isByteSwapped} disabled />
             </Field>
             <Field label="File Format">
               {FileFormat[props.detectedFormat]}
-            </Field>
-            <Field label="Data Size">{saveFile.data.byteLength}</Field>
-            <Field label="Header Valid">
-              <BooleanCheckbox value={saveFile.header.isValid} disabled />
             </Field>
           </Section>
 
@@ -152,10 +152,16 @@ export default function SaveEditor(props: SaveEditorProps) {
                 className="w-full rounded border border-slate-300 px-2 py-1"
               />
             </Field>
-            <Field label="Swap Words">
+            <Field
+              label="Swap Words"
+              help="Some emulators/systems require word-swapped saves. Use this only if you're converting for a specific emulator."
+            >
               <BooleanCheckbox value={swapWords} onChange={setSwapWords} />
             </Field>
-            <Field label="File Format">
+            <Field
+              label="File Format"
+              help="SRM: Save file format used by emulators like retroarch that combines multiple ways cartridges were saving games. SRA: Specific save format for Everdrive cartridges and original SRAM cartridges. Keep as SRA unless you specifically need SRM."
+            >
               <select
                 value={String(outputFormat)}
                 onChange={(event) =>
@@ -174,7 +180,10 @@ export default function SaveEditor(props: SaveEditorProps) {
           </Section>
 
           <Section title="General Info">
-            <Field label="Language">
+            <Field
+              label="Language"
+              help="Sets the game language. Changing this affects save compatibility - choose the language matching your game cartridge / ROM."
+            >
               <select
                 value={String(saveFile.header.languageOption)}
                 onChange={(event) => {
@@ -192,7 +201,10 @@ export default function SaveEditor(props: SaveEditorProps) {
                 ))}
               </select>
             </Field>
-            <Field label="Z-Target">
+            <Field
+              label="Z-Target"
+              help="Sets how targeting is handled: "
+            >
               <select
                 value={String(saveFile.header.zTargetOption)}
                 onChange={(event) => {
@@ -210,7 +222,10 @@ export default function SaveEditor(props: SaveEditorProps) {
                 ))}
               </select>
             </Field>
-            <Field label="Sound">
+            <Field
+              label="Sound"
+              help="Keeps original sound settings. Changing this won't affect gameplay but preserves the sound layout of your original cartridge."
+            >
               <select
                 value={String(saveFile.header.soundOption)}
                 onChange={(event) => {

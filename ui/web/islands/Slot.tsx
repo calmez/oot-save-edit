@@ -46,21 +46,59 @@ interface SlotProps {
   readOnly?: boolean;
 }
 
+function Text(
+  props: {
+    value: string;
+    maxLength: number;
+    disabled?: boolean;
+    onChange?: (value: string) => void;
+    help?: string;
+  },
+) {
+  return (
+    <div>
+      <input
+        type="text"
+        value={props.value}
+        disabled={props.disabled}
+        maxLength={props.maxLength}
+        onInput={(event) => {
+          props.onChange?.(event.currentTarget.value);
+        }}
+        className="w-full rounded border border-slate-300 px-2 py-1"
+      />
+      {props.help && (
+        <div className="mt-1 text-xs text-slate-500 italic">
+          {props.help}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function BooleanCheckbox(
   props: {
     value: boolean;
     onChange?: (value: boolean) => void;
     disabled?: boolean;
+    help?: string;
   },
 ) {
   return (
-    <input
-      type="checkbox"
-      checked={props.value}
-      disabled={props.disabled}
-      onChange={(event) => props.onChange?.(event.currentTarget.checked)}
-      className="h-4 w-4 accent-blue-600"
-    />
+    <div>
+      <input
+        type="checkbox"
+        checked={props.value}
+        disabled={props.disabled}
+        onChange={(event) => props.onChange?.(event.currentTarget.checked)}
+        className="h-4 w-4 accent-blue-600"
+      />
+      {props.help && (
+        <div className="mt-1 text-xs text-slate-500 italic">
+          {props.help}
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -73,11 +111,6 @@ function NumberInput(props: {
   disabled?: boolean;
   help?: string;
 }) {
-  const helpText = props.help
-    ? `
-    `
-    : "";
-
   return (
     <div>
       <input
@@ -455,17 +488,19 @@ export default function Slot(props: SlotProps) {
       </div>
 
       <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-3">
-        <Field label="Player Name">
-          <input
-            type="text"
+        <Field
+          label="Player Name"
+          help="Custom character name displayed in-game."
+        >
+          <Text
             value={slot.playerName}
-            disabled={readOnly}
             maxLength={8}
-            onInput={(event) => {
-              slot.playerName = event.currentTarget.value;
+            disabled={readOnly}
+            onChange={(value) => {
+              slot.playerName = value;
               changed();
             }}
-            className="w-full rounded border border-slate-300 px-2 py-1"
+            help="Up to 8 characters."
           />
         </Field>
         <Field label="File Valid">
@@ -481,29 +516,34 @@ export default function Slot(props: SlotProps) {
               slot.deathCounter = value;
               changed();
             }}
+            help="Total deaths counter. Does not affect game state or save validity."
           />
         </Field>
-        {expanded && (
-          <Field label="Age">
-            <EnumSelect
-              keyPrefix={`slot-${slotType}-${index}-age`}
-              enumObject={Age}
-              value={slot.age}
-              disabled={readOnly}
-              options={[Age.Child, Age.Adult]}
-              onChange={(value) => {
-                slot.age = value;
-                changed();
-              }}
-            />
-          </Field>
-        )}
+        <Field
+          label="Age"
+          help="Sets which Zelda forms Link can take. Affects certain events and DLC content."
+        >
+          <EnumSelect
+            keyPrefix={`slot-${slotType}-${index}-age`}
+            enumObject={Age}
+            value={slot.age}
+            disabled={readOnly}
+            options={[Age.Child, Age.Adult]}
+            onChange={(value) => {
+              slot.age = value;
+              changed();
+            }}
+          />
+        </Field>
       </div>
 
       {expanded && (
         <div className="mt-4 space-y-4">
           <Section title="World State">
-            <Field label="Entrance Index">
+            <Field
+              label="Entrance Index"
+              help="Internal scene index for respawn location. Leave unchanged unless you know what you're doing."
+            >
               <NumberInput
                 value={slot.entranceIndex}
                 disabled={readOnly}
@@ -515,7 +555,10 @@ export default function Slot(props: SlotProps) {
                 }}
               />
             </Field>
-            <Field label="Cutscene">
+            <Field
+              label="Cutscene"
+              help="Controls which story cutscene loads. Changes this resets dungeon progress."
+            >
               <NumberInput
                 value={slot.cutSceneNumber}
                 disabled={readOnly}
@@ -527,7 +570,10 @@ export default function Slot(props: SlotProps) {
                 }}
               />
             </Field>
-            <Field label="World Time">
+            <Field
+              label="World Time"
+              help="Tracks the time of day in game as rendered frames. Day and night last each 1'050 seconds (NTSC: 31'500 frames, PAL: 26'250 frames). Midnight is at frame 0."
+            >
               <NumberInput
                 value={slot.worldTime}
                 disabled={readOnly}
@@ -549,6 +595,7 @@ export default function Slot(props: SlotProps) {
                   slot.nightFlag = value;
                   changed();
                 }}
+                help="Links to the World Time and affects lighting and certain events."
               />
             </Field>
             <Field label="DD Only">
@@ -559,9 +606,13 @@ export default function Slot(props: SlotProps) {
                   slot.ddOnly = value;
                   changed();
                 }}
+                help="When enabled with maximum health, gives Double Defense hearts instead of regular hearts."
               />
             </Field>
-            <Field label="Navi Timer">
+            <Field
+              label="Navi Timer"
+              help="Sets the remaining time when Navi's song timer is active. Only used with specific timers."
+            >
               <NumberInput
                 value={slot.naviTimer}
                 disabled={readOnly}
@@ -591,13 +642,14 @@ export default function Slot(props: SlotProps) {
                     }
                     changed();
                   }}
+                  help="Actual health aka. hearts the player has."
                 />
                 <NumberInput
                   value={slot.maxHealth / 16}
                   disabled={readOnly}
                   min={0}
                   max={0xFFFF / 16}
-                  step={0.25}
+                  step={1}
                   onChange={(value) => {
                     slot.maxHealth = Math.round(value * 16);
                     if (slot.currentHealth > slot.maxHealth) {
@@ -608,6 +660,7 @@ export default function Slot(props: SlotProps) {
                     }
                     changed();
                   }}
+                  help="Maximum health aka. hearts the player has."
                 />
                 <NumberInput
                   value={slot.doubleDefenseHearts / 16}
@@ -622,6 +675,7 @@ export default function Slot(props: SlotProps) {
                     }
                     changed();
                   }}
+                  help="Double Defense health pool - doubles when you defeat Ganon. Use with DD Only enabled."
                 />
               </div>
             </Field>
@@ -636,6 +690,7 @@ export default function Slot(props: SlotProps) {
                     slot.currentMagic = value;
                     changed();
                   }}
+                  help="Amount the current magic meter is filled."
                 />
                 <label className="inline-flex items-center gap-2 text-sm">
                   <BooleanCheckbox
@@ -650,6 +705,7 @@ export default function Slot(props: SlotProps) {
                       updateMagicMax();
                       changed();
                     }}
+                    help="Enables magic meter. Toggle to unlock magic abilities."
                   />
                   <span>Flag 1</span>
                 </label>
@@ -662,6 +718,7 @@ export default function Slot(props: SlotProps) {
                       updateMagicMax();
                       changed();
                     }}
+                    help="Fully upgrades magic meter to level 2 with both flags enabled."
                   />
                   <span>Flag 2</span>
                 </label>
@@ -677,6 +734,7 @@ export default function Slot(props: SlotProps) {
                   slot.rupees = value;
                   changed();
                 }}
+                help="The amount of in-game cash the player has."
               />
             </Field>
           </Section>
@@ -690,6 +748,7 @@ export default function Slot(props: SlotProps) {
                   slot.biggoronsSwordFlag1 = value;
                   changed();
                 }}
+                help="Tracks Biggoron's Sword acquisition in Biggoron's Wrench. Unlocks special ending."
               />
             </Field>
             <Field label="Biggoron Flag 2">
@@ -700,6 +759,7 @@ export default function Slot(props: SlotProps) {
                   slot.biggoronsSwordFlag2 = value;
                   changed();
                 }}
+                help="Advanced flag for Biggoron's Sword progression. Use only for specific modifications."
               />
             </Field>
             <Field
@@ -1211,6 +1271,7 @@ export default function Slot(props: SlotProps) {
                   slot.warpPointSet = value;
                   changed();
                 }}
+                help="Activates warp point system for certain dungeon exits."
               />
             </Field>
             <Field label="Checksum">
