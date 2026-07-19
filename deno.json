@@ -29,7 +29,9 @@
     },
     "build:gui": {
       "command": "COMMAND=compile ARGS=\"--no-prompt --output=./build/$PLATFORM/gui --target $PLATFORM\" deno task template:gui",
-      "dependencies": ["build:web"]
+      "dependencies": [
+        "build:web"
+      ]
     },
     "build:gui:linux-x86": "PLATFORM=x86_64-unknown-linux-gnu deno task build:gui",
     "build:gui:linux-aarch64": "PLATFORM=aarch64-unknown-linux-gnu deno task build:gui",
@@ -63,7 +65,6 @@
     "@std/path": "jsr:@std/path@^1.1.4",
     "@std/testing": "jsr:@std/testing@^1.0.17",
     "@opentelemetry/api": "npm:@opentelemetry/api@^1.9.0",
-
     "@webview/webview": "jsr:@webview/webview@0.9.0",
     "react": "npm:react@^19.2.4",
     "ink": "npm:ink@^6.8.0",
