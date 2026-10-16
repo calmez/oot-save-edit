@@ -33,7 +33,7 @@ jobs:
           fetch-depth: 0
       - name: Version
         id: version
-        uses: python-semantic-release/python-semantic-release@350c48fcb3ffcdfd2e0a235206bc2ecea6b69df0
+        uses: python-semantic-release/python-semantic-release@37a30a7987cfebb6d49240bf1c4e9cd9817d0673
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           config_file: .semantic-release.json
