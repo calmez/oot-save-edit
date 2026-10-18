@@ -2,6 +2,12 @@ import { FileUtil } from "../utils/fileutil.ts";
 import { SaveHeader } from "./saveheader.ts";
 import { SaveSlot } from "./saveslot.ts";
 
+/** Checksum handling for serialized output; neither policy mutates the save. */
+export enum ChecksumPolicy {
+  MaintainEdited = "maintain-edited",
+  Preserve = "preserve",
+}
+
 export class SaveFile {
   static get requiredSize(): number {
     throw new Error("Method not implemented.");
@@ -59,12 +65,18 @@ export class SaveFile {
     return this;
   }
 
-  getDataForWrite(): Uint8Array {
+  getDataForWrite(
+    _checksumPolicy = ChecksumPolicy.MaintainEdited,
+  ): Uint8Array {
     return this.getData();
   }
 
-  write(file: Deno.FsFile, forceSwap: boolean = false): void {
-    const data = this.getDataForWrite();
+  write(
+    file: Deno.FsFile,
+    forceSwap: boolean = false,
+    checksumPolicy = ChecksumPolicy.MaintainEdited,
+  ): void {
+    const data = this.getDataForWrite(checksumPolicy);
     if (forceSwap) {
       FileUtil.byteSwap(data, true);
     }
@@ -85,6 +97,9 @@ export class SraSaveFile extends SaveFile {
     SaveSlot.createEmpty(1),
     SaveSlot.createEmpty(2),
   ];
+  private originalSlotData = [...this.slots, ...this.backups].map((slot) =>
+    slot.data.slice()
+  );
   private byteSwapped: boolean = false;
   private trailingData = new Uint8Array(
     SraSaveFile.acceptedSize - SraSaveFile.requiredSize,
@@ -107,7 +122,11 @@ export class SraSaveFile extends SaveFile {
     return this.byteSwapped;
   }
 
-  override getData(forceSwap = false): Uint8Array {
+  /** Raw snapshot by default, including stored checksum bytes. */
+  override getData(
+    forceSwap = false,
+    checksumPolicy = ChecksumPolicy.Preserve,
+  ): Uint8Array {
     const bytes = new Uint8Array(SraSaveFile.acceptedSize);
 
     let currentOffset = 0x00;
@@ -115,13 +134,20 @@ export class SraSaveFile extends SaveFile {
     bytes.set(this.header.data, currentOffset);
     currentOffset += SaveHeader.requiredSize;
 
-    for (let i = 0; i < SraSaveFile.saveSlots; i++) {
-      bytes.set(this.slots[i].data, currentOffset);
-      currentOffset += SaveSlot.requiredSize;
-    }
-
-    for (let i = 0; i < SraSaveFile.saveSlots; i++) {
-      bytes.set(this.backups[i].data, currentOffset);
+    for (const [index, slot] of [...this.slots, ...this.backups].entries()) {
+      bytes.set(slot.data, currentOffset);
+      if (
+        checksumPolicy === ChecksumPolicy.MaintainEdited &&
+        slot.data.some((value, offset) =>
+          offset !== 0x1352 && offset !== 0x1353 &&
+          value !== this.originalSlotData[index][offset]
+        )
+      ) {
+        const outputSlot = new SaveSlot(
+          bytes.subarray(currentOffset, currentOffset + SaveSlot.requiredSize),
+        );
+        outputSlot.updateChecksum();
+      }
       currentOffset += SaveSlot.requiredSize;
     }
 
@@ -162,10 +188,15 @@ export class SraSaveFile extends SaveFile {
     }
 
     this.trailingData = bytes.slice(currentOffset, SraSaveFile.acceptedSize);
+    this.originalSlotData = [...this.slots, ...this.backups].map((slot) =>
+      slot.data.slice()
+    );
   }
 
-  override getDataForWrite(): Uint8Array {
-    return this.getData();
+  override getDataForWrite(
+    checksumPolicy = ChecksumPolicy.MaintainEdited,
+  ): Uint8Array {
+    return this.getData(false, checksumPolicy);
   }
 
   private ensureByteOrder(bytes: Uint8Array): Uint8Array {
@@ -214,12 +245,15 @@ export class SrmSaveFile extends SaveFile {
     return SrmSaveFile.requiredSize;
   }
 
-  static fromSaveFile(save: SraSaveFile): SrmSaveFile {
+  static fromSaveFile(
+    save: SraSaveFile,
+    checksumPolicy = ChecksumPolicy.Preserve,
+  ): SrmSaveFile {
     const srm = save.sourceSrmData
       ? new SrmSaveFile().read(save.sourceSrmData)
       : new SrmSaveFile();
     const forceSwap = !save.sourceSrmData && !save.isByteSwapped;
-    srm.sram.set(save.getData(forceSwap), 0);
+    srm.sram.set(save.getData(forceSwap, checksumPolicy), 0);
 
     return srm;
   }

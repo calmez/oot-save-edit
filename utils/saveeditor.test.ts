@@ -1,6 +1,6 @@
 import { assertEquals, assertNotEquals, assertThrows } from "@std/assert";
 import { SraSaveFile } from "../models/savefile.ts";
-import { Age, Quiver } from "../models/saveslot.ts";
+import { Age, Quiver, SaveSlot } from "../models/saveslot.ts";
 import {
   copySlot,
   getSlot,
@@ -65,6 +65,25 @@ Deno.test("repair restores signatures and checksums without discarding progress"
   assertEquals(save.header.isValid, true);
   assertEquals(save.slots[0].isValid, true);
   assertEquals(save.slots[0].rupees, 321);
+});
+
+Deno.test("explicit checksum repair changes only the selected checksum and retains invalid markers", () => {
+  const source = new SraSaveFile();
+  const damaged = new Uint8Array(SaveSlot.requiredSize);
+  damaged.set([0x01, 0x41], 0x34);
+  damaged.set([0xDE, 0xAD], 0x1352);
+  source.slots[1] = new SaveSlot(damaged);
+  source.backups[0].checksum = 0xCAFE;
+  const save = FileUtil.loadFileFromBuffer(source.getData());
+  const expected = save.getData();
+  expected.set([0x01, 0x41], 0x20 + SaveSlot.requiredSize + 0x1352);
+
+  getSlot(save, 1).updateChecksum();
+
+  assertEquals(save.slots[1].isChecksumValid(), true);
+  assertEquals(save.slots[1].isValid, false);
+  assertEquals(save.backups[0].isChecksumValid(), false);
+  assertEquals(FileUtil.getFileData(save, FileFormat.SRA), expected);
 });
 
 Deno.test("new-file empty pairs survive diagnosis, repair, synchronization and SRA/SRM round trips", () => {

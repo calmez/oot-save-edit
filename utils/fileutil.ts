@@ -1,4 +1,4 @@
-import { SaveFile } from "../models/savefile.ts";
+import { ChecksumPolicy, SaveFile } from "../models/savefile.ts";
 import { SraSaveFile, SrmSaveFile } from "../models/savefile.ts";
 import { Metric, Span } from "./telemetry.ts";
 
@@ -179,17 +179,20 @@ export class FileUtil {
    * @param forceSwap force a byte swap before writing (when converting from SRA
    * to SRM the swap will be done automatically, force swapping will reverse the
    * effect in that case)
+   * @param checksumPolicy maintain edited-slot checksums by default, or preserve
+   * stored checksum bytes even when content was edited
    */
   static saveFile(
     path: string,
     format: FileFormat,
     save: SraSaveFile,
     forceSwap: boolean = false,
+    checksumPolicy = ChecksumPolicy.MaintainEdited,
   ): void {
     const span = Span.saveFile(path, format, forceSwap, Deno.cwd());
     const startTime = new Date().getTime();
 
-    const data = this.getFileData(save, format, forceSwap);
+    const data = this.getFileData(save, format, forceSwap, checksumPolicy);
     const file = Deno.openSync(path, {
       write: true,
       create: true,
@@ -215,18 +218,19 @@ export class FileUtil {
     }
   }
 
+  /** Export a copy without changing the working save or repairing untouched slots. */
   static getFileData(
     save: SraSaveFile,
     format: FileFormat,
     forceSwap = false,
+    checksumPolicy = ChecksumPolicy.MaintainEdited,
   ): Uint8Array {
     if (format !== FileFormat.SRA && format !== FileFormat.SRM) {
       throw new Error(`Unsupported save format for writing: ${format}`);
     }
-    for (const slot of [...save.slots, ...save.backups]) slot.updateChecksum();
     const data = format === FileFormat.SRA
-      ? save.getData()
-      : SrmSaveFile.fromSaveFile(save).getData();
+      ? save.getDataForWrite(checksumPolicy)
+      : SrmSaveFile.fromSaveFile(save, checksumPolicy).getData();
     return forceSwap ? FileUtil.byteSwap(data, true) : data;
   }
 }
