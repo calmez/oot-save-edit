@@ -5,6 +5,14 @@
     "web:dev": "deno task --cwd ./ui/web dev",
     "web:start": "deno task --cwd ./ui/web start",
     "web:update": "deno task --cwd ./ui/web update",
+    "build:demo:tui": "mkdir -p demos && vhs scripts/tui-demo.tape",
+    "build:demo:gui": "deno run -A scripts/gui-demo.ts",
+    "build:demos": {
+      "dependencies": [
+        "build:demo:tui",
+        "build:demo:gui"
+      ]
+    },
     "build:web": "deno task --cwd ./ui/web build",
     "build:web:production": "deno task --cwd ./ui/web build && cp -R ./ui/web/_fresh _fresh",
     "template:tui": "deno $COMMAND --allow-env --allow-read --allow-write $ARGS ./ui/terminal/main.tsx",
