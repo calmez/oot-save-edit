@@ -212,3 +212,29 @@ Deno.test("SRA exports retain the loaded word order and allow an explicit swap",
     save.getData(),
   );
 });
+
+for (const format of [FileFormat.SRA, FileFormat.SRM]) {
+  Deno.test(`browser buffer editing and export work for ${FileFormat[format]} without Deno`, () => {
+    const original = FileUtil.getFileData(new SraSaveFile(), format);
+    const denoDescriptor = Object.getOwnPropertyDescriptor(globalThis, "Deno");
+    if (!denoDescriptor) throw new Error("Missing test runtime descriptor.");
+    Reflect.deleteProperty(globalThis, "Deno");
+    try {
+      const editor = FileUtil.loadFileFromBuffer(original);
+      editor.slots[0].playerName = "Link";
+      editor.slots[0].rupees = 123;
+      const exported = FileUtil.getFileData(editor, format);
+      const reloaded = FileUtil.loadFileFromBuffer(exported);
+      assertEquals(reloaded.slots[0].playerName, "Link");
+      assertEquals(reloaded.slots[0].rupees, 123);
+      assertEquals(reloaded.slots[0].isValid, true);
+      assertThrows(
+        () => FileUtil.loadFileFromBuffer(new Uint8Array(1)),
+        Error,
+        "Cannot detect file type by size. Unknown buffer size: 1.",
+      );
+    } finally {
+      Object.defineProperty(globalThis, "Deno", denoDescriptor);
+    }
+  });
+}

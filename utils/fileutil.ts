@@ -94,7 +94,7 @@ export class FileUtil {
    * format detection
    */
   static loadFile(path: string): SraSaveFile {
-    const span = Span.loadFile(path);
+    const span = Span.loadFile(path, Deno.cwd());
     const startTime = new Date().getTime();
 
     const file = Deno.openSync(path, { read: true });
@@ -186,7 +186,7 @@ export class FileUtil {
     save: SraSaveFile,
     forceSwap: boolean = false,
   ): void {
-    const span = Span.saveFile(path, format, forceSwap);
+    const span = Span.saveFile(path, format, forceSwap, Deno.cwd());
     const startTime = new Date().getTime();
 
     const data = this.getFileData(save, format, forceSwap);
