@@ -112,6 +112,35 @@ interface SaveProps {
   createNew?: boolean;
 }
 
+interface SectionDefinition {
+  title: string;
+  fields: unknown[];
+}
+
+interface SectionPaginationProps {
+  sectionIndex: number;
+  page: number;
+  pageCount: number;
+  onActivate: (sectionIndex: number) => void;
+  onPageChange: (page: number) => void;
+}
+
+function SectionPagination(props: SectionPaginationProps): null {
+  useEffect(() => {
+    props.onActivate(props.sectionIndex);
+  }, [props.onActivate, props.sectionIndex]);
+
+  useInput((input) => {
+    if (input === "]") {
+      props.onPageChange(Math.min(props.page + 1, props.pageCount - 1));
+    } else if (input === "[") {
+      props.onPageChange(Math.max(props.page - 1, 0));
+    }
+  });
+
+  return null;
+}
+
 export const Save = (
   { filename, createNew = false }: SaveProps,
 ): React.JSX.Element => {
@@ -147,7 +176,7 @@ const SaveForm = (
   function makeSlotSections(
     index: SlotIndex,
     saveFile: SraSaveFile,
-  ): { title: string; fields: unknown[] } {
+  ): SectionDefinition {
     const slot = getSlot(saveFile, index);
     const slotKeyForIndex = (key: string) => slotKey(index, key);
     return {
@@ -600,8 +629,9 @@ const SaveForm = (
     return () => stdout.off("resize", onResize);
   }, [stdout]);
   const viewportHeight = termRows - 8;
-  const FIELDS_PER_PAGE = Math.max(1, Math.floor(viewportHeight / 5));
-  const [slotPage, setSlotPage] = useState(0);
+  const fieldsPerPage = Math.max(1, Math.floor(viewportHeight / 5));
+  const [activeSection, setActiveSection] = useState(0);
+  const [sectionPages, setSectionPages] = useState<Record<number, number>>({});
   const [managementOpen, setManagementOpen] = useState(false);
   const [saveMessage, setSaveMessage] = useState("");
 
@@ -614,7 +644,7 @@ const SaveForm = (
     [formState.saveFile],
   );
 
-  const allSections = useMemo(() => {
+  const sectionDefinitions: SectionDefinition[] = useMemo(() => {
     const base = [
       {
         title: "Info",
@@ -704,34 +734,44 @@ const SaveForm = (
       },
       ...slotSectionDefs,
     ];
-    return base.map((section, i) => {
-      if (i >= 3) {
-        const totalPages = Math.ceil(section.fields.length / FIELDS_PER_PAGE);
-        const pg = Math.min(slotPage, totalPages - 1);
-        const start = pg * FIELDS_PER_PAGE;
-        const end = start + FIELDS_PER_PAGE;
-        return {
-          ...section,
-          title: `${i < 6 ? "Slot " + (i - 2) : "B" + (i - 5)}`,
-          fields: section.fields.slice(start, end),
-        };
-      }
-      return section;
-    });
-  }, [slotSectionDefs, slotPage, termRows]);
+    return base.map((section, i) => ({
+      ...section,
+      title: i < 3 ? section.title : i < 6 ? `Slot ${i - 2}` : `B${i - 5}`,
+    }));
+  }, [filename, originalSaveFile, slotSectionDefs]);
+
+  const pageCounts = sectionDefinitions.map((section) =>
+    Math.max(1, Math.ceil(section.fields.length / fieldsPerPage))
+  );
+  const pages = pageCounts.map((count, index) =>
+    Math.min(sectionPages[index] ?? 0, count - 1)
+  );
+  const allSections = sectionDefinitions.map((section, index) => ({
+    ...section,
+    // ink-form renders descriptions only for the active tab outside field editing.
+    description: (
+      <SectionPagination
+        sectionIndex={index}
+        page={pages[index]}
+        pageCount={pageCounts[index]}
+        onActivate={setActiveSection}
+        onPageChange={(page) =>
+          setSectionPages((previous: Record<number, number>) => ({
+            ...previous,
+            [index]: page,
+          }))}
+      />
+    ),
+    fields: section.fields.slice(
+      pages[index] * fieldsPerPage,
+      (pages[index] + 1) * fieldsPerPage,
+    ),
+  }));
+  const currentPage = pages[activeSection] + 1;
+  const totalPages = pageCounts[activeSection];
 
   useInput((input, key) => {
     if (key.ctrl && input === "g") setManagementOpen(true);
-    else if (input === "]") {
-      const maxPg = Math.max(
-        ...slotSectionDefs.map((s: { fields: unknown[] }) =>
-          Math.ceil(s.fields.length / FIELDS_PER_PAGE)
-        ),
-      );
-      setSlotPage((prev: number) => Math.min(prev + 1, maxPg - 1));
-    } else if (input === "[") {
-      setSlotPage((prev: number) => Math.max(prev - 1, 0));
-    }
   });
 
   if (managementOpen) {
@@ -840,7 +880,8 @@ const SaveForm = (
       </Box>
       <Box justifyContent="center" marginTop={1}>
         <Text dimColor>
-          ↑ ↓ fields · [ ] page {slotPage + 1} · ← → tabs · Ctrl+G manage
+          ↑ ↓ fields · [ ] page {currentPage} / {totalPages}{" "}
+          · ← → tabs · Ctrl+G manage
         </Text>
       </Box>
       {saveMessage && <Text>{saveMessage}</Text>}
