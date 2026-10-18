@@ -1,11 +1,11 @@
 import { assertEquals, assertNotEquals, assertThrows } from "@std/assert";
 import { SraSaveFile } from "../models/savefile.ts";
-import { Quiver } from "../models/saveslot.ts";
+import { Age, Quiver } from "../models/saveslot.ts";
 import {
   copySlot,
   getSlot,
   repairSave,
-  resetSlot,
+  resetSlotToNewGame,
   selectUpgrade,
   updateNamedFlag,
 } from "./saveeditor.ts";
@@ -48,7 +48,7 @@ Deno.test("copying and restoring backups produces independent slots with destina
   assertEquals(save.slots[2].rupees, 200);
   assertEquals(save.slots[2].fileIndex, 2);
   assertEquals(save.slots[2].isValid, true);
-  resetSlot(save, 2);
+  resetSlotToNewGame(save, 2);
   assertEquals(save.slots[2].playerName, "");
   assertEquals(save.slots[2].currentHealth, 48);
   assertNotEquals(save.slots[2].data, save.backups[1].data);
@@ -67,6 +67,30 @@ Deno.test("repair restores signatures and checksums without discarding progress"
   assertEquals(save.slots[0].rupees, 321);
 });
 
+Deno.test("new-file empty pairs survive diagnosis, repair, synchronization and SRA/SRM round trips", () => {
+  for (const format of [FileFormat.SRA, FileFormat.SRM]) {
+    const save = new SraSaveFile();
+    const empty = save.slots[1].data.slice();
+    repairSave(save);
+    for (let index = 0; index < 3; index++) copySlot(save, index, index + 3);
+    const reread = FileUtil.loadFileFromBuffer(
+      FileUtil.getFileData(save, format),
+    );
+    assertEquals(reread.slots.map((slot) => slot.isEmpty), [false, true, true]);
+    assertEquals(reread.backups.map((slot) => slot.isEmpty), [
+      false,
+      true,
+      true,
+    ]);
+    assertEquals(reread.slots[1].data, empty);
+    assertEquals(reread.slots[0].isValid, true);
+    for (let index = 0; index < 3; index++) {
+      assertEquals(reread.slots[index].data, reread.backups[index].data);
+      assertEquals(reread.slots[index].fileIndex, index);
+    }
+  }
+});
+
 Deno.test("UI upgrade selection replaces the previous level in the same group", () => {
   assertEquals(
     selectUpgrade([Quiver.QuiverHolds30], Quiver.QuiverHolds50, true),
@@ -76,4 +100,28 @@ Deno.test("UI upgrade selection replaces the previous level in the same group", 
     selectUpgrade([Quiver.QuiverHolds50], Quiver.QuiverHolds50, false),
     [],
   );
+});
+
+Deno.test("explicit new-game creation replaces only the selected record with its destination index", () => {
+  for (let target = 0; target < 6; target++) {
+    const save = new SraSaveFile();
+    const before = [...save.slots, ...save.backups].map((slot) =>
+      slot.data.slice()
+    );
+    resetSlotToNewGame(save, target);
+    for (let index = 0; index < 6; index++) {
+      const slot = getSlot(save, index);
+      if (index !== target) {
+        assertEquals(slot.data, before[index]);
+        continue;
+      }
+      assertEquals(slot.isEmpty, false);
+      assertEquals(slot.isValid, true);
+      assertEquals(slot.fileIndex, target % 3);
+      assertEquals(slot.age, Age.Child);
+      assertEquals(slot.currentHealth, 48);
+      assertEquals(slot.cutSceneNumber, 0xFFF1);
+    }
+    assertThrows(() => resetSlotToNewGame(save, 6), Error, "Slot index");
+  }
 });

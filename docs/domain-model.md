@@ -16,10 +16,11 @@ Creating a new save file should initialize the first primary slot and its
 matching backup as a new game, leaving the other two pairs empty. Creating
 additional games is an explicit choice.
 
-Currently, `new SraSaveFile()` initializes all six records as new games.
-`SaveSlot.createBlank()` also means an initialized new game. These names and
-defaults should be aligned with the distinction between an empty slot and a
-new-game slot.
+`new SraSaveFile()` follows this lifecycle. `SaveSlot.createEmpty()` and
+`SaveSlot.createNewGame()` distinguish the creation operations, and explicit
+creation/reset in either editor changes only the selected record. See
+[slot lifecycle evidence and API details](save-slot-lifecycle.md) for
+recognition rules and remaining uncertainty.
 
 ## Gameplay relationships
 

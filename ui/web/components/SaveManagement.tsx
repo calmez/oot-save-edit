@@ -4,7 +4,7 @@ import {
   copySlot,
   getSlot,
   repairSave,
-  resetSlot,
+  resetSlotToNewGame,
   slotCount,
   slotLabel,
 } from "../../../utils/saveeditor.ts";
@@ -99,13 +99,17 @@ export default function SaveManagement(
           type="button"
           onClick={() =>
             perform(
-              () => resetSlot(props.save, target),
+              () => resetSlotToNewGame(props.save, target),
               `${slotLabel(target)} reset to a new game.`,
             )}
         >
-          Reset selected slot
+          Reset selected slot to a new game
         </Button>
       </div>
+      <p className="text-sm text-slate-600 md:col-span-2">
+        Resetting creates a new-game slot in the selected record only. Its
+        paired primary or backup is unchanged.
+      </p>
       {message && (
         <p role="status">{message} Download the save to keep your changes.</p>
       )}

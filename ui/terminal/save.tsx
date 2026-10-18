@@ -179,6 +179,17 @@ const SaveForm = (
   ): SectionDefinition {
     const slot = getSlot(saveFile, index);
     const slotKeyForIndex = (key: string) => slotKey(index, key);
+    if (slot.isEmpty) {
+      return {
+        title: slotLabel(index),
+        fields: [{
+          type: "readonly.string",
+          name: slotKeyForIndex("slotState"),
+          label: "Slot state",
+          initialValue: "Empty slot. Use Ctrl+G to create a new-game slot.",
+        }],
+      };
+    }
     return {
       title: slotLabel(index),
       fields: [
@@ -641,7 +652,7 @@ const SaveForm = (
         { length: slotCount },
         (_, index) => makeSlotSections(index as SlotIndex, formState.saveFile),
       ),
-    [formState.saveFile],
+    [formState.saveFile, formState.currentFormData],
   );
 
   const sectionDefinitions: SectionDefinition[] = useMemo(() => {

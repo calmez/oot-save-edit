@@ -39,7 +39,7 @@ Web UI tasks (see `ui/web/deno.json`):
 
 Tests:
 
-- Run all tests: `deno test`.
+- Run all tests: `deno task test` (core/TUI and web use separate configs).
 - Run a single test file: `deno test models/saveslot.test.ts`.
 - Run a single test by name:
   `deno test --filter "should set an entrance index"`.

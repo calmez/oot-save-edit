@@ -42,6 +42,17 @@ Run `deno task web:dev` for the web editor or `deno task run:gui` for the
 desktop wrapper after building the web UI. Both expose editable backup slots and
 save-management controls. Download the save to keep your changes.
 
+New files start with one new-game slot and its matching backup; the other four
+records are empty. Create another new-game slot explicitly from an empty slot's
+web control or the TUI's Ctrl+G menu. Creation and reset change only the
+selected record; synchronize backups separately when wanted. Resetting starts a
+new game, rather than making a slot empty. See the
+[slot lifecycle](docs/save-slot-lifecycle.md) for the core API and format
+evidence.
+
+Run `deno task test` for the core, terminal, and web tests. The web tests use
+their own Deno configuration, as they do for type-checking.
+
 Both editors include additional progress and advanced data: saved child/adult
 equipment, minigame records, individual Skulltula flags, world-map discovery,
 Epona's position, and recorded Scarecrow songs. Arrays use comma-separated

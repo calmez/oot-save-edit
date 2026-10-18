@@ -1437,18 +1437,30 @@ Deno.test({
   },
 });
 
-Deno.test("should use game age values and initialize a new game with empty inventory", () => {
-  const slot = SaveSlot.createBlank();
+Deno.test("new-game slots use the retail starting state and destination file index", () => {
+  const slot = SaveSlot.createNewGame(2);
   assertEquals(Age.Adult, 0);
   assertEquals(Age.Child, 1);
   assertEquals(slot.data[7], 1);
   assertEquals(slot.maxHealth, 48);
+  assertEquals(slot.currentHealth, 48);
+  assertEquals(slot.currentMagic, 48);
+  assertEquals(slot.magicFlag1, false);
+  assertEquals(slot.magicFlag2, false);
+  assertEquals(slot.fileIndex, 2);
+  assertEquals(slot.entranceIndex, 0xBB);
+  assertEquals(slot.worldTime, 0x6AAA);
+  assertEquals(slot.cutSceneNumber, 0xFFF1);
+  assertEquals(slot.savedSceneIndex, 0x34);
+  assertEquals(slot.data[0xF32], 0);
+  assertEquals(slot.data[0xF33], 1);
+  assertEquals(slot.permanentSceneFlags[5].switches.getFlag(30), true);
   assertEquals(slot.inventory, new Array(24).fill(InventoryItems.Empty));
   assertEquals(slot.isValid, true);
 });
 
 Deno.test("small keys must not overwrite double-defense hearts", () => {
-  const slot = SaveSlot.createBlank();
+  const slot = SaveSlot.createNewGame();
   slot.doubleDefenseHearts = 20;
   slot.smallKeyAmount = new Array(19).fill(7);
   assertEquals(slot.doubleDefenseHearts, 20);
@@ -1457,8 +1469,57 @@ Deno.test("small keys must not overwrite double-defense hearts", () => {
   });
 });
 
+Deno.test("empty slots have the game's unused defaults without an occupied marker", () => {
+  const slot = SaveSlot.createEmpty(1);
+  assertEquals(slot.isEmpty, true);
+  assertEquals(slot.data.slice(0x1C, 0x22), new Uint8Array(6));
+  assertEquals(slot.data.slice(0, 0x1C), new Uint8Array(0x1C));
+  assertEquals(slot.fileIndex, 1);
+  assertEquals(slot.playerName, "");
+  assertEquals(slot.inventory, new Array(24).fill(InventoryItems.Empty));
+  assertEquals(slot.isChecksumValid(), true);
+  assertEquals(SaveSlot.createNewGame().isEmpty, false);
+  assertEquals(new SaveSlot().isEmpty, true);
+});
+
+Deno.test("slot factories reject file indexes outside the three primary/backup pairs", () => {
+  for (const index of [-1, 3, 1.5, NaN, Infinity]) {
+    assertThrows(() => SaveSlot.createNewGame(index), Error, "File index");
+    assertThrows(() => SaveSlot.createEmpty(index), Error, "File index");
+  }
+});
+
+Deno.test("slot diagnosis and repair preserve empty records and distinguish damaged progress", () => {
+  const empty = SaveSlot.createEmpty();
+  empty.checksum = 0;
+  const before = empty.data.slice();
+  assertEquals(empty.isEmpty, true);
+  assertEquals(empty.isValid, false);
+  assertEquals(empty.isChecksumValid(), false);
+  assertEquals(empty.data, before);
+  empty.makeValid();
+  assertEquals(empty.isEmpty, true);
+  assertEquals(empty.isChecksumValid(), true);
+  assertEquals(empty.data.slice(0x1C, 0x22), new Uint8Array(6));
+
+  const damaged = SaveSlot.createNewGame();
+  damaged.playerName = "Link";
+  damaged.rupees = 123;
+  damaged.data.fill(0, 0x1C, 0x22);
+  assertEquals(damaged.isEmpty, false);
+  assertEquals(damaged.isValid, false);
+  damaged.makeValid();
+  assertEquals(damaged.isValid, true);
+  assertEquals(damaged.playerName, "Link");
+  assertEquals(damaged.rupees, 123);
+
+  const partialMarker = SaveSlot.createNewGame();
+  partialMarker.data[0x1C] = 0;
+  assertEquals(partialMarker.isEmpty, false);
+});
+
 Deno.test("all 124 scene records can be edited without touching Farore's Wind", () => {
-  const slot = SaveSlot.createBlank();
+  const slot = SaveSlot.createNewGame();
   slot.faroresWindWarp = { x: -10, y: 20, z: -30, yRotation: -40 };
   const flags = slot.permanentSceneFlags;
   flags[123].visitedFloors.setFlag(31, true);

@@ -6,7 +6,7 @@ import {
 } from "./additionalfields.ts";
 
 Deno.test("advanced editor accepts signed values, words and exact song data", () => {
-  const slot = SaveSlot.createBlank();
+  const slot = SaveSlot.createNewGame();
   setAdditionalField(slot, "horseX", "-2000");
   setAdditionalField(slot, "doubleDefenseAcquired", "true");
   setAdditionalField(slot, "scarecrowSpawnSong", "ab ".repeat(128));

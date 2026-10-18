@@ -2,6 +2,7 @@
   "nodeModulesDir": "auto",
   "tasks": {
     "check": "deno fmt --check . && deno lint . && deno check",
+    "test": "deno test --allow-env",
     "install-deps": "deno install --allow-scripts",
     "dev": "vite",
     "build": "vite build --configLoader native",

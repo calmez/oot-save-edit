@@ -69,6 +69,12 @@ export function makeSlotFields(
   const put = (key: string, value: unknown) =>
     fields[`slot_${index}_${key}`] = value;
   put("fileValid", slot.isValid);
+  put(
+    "slotState",
+    slot.isEmpty
+      ? "Empty slot. Use Ctrl+G to create a new-game slot."
+      : "Occupied slot",
+  );
   put("checksum", slot.checksum);
   put("health", {
     maxHealth: slot.maxHealth / 16,

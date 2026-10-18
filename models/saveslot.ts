@@ -363,7 +363,10 @@ export class SaveSlot {
     }
   }
 
-  static createBlank(): SaveSlot {
+  static createNewGame(fileIndex = 0): SaveSlot {
+    if (!Number.isInteger(fileIndex) || fileIndex < 0 || fileIndex > 2) {
+      throw new Error(`File index must be between 0 and 2, got ${fileIndex}.`);
+    }
     const slot = new SaveSlot();
 
     slot.checkPattern = SaveSlot.validCheckPattern;
@@ -371,6 +374,7 @@ export class SaveSlot {
     slot.age = Age.Child;
     slot.maxHealth = 3 * 16;
     slot.currentHealth = 3 * 16;
+    slot.currentMagic = MagicAmount.Half;
     slot.inventory = new Array(24).fill(InventoryItems.Empty);
     slot.currentButtonEquips = {
       bButton: InventoryItems.Empty,
@@ -392,6 +396,12 @@ export class SaveSlot {
     slot.entranceIndex = 0xBB;
     slot.savedSceneIndex = 0x34 as Scene;
     slot.worldTime = 0x6AAA;
+    slot.cutSceneNumber = 0xFFF1;
+    slot.fileIndex = fileIndex;
+    const sceneFlags = slot.permanentSceneFlags;
+    sceneFlags[5].switches.setFlag(30, true);
+    slot.permanentSceneFlags = sceneFlags;
+    slot.bytes[0xF33] = 1;
     slot.additionalData = {
       ...slot.additionalData,
       childButtonItems: new Array(4).fill(InventoryItems.Empty),
@@ -409,6 +419,22 @@ export class SaveSlot {
     return slot;
   }
 
+  static createEmpty(fileIndex = 0): SaveSlot {
+    const slot = SaveSlot.createNewGame(fileIndex);
+    slot.bytes.fill(0, 0, 0x22);
+    slot.updateChecksum();
+    return slot;
+  }
+
+  get isEmpty(): boolean {
+    if (this.checkPattern.some((value) => value !== 0)) return false;
+    const saveInfo = this.bytes.subarray(0x1C, 0x1352);
+    if (saveInfo.every((value) => value === 0)) return true;
+    // Erasing in-game leaves the leading context and checksum unspecified.
+    const empty = SaveSlot.createEmpty().data;
+    return saveInfo.every((value, index) => value === empty[index + 0x1C]);
+  }
+
   get data(): Uint8Array {
     return this.bytes;
   }
@@ -422,7 +448,7 @@ export class SaveSlot {
   }
 
   makeValid(): this {
-    this.checkPattern = SaveSlot.validCheckPattern;
+    if (!this.isEmpty) this.checkPattern = SaveSlot.validCheckPattern;
     this.updateChecksum();
     return this;
   }
