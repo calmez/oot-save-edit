@@ -4,8 +4,11 @@ This repo uses a single-context domain layout.
 
 ## Before exploring
 
-- Read root `GLOSSARY.md` for domain vocabulary.
-- Read ADRs in `docs/adr/` that touch the area you are about to work in.
+- Read root [GLOSSARY.md](../../GLOSSARY.md) for domain vocabulary.
+- For slot lifecycle, gameplay relationships, or legacy model names, read the
+  [domain model](../domain-model.md).
+- Use the [ADR index](../adr/README.md) to find decisions that touch the area
+  you are about to work in, then read those records.
 
 If these files do not exist, proceed silently. The `domain-modeling` skill
 creates them when terms or decisions are resolved.
@@ -13,6 +16,8 @@ creates them when terms or decisions are resolved.
 ## Layout
 
 - `GLOSSARY.md`: shared domain terms at the repository root.
+- `docs/domain-model.md`: slot lifecycle, gameplay relationships, and legacy
+  names.
 - `docs/adr/NNNN-description.md`: architectural decision records.
 - `docs/agents/`: engineering skills configuration.
 - `build/docs/`: generated TypeScript API documentation.
