@@ -57,7 +57,7 @@ Deno.test("additional progress writes the documented offsets and preserves adjac
 });
 
 Deno.test("additional progress validates all values before changing the slot", () => {
-  const slot = SaveSlot.createBlank();
+  const slot = SaveSlot.createNewGame();
   const before = slot.data.slice();
   assertThrows(
     () => {
@@ -83,7 +83,7 @@ Deno.test("additional progress validates all values before changing the slot", (
 });
 
 Deno.test("quest item editing preserves collected Pieces of Heart", () => {
-  const slot = SaveSlot.createBlank();
+  const slot = SaveSlot.createNewGame();
   slot.additionalData = { ...slot.additionalData, heartPieces: 3 };
   slot.questStatusItems = [Songs.SariasSong];
   assertEquals(slot.additionalData.heartPieces, 3);

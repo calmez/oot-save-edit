@@ -71,14 +71,14 @@ export class SraSaveFile extends SaveFile {
   sourceSrmData?: Uint8Array;
   header = SaveHeader.createBlank();
   slots: [SaveSlot, SaveSlot, SaveSlot] = [
-    SaveSlot.createBlank(),
-    SaveSlot.createBlank(),
-    SaveSlot.createBlank(),
+    SaveSlot.createNewGame(0),
+    SaveSlot.createEmpty(1),
+    SaveSlot.createEmpty(2),
   ];
   backups: [SaveSlot, SaveSlot, SaveSlot] = [
-    SaveSlot.createBlank(),
-    SaveSlot.createBlank(),
-    SaveSlot.createBlank(),
+    SaveSlot.createNewGame(0),
+    SaveSlot.createEmpty(1),
+    SaveSlot.createEmpty(2),
   ];
   private byteSwapped: boolean = false;
 

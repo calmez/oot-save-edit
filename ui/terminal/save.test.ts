@@ -94,6 +94,30 @@ Deno.test("TUI Info page navigation stays within its own page count", async () =
   }
 });
 
+Deno.test("TUI new files show empty slots and create another new-game slot explicitly", async () => {
+  const editor = await renderEditor(40);
+  try {
+    await editor.input("5");
+    assertStringIncludes(editor.frame(), "Empty slot");
+    await editor.input("\u0007");
+    assertStringIncludes(editor.frame(), "Create or reset a new-game slot");
+    for (let i = 0; i < 5; i++) await editor.input("\u001b[B");
+    await editor.input("\r");
+    assertStringIncludes(editor.frame(), "Choose slot:");
+    await editor.input("\u001b[B");
+    await editor.input("\r");
+    await editor.input("\u001b");
+    await editor.input("5");
+    assertStringIncludes(editor.frame(), "Player Name");
+    await editor.input("6");
+    assertStringIncludes(editor.frame(), "Empty slot");
+    await editor.input("8");
+    assertStringIncludes(editor.frame(), "Empty slot");
+  } finally {
+    await editor.cleanup();
+  }
+});
+
 Deno.test("TUI tabs retain independent pages and respect both page boundaries", async () => {
   const editor = await renderEditor(40);
   try {
@@ -109,11 +133,14 @@ Deno.test("TUI tabs retain independent pages and respect both page boundaries", 
     await editor.input("4");
     assertStringIncludes(editor.frame(), "page 2 / 6");
     await editor.input("\u001b[C");
-    assertStringIncludes(editor.frame(), "page 1 / 6");
-    assertStringIncludes(editor.frame(), "Player Name");
+    assertStringIncludes(editor.frame(), "page 1 / 1");
+    assertStringIncludes(editor.frame(), "Empty slot");
     await editor.input("\u001b[D");
     assertStringIncludes(editor.frame(), "page 2 / 6");
     await editor.input("9");
+    assertStringIncludes(editor.frame(), "Empty slot");
+    assertStringIncludes(editor.frame(), "page 1 / 1");
+    await editor.input("7");
     assertStringIncludes(editor.frame(), "page 1 / 6");
     await editor.input("[");
     assertStringIncludes(editor.frame(), "page 1 / 6");

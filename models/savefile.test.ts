@@ -24,7 +24,8 @@ Deno.test({
 });
 
 Deno.test({
-  name: "should initialize empty",
+  name:
+    "new saves initialize only the first primary and backup as independent new-game slots",
   fn() {
     const instance = new SraSaveFile();
     assertInstanceOf(instance.header, SaveHeader);
@@ -34,6 +35,23 @@ Deno.test({
     instance.backups.forEach((slot) => {
       assertInstanceOf(slot, SaveSlot);
     });
+    assertEquals(instance.slots.map((slot) => slot.isEmpty), [
+      false,
+      true,
+      true,
+    ]);
+    assertEquals(instance.backups.map((slot) => slot.isEmpty), [
+      false,
+      true,
+      true,
+    ]);
+    assertEquals(instance.slots.map((slot) => slot.fileIndex), [0, 1, 2]);
+    assertEquals(instance.backups.map((slot) => slot.fileIndex), [0, 1, 2]);
+    for (let index = 0; index < 3; index++) {
+      assertEquals(instance.slots[index].data, instance.backups[index].data);
+    }
+    instance.slots[0].rupees = 99;
+    assertEquals(instance.backups[0].rupees, 0);
   },
 });
 

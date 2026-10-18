@@ -1,7 +1,7 @@
 {
   "tasks": {
     "check": "deno fmt --check . && deno lint . && deno check index.ts main.ts models/*.test.ts utils/*.test.ts ui/main.ts ui/additionalfields.test.ts ui/terminal/main.tsx ui/terminal/*.test.ts && deno task --cwd ./ui/web check",
-    "test": "deno test --allow-env",
+    "test": "deno test --allow-env && deno task --cwd ./ui/web test",
     "web:dev": "deno task --cwd ./ui/web dev",
     "web:start": "deno task --cwd ./ui/web start",
     "web:update": "deno task --cwd ./ui/web update",
@@ -83,6 +83,11 @@
     "ink-form": "npm:ink-form@^2.0.1",
     "ink-select-input": "npm:ink-select-input@^6.2.0",
     "ink-text-input": "npm:ink-text-input@6"
+  },
+  "test": {
+    "exclude": [
+      "ui/web/"
+    ]
   },
   "lint": {
     "rules": {

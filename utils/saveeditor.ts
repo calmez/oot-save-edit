@@ -43,10 +43,10 @@ export function copySlot(
   getSlot(save, target).updateChecksum();
 }
 
-export function resetSlot(save: SraSaveFile, index: number): void {
+/** Replaces only the selected record; its paired primary/backup is unchanged. */
+export function resetSlotToNewGame(save: SraSaveFile, index: number): void {
   const slot = getSlot(save, index);
-  slot.data.set(SaveSlot.createBlank().data);
-  slot.fileIndex = index % 3;
+  slot.data.set(SaveSlot.createNewGame(index % 3).data);
 }
 
 export function repairSave(save: SraSaveFile): void {

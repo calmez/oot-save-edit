@@ -471,6 +471,33 @@ export default function Slot(props: SlotProps) {
   const activePermanentSceneFlags =
     slot.permanentSceneFlags[activePermanentScene];
 
+  if (slot.isEmpty) {
+    return (
+      <div className="rounded-xl border border-slate-200 bg-slate-50/80 p-4 md:p-5">
+        <h3 className="text-lg font-semibold text-slate-900 md:text-xl">
+          {slotType === "backup" ? "Backup" : "File"} {index + 1}
+        </h3>
+        <p className="my-3 text-slate-700">Empty slot</p>
+        {!readOnly && (
+          <button
+            type="button"
+            className="rounded bg-blue-600 px-3 py-2 text-white cursor-pointer"
+            onClick={() => {
+              slot.data.set(SaveSlot.createNewGame(index).data);
+              onChange?.();
+            }}
+          >
+            Create new-game slot
+          </button>
+        )}
+        <p className="mt-2 text-sm text-slate-600">
+          Creates a game in this record only. Its paired primary or backup is
+          unchanged.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div
       className={`rounded-xl border p-4 shadow-sm transition-all md:p-5 ${

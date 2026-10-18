@@ -6,7 +6,7 @@ import {
   copySlot,
   getSlot,
   repairSave,
-  resetSlot,
+  resetSlotToNewGame,
   slotCount,
   slotLabel,
 } from "../../utils/saveeditor.ts";
@@ -28,7 +28,12 @@ export default function SaveManagement(
   });
   const slots = Array.from(
     { length: slotCount },
-    (_, value) => ({ label: slotLabel(value), value: String(value) }),
+    (_, value) => ({
+      label: `${slotLabel(value)}${
+        getSlot(save, value).isEmpty ? " (empty slot)" : ""
+      }`,
+      value: String(value),
+    }),
   );
   const actions = [
     { label: "Repair header", value: "header" },
@@ -36,7 +41,7 @@ export default function SaveManagement(
     { label: "Repair one slot", value: "repair" },
     { label: "Copy or restore a slot", value: "source" },
     { label: "Synchronize all backups from primary slots", value: "sync" },
-    { label: "Reset a slot to a new game", value: "reset" },
+    { label: "Create or reset a new-game slot", value: "reset" },
     { label: "Return to editor", value: "close" },
   ];
   return (
@@ -81,7 +86,7 @@ export default function SaveManagement(
               getSlot(save, Number(value))
                 .makeValid();
             } else if (stage === "reset") {
-              resetSlot(save, Number(value));
+              resetSlotToNewGame(save, Number(value));
             }
             onChange();
             setStage("actions");
@@ -93,6 +98,10 @@ export default function SaveManagement(
       </Box>
       {message && <Text color="green">{message}</Text>}
       <Text dimColor>Escape returns to the editor.</Text>
+      <Text dimColor>
+        Creating or resetting changes only the selected record. Synchronize its
+        backup separately if wanted.
+      </Text>
     </Box>
   );
 }
