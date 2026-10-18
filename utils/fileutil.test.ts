@@ -1,6 +1,94 @@
-import { FileFormat, FileUtil } from "./fileutil.ts";
+import {
+  assert,
+  assertEquals,
+  assertInstanceOf,
+  assertThrows,
+} from "@std/assert";
 import { SraSaveFile, SrmSaveFile } from "../models/savefile.ts";
-import { assertEquals, assertInstanceOf, assertThrows } from "@std/assert";
+import { FileFormat, FileUtil } from "./fileutil.ts";
+
+function createSraWithUnknownBytes(): Uint8Array {
+  const save = new SraSaveFile();
+  save.header.data.fill(0xA5, 0x11);
+  [...save.slots, ...save.backups].forEach((slot, index) => {
+    slot.data.fill(0xB1 + index, 0x1358);
+  });
+  const bytes = save.getData();
+  for (let index = SraSaveFile.requiredSize; index < bytes.length; index++) {
+    bytes[index] = (index % 255) + 1;
+  }
+  return bytes;
+}
+
+function createStoredSave(
+  sra: Uint8Array,
+  format: FileFormat,
+  swapped: boolean,
+): Uint8Array {
+  const storedSram = swapped ? FileUtil.byteSwap(sra) : sra;
+  if (format === FileFormat.SRA) return storedSram;
+  const bytes = Uint8Array.from(
+    { length: SrmSaveFile.acceptedSize },
+    (_, index) => (index % 255) + 1,
+  );
+  bytes.set(storedSram, 0x20800);
+  return bytes;
+}
+
+for (const format of [FileFormat.SRA, FileFormat.SRM]) {
+  for (const swapped of [false, true]) {
+    Deno.test(`${FileFormat[format]} preserves every byte across repeated unchanged exports in ${swapped ? "swapped" : "native"} SRAM order`, () => {
+      const sra = createSraWithUnknownBytes();
+      const original = createStoredSave(sra, format, swapped);
+      let exported: Uint8Array = original.slice();
+
+      for (let cycle = 0; cycle < 3; cycle++) {
+        const save = FileUtil.loadFileFromBuffer(exported);
+        assertEquals(save.isByteSwapped, swapped);
+        exported = FileUtil.getFileData(save, format);
+        assertEquals(exported.length, original.length);
+        assert(
+          exported.every((value, index) => value === original[index]),
+          `Unchanged export ${cycle + 1} must preserve every source byte.`,
+        );
+      }
+    });
+
+    Deno.test(`${FileFormat[format]} editing changes only rupees and their checksum in ${swapped ? "swapped" : "native"} SRAM order`, () => {
+      const sra = createSraWithUnknownBytes();
+      const original = createStoredSave(sra, format, swapped);
+      const expectedSram = sra.slice();
+      expectedSram.set([0x01, 0xF4], 0x54);
+      // Changing rupees from 0 to 500 adds 500 to the 16-bit checksum.
+      const checksum = ((sra[0x1372] << 8) | sra[0x1373]) + 500;
+      expectedSram.set([(checksum >> 8) & 0xFF, checksum & 0xFF], 0x1372);
+      const expected = original.slice();
+      expected.set(
+        swapped ? FileUtil.byteSwap(expectedSram) : expectedSram,
+        format === FileFormat.SRA ? 0 : 0x20800,
+      );
+      let exported: Uint8Array = original.slice();
+
+      for (let cycle = 0; cycle < 3; cycle++) {
+        const save = FileUtil.loadFileFromBuffer(exported);
+        save.slots[0].rupees = 500;
+        exported = FileUtil.getFileData(save, format);
+        const reloaded = FileUtil.loadFileFromBuffer(exported);
+        assertEquals(reloaded.slots[0].rupees, 500);
+        assert(reloaded.slots[0].isChecksumValid());
+        assertEquals(reloaded.isByteSwapped, swapped);
+
+        assertEquals(exported.length, original.length);
+        assert(
+          exported.every((value, index) => value === expected[index]),
+          `Edited export ${
+            cycle + 1
+          } must change only rupees and their checksum.`,
+        );
+      }
+    });
+  }
+}
 
 Deno.test({
   name: "should detect SRA file format by size",
