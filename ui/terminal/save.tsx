@@ -1,3 +1,12 @@
+import { getSlot, slotCount, slotLabel } from "../../utils/saveeditor.ts";
+import {
+  applySlotFields,
+  getBooleanFlags,
+  makeSlotFields,
+} from "./slotdata.ts";
+import { AdditionalDataFormFieldManager } from "./fieldmanagers/additionaldata.tsx";
+import SaveManagement from "./management.tsx";
+import { sceneIdOptions } from "../labels.ts";
 import React, { useEffect, useMemo, useState } from "react";
 import { SraSaveFile } from "../../models/savefile.ts";
 import { Box, Text, useInput, useStdout } from "ink";
@@ -7,18 +16,12 @@ import {
   SoundOption,
   ZTargetOption,
 } from "../../models/saveheader.ts";
-import { Age, MagicAmount } from "../../models/saveslot.ts";
+import { Age } from "../../models/saveslot.ts";
 import { EnumFormFieldManager } from "./fieldmanagers/enum.tsx";
 import { ReadonlyStringFormFieldManager } from "./fieldmanagers/readonlystring.tsx";
 import { ReadonlyBooleanFormFieldManager } from "./fieldmanagers/readonlyboolean.tsx";
 import { ReadonlyEnumFormFieldManager } from "./fieldmanagers/readonlyenum.tsx";
-import {
-  Entrance,
-  Room,
-  RoomWithEntranceFor,
-  Scene,
-  Time,
-} from "../../models/scene.ts";
+import { Entrance, Room, Scene, Time } from "../../models/scene.ts";
 import { ValidEntrancesForRoom } from "../../index.ts";
 import { SelectionFormFieldManager } from "./fieldmanagers/selection.tsx";
 import {
@@ -39,13 +42,12 @@ import {
 import {
   MagicBooleanFieldRenderer,
   MagicData,
-  MagicEnumFieldRenderer,
   MagicFormFieldManager,
+  MagicNumberFieldRenderer,
 } from "./fieldmanagers/magic.tsx";
 import {
   ButtonEquipsBButtonRenderer,
   ButtonEquipsCOffsetRenderer,
-  ButtonEquipsData,
   ButtonEquipsFormFieldManager,
 } from "./fieldmanagers/buttonequips.tsx";
 import {
@@ -55,53 +57,25 @@ import {
   CurrentEquipSwordRenderer,
   CurrentEquipTunicRenderer,
 } from "./fieldmanagers/currentequip.tsx";
+import { InventoryFormFieldManager } from "./fieldmanagers/inventory.tsx";
+import { ObtainedFormFieldManager } from "./fieldmanagers/obtained.tsx";
 import {
-  InventoryData,
-  InventoryFormFieldManager,
-} from "./fieldmanagers/inventory.tsx";
-import {
-  ObtainedData,
-  ObtainedFormFieldManager,
-} from "./fieldmanagers/obtained.tsx";
-import {
-  DungeonStatusData,
   DungeonStatusFormFieldManager,
 } from "./fieldmanagers/dungeonstatus.tsx";
 import { FlagsGroupFormFieldManager } from "./fieldmanagers/flagsgroup.tsx";
 import {
-  PermanentSceneFlagsData,
   PermanentSceneFlagsFormFieldManager,
 } from "./fieldmanagers/permanentsceneflags.tsx";
 import { FileFormat, FileUtil } from "../../utils/fileutil.ts";
 import {
   Boots,
-  DungeonItems,
   InventoryItems,
   Shield,
   Sword,
   Tunic,
 } from "../../models/saveslot.ts";
-import { CurrentEquipmentData } from "./fieldmanagers/currentequip.tsx";
 
-type SlotIndex = 0 | 1 | 2;
-
-function getBooleanFlags(
-  source: object,
-): Array<{ name: string; value: boolean }> {
-  const prototype = Object.getPrototypeOf(source) as object;
-  const descriptors = Object.getOwnPropertyDescriptors(prototype);
-  const flags: Array<{ name: string; value: boolean }> = [];
-  for (const [name, descriptor] of Object.entries(descriptors)) {
-    if (name === "constructor" || name === "data" || !descriptor.get) continue;
-    try {
-      const value = (source as Record<string, unknown>)[name];
-      if (typeof value === "boolean") flags.push({ name, value });
-    } catch {
-      continue;
-    }
-  }
-  return flags;
-}
+type SlotIndex = 0 | 1 | 2 | 3 | 4 | 5;
 
 type SlotFormFields = {
   [K in `slot_${SlotIndex}_${string}`]: unknown;
@@ -114,85 +88,8 @@ function slotKey<K extends string>(
   return `slot_${index}_${key}`;
 }
 
-function makeSlotFields(
-  index: SlotIndex,
-  saveFile: SraSaveFile,
-): SlotFormFields {
-  const slot = saveFile.slots[index];
-  return {
-    [slotKey(index, "playerName")]: slot.playerName,
-    [slotKey(index, "fileValid")]: slot.isValid,
-    [slotKey(index, "deathCounter")]: slot.deathCounter,
-    [slotKey(index, "age")]: slot.age,
-    [slotKey(index, "health")]: {
-      maxHealth: slot.maxHealth / 16,
-      currentHealth: slot.currentHealth / 16,
-      doubleDefenseHearts: slot.doubleDefenseHearts,
-    },
-    [slotKey(index, "magic")]: {
-      current: slot.currentMagic,
-      flag1: slot.magicFlag1,
-      flag2: slot.magicFlag2,
-    },
-    [slotKey(index, "rupees")]: slot.rupees,
-    [slotKey(index, "roomWithEntrance")]: {
-      room: slot.room,
-      entrance: slot.entrance,
-    },
-    [slotKey(index, "magicBeans")]: slot.magicBeans,
-    [slotKey(index, "goldSkulltulaTokens")]: slot.goldSkulltulaTokens,
-    [slotKey(index, "bigPoePoints")]: slot.bigPoePoints,
-    [slotKey(index, "faroresWindWarp")]: slot.faroresWindWarp,
-    [slotKey(index, "entranceIndex")]: slot.entranceIndex,
-    [slotKey(index, "cutSceneNumber")]: slot.cutSceneNumber,
-    [slotKey(index, "worldTime")]: slot.worldTime,
-    [slotKey(index, "nightFlag")]: slot.nightFlag,
-    [slotKey(index, "ddOnly")]: slot.ddOnly,
-    [slotKey(index, "naviTimer")]: slot.naviTimer,
-    [slotKey(index, "biggoronsSwordFlag1")]: slot.biggoronsSwordFlag1,
-    [slotKey(index, "biggoronsSwordFlag2")]: slot.biggoronsSwordFlag2,
-    [slotKey(index, "savedSceneIndex")]: slot.savedSceneIndex,
-    [slotKey(index, "buttonEquips")]: slot.currentButtonEquips,
-    [slotKey(index, "currentEquipment")]: slot.currentlyEquippedEquipment,
-    [slotKey(index, "inventory")]: {
-      items: slot.inventory,
-      amounts: slot.inventoryAmounts,
-    },
-    [slotKey(index, "obtained")]: {
-      equipment: slot.obtainedEquipment,
-      upgrades: slot.obtainedUpgrades,
-      questItems: slot.questStatusItems,
-    },
-    [slotKey(index, "dungeonStatus")]: {
-      items: slot.dungeonItems,
-      smallKeys: slot.smallKeyAmount,
-    },
-    [slotKey(index, "entranceIndexTransport")]: slot.entranceIndexTransport,
-    [slotKey(index, "mapNumber")]: slot.mapNumber,
-    [slotKey(index, "warpPointSet")]: slot.warpPointSet,
-    [slotKey(index, "checksum")]: slot.checksum,
-    [slotKey(index, "fileIndex")]: slot.fileIndex,
-    [slotKey(index, "eventFlags")]: Object.fromEntries(
-      getBooleanFlags(slot.eventFlags).map((
-        f,
-      ) => [f.name, f.value]),
-    ),
-    [slotKey(index, "itemFlags")]: Object.fromEntries(
-      getBooleanFlags(slot.itemFlags).map((
-        f,
-      ) => [f.name, f.value]),
-    ),
-    [slotKey(index, "otherFlags")]: Object.fromEntries(
-      getBooleanFlags(slot.otherFlags).map((
-        f,
-      ) => [f.name, f.value]),
-    ),
-    [slotKey(index, "permanentSceneFlags")]: { version: 0 },
-  };
-}
-
 type FormFields =
-  {
+  & {
     info_filename: string;
     info_wordSwapped: boolean;
     info_fileFormat: FileFormat;
@@ -212,38 +109,56 @@ interface FormState {
 
 interface SaveProps {
   filename: string;
+  createNew?: boolean;
 }
 
-export const Save = ({ filename }: SaveProps): React.JSX.Element => {
-  let originalSaveFile: SraSaveFile;
-  try {
-    originalSaveFile = FileUtil.loadFile(filename);
-  } catch (error) {
-    const errorMessage = error instanceof Error
-      ? error.message
-      : "Unknown error";
+export const Save = (
+  { filename, createNew = false }: SaveProps,
+): React.JSX.Element => {
+  const [loaded] = useState(() => {
+    try {
+      return {
+        save: createNew ? new SraSaveFile() : FileUtil.loadFile(filename),
+        error: "",
+      };
+    } catch (error) {
+      return {
+        save: null,
+        error: error instanceof Error ? error.message : String(error),
+      };
+    }
+  });
+  if (!loaded.save) {
     return (
       <Box flexDirection="column">
-        <Text color="red">Error loading save file: {errorMessage}</Text>
+        <Text color="red">Error loading save file: {loaded.error}</Text>
       </Box>
     );
   }
+  return <SaveForm filename={filename} originalSaveFile={loaded.save} />;
+};
 
+const SaveForm = (
+  { filename, originalSaveFile }: {
+    filename: string;
+    originalSaveFile: SraSaveFile;
+  },
+): React.JSX.Element => {
   function makeSlotSections(
     index: SlotIndex,
     saveFile: SraSaveFile,
   ): { title: string; fields: unknown[] } {
-    const slot = saveFile.slots[index];
+    const slot = getSlot(saveFile, index);
     const slotKeyForIndex = (key: string) => slotKey(index, key);
     return {
-      title: `Slot ${index + 1}`,
+      title: slotLabel(index),
       fields: [
         {
           type: "string",
           name: slotKeyForIndex("playerName"),
           label: "Player Name",
           initialValue: slot.playerName,
-          regex: /^[A-Za-z]{1,8}$/,
+          regex: /^[A-Za-z]{0,8}$/,
         },
         {
           type: "readonly.boolean",
@@ -306,10 +221,11 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
           label: "Magic",
           subfields: {
             current: {
-              renderer: MagicEnumFieldRenderer,
+              renderer: MagicNumberFieldRenderer,
               props: {
-                label: "Bar",
-                enum: MagicAmount,
+                label: "Amount",
+                min: 0,
+                max: (value?: MagicData) => value?.flag2 ? 96 : 48,
                 readonly: (value?: MagicData) => !(value?.flag1 ?? false),
               },
             },
@@ -386,21 +302,15 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
         },
         {
           type: "boolean",
-          name: slotKeyForIndex("biggoronsSwordFlag1"),
-          label: "Biggoron Flag 1",
-          initialValue: slot.biggoronsSwordFlag1,
-        },
-        {
-          type: "boolean",
           name: slotKeyForIndex("biggoronsSwordFlag2"),
-          label: "Biggoron Flag 2",
+          label: "Biggoron Sword acquired",
           initialValue: slot.biggoronsSwordFlag2,
         },
         {
           type: "enum",
           name: slotKeyForIndex("savedSceneIndex"),
           label: "Saved Scene",
-          enum: Scene,
+          enum: sceneIdOptions,
           initialValue: slot.savedSceneIndex,
         },
         {
@@ -418,7 +328,7 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
               props: {
                 label: "Entrance",
                 options: (value?: RoomData) => {
-                  if (value?.room) {
+                  if (value?.room !== undefined) {
                     return ValidEntrancesForRoom(value.room).map(
                       (entrance) => ({
                         label: Entrance[entrance],
@@ -443,7 +353,7 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
         {
           type: "integer",
           min: 0,
-          max: 99,
+          max: 100,
           name: slotKeyForIndex("goldSkulltulaTokens"),
           label: "Gold Skulltula Tokens",
           initialValue: slot.goldSkulltulaTokens,
@@ -492,19 +402,22 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
           subfields: {
             sword: {
               renderer: CurrentEquipSwordRenderer,
-              props: { label: "Sword", enum: Sword },
+              props: { label: "Sword", enum: { ...Sword, None: 0, 0: "None" } },
             },
             shield: {
               renderer: CurrentEquipShieldRenderer,
-              props: { label: "Shield", enum: Shield },
+              props: {
+                label: "Shield",
+                enum: { ...Shield, None: 0, 0: "None" },
+              },
             },
             tunic: {
               renderer: CurrentEquipTunicRenderer,
-              props: { label: "Tunic", enum: Tunic },
+              props: { label: "Tunic", enum: { ...Tunic, None: 0, 0: "None" } },
             },
             boots: {
               renderer: CurrentEquipBootsRenderer,
-              props: { label: "Boots", enum: Boots },
+              props: { label: "Boots", enum: { ...Boots, None: 0, 0: "None" } },
             },
           },
         },
@@ -553,19 +466,19 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
           subfields: {
             x: {
               renderer: Point3DFieldRenderer,
-              props: { label: "X", min: 0, max: 0xffffffff },
+              props: { label: "X", min: -0x80000000, max: 0x7fffffff },
             },
             y: {
               renderer: Point3DFieldRenderer,
-              props: { label: "Y", min: 0, max: 0xffffffff },
+              props: { label: "Y", min: -0x80000000, max: 0x7fffffff },
             },
             z: {
               renderer: Point3DFieldRenderer,
-              props: { label: "Z", min: 0, max: 0xffffffff },
+              props: { label: "Z", min: -0x80000000, max: 0x7fffffff },
             },
             yRotation: {
               renderer: Point3DFieldRenderer,
-              props: { label: "Y Rotation", min: 0, max: 0xffff },
+              props: { label: "Y Rotation", min: -0x80000000, max: 0x7fffffff },
             },
           },
         },
@@ -591,12 +504,10 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
           initialValue: slot.warpPointSet,
         },
         {
-          type: "integer",
-          min: 0,
-          max: 0xffff,
+          type: "readonly.string",
           name: slotKeyForIndex("checksum"),
-          label: "Checksum",
-          initialValue: slot.checksum,
+          label: "Checksum (calculated)",
+          initialValue: String(slot.checksum),
         },
         {
           type: "integer",
@@ -640,154 +551,21 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
           ),
         },
         {
+          type: "additionaldata",
+          name: slotKeyForIndex("additionalData"),
+          label: "Additional progress and advanced data",
+          saveSlot: slot,
+          initialValue: slot.additionalData,
+        },
+        {
           type: "permanentsceneflags",
           name: slotKeyForIndex("permanentSceneFlags"),
           label: "Permanent Scene Flags",
           saveSlot: slot,
-          initialValue: { version: 0 },
+          initialValue: { bytes: Array.from(slot.data.slice(0xD4, 0xE64)) },
         },
       ],
     };
-  }
-
-  function readSlotData(
-    saveFile: SraSaveFile,
-    values: FormFields,
-    index: SlotIndex,
-  ): SraSaveFile {
-    const slot = saveFile.slots[index];
-
-    slot.playerName = values[`slot_${index}_playerName`] as unknown as string;
-    slot.deathCounter =
-      values[`slot_${index}_deathCounter`] as unknown as number;
-    slot.age = values[`slot_${index}_age`] as unknown as Age;
-
-    const health = values[`slot_${index}_health`] as unknown as HealthData;
-    slot.currentHealth = Math.round(health.currentHealth * 16);
-    slot.maxHealth = Math.round(health.maxHealth * 16);
-    slot.doubleDefenseHearts = health.doubleDefenseHearts;
-
-    const magic = values[`slot_${index}_magic`] as unknown as MagicData;
-    slot.currentMagic = magic.current;
-    slot.magicFlag1 = magic.flag1;
-    slot.magicFlag2 = magic.flag2;
-    slot.maxMagic = magic.flag1 ? (magic.flag2 ? 2 : 1) : 0;
-
-    slot.rupees = values[`slot_${index}_rupees`] as unknown as number;
-
-    const roomData =
-      values[`slot_${index}_roomWithEntrance`] as unknown as RoomData;
-    if (slot.room !== roomData.room) {
-      slot.roomWithEntrance = RoomWithEntranceFor(
-        roomData.room,
-        ValidEntrancesForRoom(roomData.room)[0],
-      );
-    }
-    if (ValidEntrancesForRoom(roomData.room).includes(roomData.entrance)) {
-      slot.entrance = roomData.entrance;
-    }
-
-    slot.magicBeans = values[`slot_${index}_magicBeans`] as unknown as number;
-    slot.goldSkulltulaTokens =
-      values[`slot_${index}_goldSkulltulaTokens`] as unknown as number;
-    slot.bigPoePoints =
-      values[`slot_${index}_bigPoePoints`] as unknown as number;
-
-    slot.entranceIndex =
-      values[`slot_${index}_entranceIndex`] as unknown as number;
-    slot.cutSceneNumber =
-      values[`slot_${index}_cutSceneNumber`] as unknown as number;
-    slot.worldTime = values[`slot_${index}_worldTime`] as unknown as number;
-    slot.nightFlag = values[`slot_${index}_nightFlag`] as unknown as Time;
-    slot.ddOnly = values[`slot_${index}_ddOnly`] as unknown as boolean;
-    slot.naviTimer = values[`slot_${index}_naviTimer`] as unknown as number;
-    slot.biggoronsSwordFlag1 =
-      values[`slot_${index}_biggoronsSwordFlag1`] as unknown as boolean;
-    slot.biggoronsSwordFlag2 =
-      values[`slot_${index}_biggoronsSwordFlag2`] as unknown as boolean;
-
-    const savedScene =
-      values[`slot_${index}_savedSceneIndex`] as unknown as Scene;
-    if (savedScene !== slot.savedSceneIndex) {
-      slot.savedSceneIndex = savedScene;
-    }
-
-    const buttonEquips =
-      values[`slot_${index}_buttonEquips`] as unknown as ButtonEquipsData;
-    slot.currentButtonEquips = {
-      bButton: buttonEquips.bButton,
-      cLeftButton: buttonEquips.cLeftButton,
-      cDownButton: buttonEquips.cDownButton,
-      cRightButton: buttonEquips.cRightButton,
-      cLeftOffset: buttonEquips.cLeftOffset,
-      cDownOffset: buttonEquips.cDownOffset,
-      cRightOffset: buttonEquips.cRightOffset,
-    };
-
-    const currentEquip = values[
-      `slot_${index}_currentEquipment`
-    ] as unknown as CurrentEquipmentData;
-    slot.currentlyEquippedEquipment = {
-      sword: currentEquip.sword,
-      shield: currentEquip.shield,
-      tunic: currentEquip.tunic,
-      boots: currentEquip.boots,
-    };
-
-    const inv = values[`slot_${index}_inventory`] as unknown as InventoryData;
-    if (inv.items.length === 24) slot.inventory = inv.items;
-    if (inv.amounts.length === 15) slot.inventoryAmounts = inv.amounts;
-
-    const obt = values[`slot_${index}_obtained`] as unknown as ObtainedData;
-    slot.obtainedEquipment = obt.equipment;
-    slot.obtainedUpgrades = obt.upgrades;
-    slot.questStatusItems = obt.questItems;
-
-    const dung =
-      values[`slot_${index}_dungeonStatus`] as unknown as DungeonStatusData;
-    slot.dungeonItems = dung.items;
-    slot.smallKeyAmount = dung.smallKeys;
-
-    slot.entranceIndexTransport =
-      values[`slot_${index}_entranceIndexTransport`] as unknown as Scene;
-    slot.mapNumber = values[`slot_${index}_mapNumber`] as unknown as number;
-    slot.warpPointSet =
-      values[`slot_${index}_warpPointSet`] as unknown as boolean;
-    slot.checksum = values[`slot_${index}_checksum`] as unknown as number;
-    slot.fileIndex = values[`slot_${index}_fileIndex`] as unknown as number;
-
-    // Sync flags from form data to slot
-    const eventFlagValues =
-      values[`slot_${index}_eventFlags`] as unknown as Record<string, boolean>;
-    if (eventFlagValues) {
-      const ef = slot.eventFlags;
-      for (const [name, value] of Object.entries(eventFlagValues)) {
-        (ef as unknown as Record<string, unknown>)[name] = value;
-      }
-      slot.eventFlags = ef;
-    }
-
-    const itemFlagValues =
-      values[`slot_${index}_itemFlags`] as unknown as Record<string, boolean>;
-    if (itemFlagValues) {
-      const itemf = slot.itemFlags;
-      for (const [name, value] of Object.entries(itemFlagValues)) {
-        (itemf as unknown as Record<string, unknown>)[name] = value;
-      }
-      slot.itemFlags = itemf;
-    }
-
-    const otherFlagValues =
-      values[`slot_${index}_otherFlags`] as unknown as Record<string, boolean>;
-    if (otherFlagValues) {
-      const of = slot.otherFlags;
-      for (const [name, value] of Object.entries(otherFlagValues)) {
-        (of as unknown as Record<string, unknown>)[name] = value;
-      }
-      slot.otherFlags = of;
-    }
-
-    return saveFile;
   }
 
   const [formState, setFormState] = useState<FormState>({
@@ -804,18 +582,13 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
       header_languageOption: originalSaveFile.header.languageOption,
       header_zTargetOption: originalSaveFile.header.zTargetOption,
       header_soundOption: originalSaveFile.header.soundOption,
-      ...makeSlotFields(0, originalSaveFile) as unknown as Record<
-        string,
-        unknown
-      >,
-      ...makeSlotFields(1, originalSaveFile) as unknown as Record<
-        string,
-        unknown
-      >,
-      ...makeSlotFields(2, originalSaveFile) as unknown as Record<
-        string,
-        unknown
-      >,
+      ...Object.assign(
+        {},
+        ...Array.from(
+          { length: slotCount },
+          (_, index) => makeSlotFields(index, originalSaveFile),
+        ),
+      ),
     } as FormFields,
   });
 
@@ -829,20 +602,22 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
   const viewportHeight = termRows - 8;
   const FIELDS_PER_PAGE = Math.max(1, Math.floor(viewportHeight / 5));
   const [slotPage, setSlotPage] = useState(0);
+  const [managementOpen, setManagementOpen] = useState(false);
+  const [saveMessage, setSaveMessage] = useState("");
 
   const slotSectionDefs = useMemo(
-    () => [
-      makeSlotSections(0, formState.saveFile),
-      makeSlotSections(1, formState.saveFile),
-      makeSlotSections(2, formState.saveFile),
-    ],
+    () =>
+      Array.from(
+        { length: slotCount },
+        (_, index) => makeSlotSections(index as SlotIndex, formState.saveFile),
+      ),
     [formState.saveFile],
   );
 
   const allSections = useMemo(() => {
     const base = [
       {
-        title: "File info",
+        title: "Info",
         fields: [
           {
             type: "readonly.string",
@@ -878,7 +653,7 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
         ],
       },
       {
-        title: "Save options",
+        title: "Output",
         fields: [
           {
             type: "string",
@@ -902,7 +677,7 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
         ],
       },
       {
-        title: "General",
+        title: "Options",
         fields: [
           {
             type: "enum",
@@ -937,7 +712,7 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
         const end = start + FIELDS_PER_PAGE;
         return {
           ...section,
-          title: `${section.title} (${pg + 1}/${totalPages})`,
+          title: `${i < 6 ? "Slot " + (i - 2) : "B" + (i - 5)}`,
           fields: section.fields.slice(start, end),
         };
       }
@@ -946,17 +721,47 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
   }, [slotSectionDefs, slotPage, termRows]);
 
   useInput((input, key) => {
-    if (input === "]") {
+    if (key.ctrl && input === "g") setManagementOpen(true);
+    else if (input === "]") {
       const maxPg = Math.max(
-        ...slotSectionDefs.map((s) =>
+        ...slotSectionDefs.map((s: { fields: unknown[] }) =>
           Math.ceil(s.fields.length / FIELDS_PER_PAGE)
         ),
       );
-      setSlotPage((prev) => Math.min(prev + 1, maxPg - 1));
+      setSlotPage((prev: number) => Math.min(prev + 1, maxPg - 1));
     } else if (input === "[") {
-      setSlotPage((prev) => Math.max(prev - 1, 0));
+      setSlotPage((prev: number) => Math.max(prev - 1, 0));
     }
   });
+
+  if (managementOpen) {
+    return (
+      <SaveManagement
+        save={formState.saveFile}
+        onClose={() => setManagementOpen(false)}
+        onChange={() => {
+          const fields = Object.assign(
+            {},
+            ...Array.from(
+              { length: slotCount },
+              (_, index) => makeSlotFields(index, formState.saveFile),
+            ),
+          );
+          setFormState({
+            ...formState,
+            currentFormData: {
+              ...formState.currentFormData,
+              ...fields,
+              header_languageOption: formState.saveFile.header.languageOption,
+              header_soundOption: formState.saveFile.header.soundOption,
+              header_zTargetOption: formState.saveFile.header.zTargetOption,
+              info_headerValid: formState.saveFile.header.isValid,
+            } as FormFields,
+          });
+        }}
+      />
+    );
+  }
 
   return (
     <Box flexDirection="column">
@@ -979,6 +784,7 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
             DungeonStatusFormFieldManager,
             FlagsGroupFormFieldManager,
             PermanentSceneFlagsFormFieldManager,
+            AdditionalDataFormFieldManager,
           ]}
           form={{
             title: "Edit Save",
@@ -991,27 +797,24 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
               values.header_zTargetOption;
             formState.saveFile.header.soundOption = values.header_soundOption;
 
-            formState.saveFile = readSlotData(formState.saveFile, values, 0);
-            formState.saveFile = readSlotData(formState.saveFile, values, 1);
-            formState.saveFile = readSlotData(formState.saveFile, values, 2);
-
-            // Update checksum for all slots
-            for (let i = 0; i < 3; i++) {
-              formState.saveFile.slots[i].updateChecksum();
+            for (let index = 0; index < slotCount; index++) {
+              applySlotFields(
+                getSlot(formState.saveFile, index),
+                index,
+                values,
+                formState.currentFormData,
+              );
             }
-
-            const newData: Record<string, unknown> = {
-              ...values as unknown as Record<string, unknown>,
+            const newData = {
+              ...values,
+              ...Object.assign(
+                {},
+                ...Array.from(
+                  { length: slotCount },
+                  (_, index) => makeSlotFields(index, formState.saveFile),
+                ),
+              ),
             };
-            // Re-sync room/entrance (they may have changed due to scene index)
-            for (let i = 0; i < 3; i++) {
-              const idx = i as SlotIndex;
-              newData[`slot_${idx}_roomWithEntrance`] = {
-                room: formState.saveFile.slots[idx].room,
-                entrance: formState.saveFile.slots[idx].entrance,
-              };
-            }
-
             setFormState({
               ...formState,
               currentFormData: newData as FormFields,
@@ -1019,18 +822,28 @@ export const Save = ({ filename }: SaveProps): React.JSX.Element => {
           }}
           value={formState.currentFormData}
           onSubmit={(values: FormFields) => {
-            FileUtil.saveFile(
-              values.saveoptions_filename,
-              values.saveoptions_fileFormat,
-              formState.saveFile,
-              values.saveoptions_swapWords,
-            );
+            try {
+              FileUtil.saveFile(
+                values.saveoptions_filename,
+                values.saveoptions_fileFormat,
+                formState.saveFile,
+                values.saveoptions_swapWords,
+              );
+              setSaveMessage(`Saved ${values.saveoptions_filename}`);
+            } catch (error) {
+              setSaveMessage(
+                error instanceof Error ? error.message : String(error),
+              );
+            }
           }}
         />
       </Box>
       <Box justifyContent="center" marginTop={1}>
-        <Text dimColor>↑ ↓ fields · [ ] page · ← → tabs</Text>
+        <Text dimColor>
+          ↑ ↓ fields · [ ] page {slotPage + 1} · ← → tabs · Ctrl+G manage
+        </Text>
       </Box>
+      {saveMessage && <Text>{saveMessage}</Text>}
     </Box>
   );
 };

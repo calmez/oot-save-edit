@@ -176,3 +176,39 @@ Deno.test({
     }
   },
 });
+
+Deno.test("SRM editing preserves emulator sections and writes word-swapped SRAM", () => {
+  const original = new SrmSaveFile();
+  original.eeprom.fill(0x11);
+  original.mempacks.forEach((pack, index) => pack.fill(0x22 + index));
+  original.flashram.fill(0x77);
+  const save = new SraSaveFile();
+  original.sram.set(FileUtil.byteSwap(save.getData()));
+  const editor = FileUtil.loadFileFromBuffer(original.getData());
+  assertEquals(editor.isByteSwapped, true);
+  editor.slots[0].rupees = 500;
+  const exported = new SrmSaveFile().read(
+    FileUtil.getFileData(editor, FileFormat.SRM),
+  );
+  assertEquals(exported.eeprom, original.eeprom);
+  assertEquals(exported.mempacks, original.mempacks);
+  assertEquals(exported.flashram, original.flashram);
+  assertEquals(
+    exported.sram.slice(0, 4),
+    FileUtil.byteSwap(editor.getData(true)).slice(0, 4),
+  );
+  assertEquals(exported.saveFile.slots[0].rupees, 500);
+  assertEquals(exported.saveFile.slots[0].isValid, true);
+});
+
+Deno.test("SRA exports retain the loaded word order and allow an explicit swap", () => {
+  const save = new SraSaveFile();
+  const swapped = FileUtil.byteSwap(save.getData());
+  const loaded = FileUtil.loadFileFromBuffer(swapped);
+  assertEquals(loaded.isByteSwapped, true);
+  assertEquals(FileUtil.getFileData(loaded, FileFormat.SRA), swapped);
+  assertEquals(
+    FileUtil.getFileData(loaded, FileFormat.SRA, true),
+    save.getData(),
+  );
+});

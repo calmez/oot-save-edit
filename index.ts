@@ -1,6 +1,7 @@
 export * from "./models/savefile.ts";
 export * from "./models/saveheader.ts";
 export * from "./models/saveslot.ts";
+export * from "./models/additionaldata.ts";
 export * from "./models/scene.ts";
 export * from "./models/eventflags.ts";
 export * from "./models/itemflags.ts";

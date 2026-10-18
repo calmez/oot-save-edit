@@ -8,6 +8,8 @@ import { OotText } from "../utils/text.ts";
 import { EventFlags } from "./eventflags.ts";
 import { ItemFlags } from "./itemflags.ts";
 import { OtherFlags } from "./otherflags.ts";
+import { readAdditionalData, writeAdditionalData } from "./additionaldata.ts";
+import type { AdditionalSaveData } from "./additionaldata.ts";
 import {
   ChestFlags,
   CollectibleFlags,
@@ -32,8 +34,8 @@ import {
 } from "./scene.ts";
 
 export enum Age {
-  Child = 0x00,
-  Adult = 0x01,
+  Adult = 0x00,
+  Child = 0x01,
   Invalid,
 }
 
@@ -143,19 +145,21 @@ export const EquippableItems = {
 };
 
 export enum DekuNutUpgrades {
-  DekuNutUpgradeHolds30Nuts = 0x0010_0000,
-  DekuNutUpgradeHolds40Nuts = 0x0020_0000,
+  DekuNutUpgradeHolds20Nuts = 0x0010_0000,
+  DekuNutUpgradeHolds30Nuts = 0x0020_0000,
+  DekuNutUpgradeHolds40Nuts = 0x0030_0000,
 }
 
 export enum DekuStickUpgrades {
-  DekuStickUpgradeHolds20Sticks = 0x0002_0000,
-  DekuStickUpgradeHolds30Sticks = 0x0004_0000,
+  DekuStickUpgradeHolds10Sticks = 0x0002_0000,
+  DekuStickUpgradeHolds20Sticks = 0x0004_0000,
+  DekuStickUpgradeHolds30Sticks = 0x0006_0000,
 }
 
 export enum BulletBag {
   BulletBagHolds30 = 0x0000_4000,
   BulletBagHolds40 = 0x0000_8000,
-  BulletBagHolds50 = 0x0001_0000,
+  BulletBagHolds50 = 0x0000_C000,
 }
 
 export enum Wallet {
@@ -169,20 +173,21 @@ export enum DiveMeter {
 }
 
 export enum StrengthUpgrades {
-  SilverGauntlets = 0x0000_0040,
-  GoldenGauntlets = 0x0000_0080,
+  GoronBracelet = 0x0000_0040,
+  SilverGauntlets = 0x0000_0080,
+  GoldenGauntlets = 0x0000_00C0,
 }
 
 export enum BombBag {
   BombBagHolds20 = 0x0000_0008,
   BombBagHolds30 = 0x0000_0010,
-  BombBagHolds40 = 0x0000_0020,
+  BombBagHolds40 = 0x0000_0018,
 }
 
 export enum Quiver {
   QuiverHolds30 = 0x0000_0001,
   QuiverHolds40 = 0x0000_0002,
-  QuiverHolds50 = 0x0000_0004,
+  QuiverHolds50 = 0x0000_0003,
 }
 
 export type ObtainableUpgrades =
@@ -205,6 +210,17 @@ export const ObtainableUpgrades = {
   ...BombBag,
   ...Quiver,
 };
+
+export const upgradeGroups = [
+  { mask: 0x00700000, values: DekuNutUpgrades },
+  { mask: 0x000E0000, values: DekuStickUpgrades },
+  { mask: 0x0001C000, values: BulletBag },
+  { mask: 0x00003000, values: Wallet },
+  { mask: 0x00000E00, values: DiveMeter },
+  { mask: 0x000001C0, values: StrengthUpgrades },
+  { mask: 0x00000038, values: BombBag },
+  { mask: 0x00000007, values: Quiver },
+];
 
 export enum Medallions {
   ForestMedallion = 0x0000_0001,
@@ -327,6 +343,9 @@ export interface FaroresWindWarp {
 }
 
 export class SaveSlot {
+  static readonly permanentSceneCount = 124;
+  static readonly smallKeyCount = 19;
+
   public static get requiredSize(): number {
     return 0x1450;
   }
@@ -349,6 +368,42 @@ export class SaveSlot {
 
     slot.checkPattern = SaveSlot.validCheckPattern;
     slot.playerName = "";
+    slot.age = Age.Child;
+    slot.maxHealth = 3 * 16;
+    slot.currentHealth = 3 * 16;
+    slot.inventory = new Array(24).fill(InventoryItems.Empty);
+    slot.currentButtonEquips = {
+      bButton: InventoryItems.Empty,
+      cLeftButton: InventoryItems.Empty,
+      cDownButton: InventoryItems.Empty,
+      cRightButton: InventoryItems.Empty,
+      cLeftOffset: 0xFF,
+      cDownOffset: 0xFF,
+      cRightOffset: 0xFF,
+    };
+    slot.currentlyEquippedEquipment = {
+      sword: 0 as Sword,
+      shield: 0 as Shield,
+      tunic: Tunic.KokiriTunic,
+      boots: Boots.KokiriBoots,
+    };
+    slot.obtainedEquipment = [Tunic.KokiriTunic, Boots.KokiriBoots];
+    slot.smallKeyAmount = new Array(SaveSlot.smallKeyCount).fill(0xFF);
+    slot.entranceIndex = 0xBB;
+    slot.savedSceneIndex = 0x34 as Scene;
+    slot.worldTime = 0x6AAA;
+    slot.additionalData = {
+      ...slot.additionalData,
+      childButtonItems: new Array(4).fill(InventoryItems.Empty),
+      childButtonSlots: new Array(3).fill(0xFF),
+      adultButtonItems: new Array(4).fill(InventoryItems.Empty),
+      adultButtonSlots: new Array(3).fill(0xFF),
+      horseScene: 0x51,
+      horseX: -1840,
+      horseY: 72,
+      horseZ: 5497,
+      horseAngle: -0x6AD9,
+    };
     slot.updateChecksum();
 
     return slot;
@@ -356,6 +411,20 @@ export class SaveSlot {
 
   get data(): Uint8Array {
     return this.bytes;
+  }
+
+  get additionalData(): AdditionalSaveData {
+    return readAdditionalData(this.bytes);
+  }
+
+  set additionalData(value: AdditionalSaveData) {
+    writeAdditionalData(this.bytes, value);
+  }
+
+  makeValid(): this {
+    this.checkPattern = SaveSlot.validCheckPattern;
+    this.updateChecksum();
+    return this;
   }
 
   get entranceIndex(): number {
@@ -371,9 +440,9 @@ export class SaveSlot {
 
     switch (age) {
       case 0:
-        return Age.Child;
-      case 1:
         return Age.Adult;
+      case 1:
+        return Age.Child;
       default:
         return Age.Invalid;
     }
@@ -486,19 +555,7 @@ export class SaveSlot {
   }
 
   get currentMagic(): MagicAmount {
-    const amount = toNumber(this.bytes.slice(0x0033, 0x0033 + 1));
-    switch (amount) {
-      case 0x00:
-        return MagicAmount.Empty;
-      case 0x30:
-        return MagicAmount.Half;
-      case 0x60:
-        return MagicAmount.Full;
-      default:
-        throw Error(
-          `Magic amount contains corrupt value ${amount}. Can only be 0x00, 0x30, or 0x60.`,
-        );
-    }
+    return this.bytes[0x33];
   }
 
   set currentMagic(value: MagicAmount) {
@@ -516,21 +573,11 @@ export class SaveSlot {
   // TODO needs to be tested assuming previous rupees at 0x0034 with size
   // uint16_t is correct this should start here
   get biggoronsSwordFlag1(): boolean {
-    const value = toNumber(this.bytes.slice(0x0036, 0x0036 + 1));
-    switch (value) {
-      case 0:
-        return false;
-      case 1:
-        return true;
-      default:
-        throw Error(
-          `biggoronsSwordFlag1 flag contains corrupt value ${value}. Can only be 0 or 1.`,
-        );
-    }
+    return this.additionalData.swordHealth !== 0;
   }
 
   set biggoronsSwordFlag1(value: boolean) {
-    this.bytes.set(toUint8Array(value, 1), 0x0036);
+    this.bytes.set(toUint8Array(value ? 8 : 0, 2), 0x0036);
   }
 
   get naviTimer(): number {
@@ -596,30 +643,30 @@ export class SaveSlot {
   }
 
   set room(value: Room) {
-    const entrance = EntranceFromScene(this.savedSceneIndex);
+    const entrance = EntranceFromScene(this.entranceIndex);
     // TODO figure out cutscene number
-    this.savedSceneIndex = SceneFrom(value, entrance, this.age, this.nightFlag);
+    this.entranceIndex = SceneFrom(value, entrance, this.age, this.nightFlag);
   }
 
   get room(): Room {
-    return RoomFromScene(this.savedSceneIndex);
+    return RoomFromScene(this.entranceIndex);
   }
 
   set entrance(value: Entrance) {
-    const room = RoomFromScene(this.savedSceneIndex);
+    const room = RoomFromScene(this.entranceIndex);
     // TODO figure out cutscene number
-    this.savedSceneIndex = SceneFrom(room, value, this.age, this.nightFlag);
+    this.entranceIndex = SceneFrom(room, value, this.age, this.nightFlag);
   }
 
   get entrance(): Entrance {
-    return EntranceFromScene(this.savedSceneIndex);
+    return EntranceFromScene(this.entranceIndex);
   }
 
   set roomWithEntrance(value: RoomWithEntrance) {
     const room = RoomFromRoomWithEntrance(value);
     const entrance = EntranceFromRoomWithEntrance(value);
     // TODO figure out cutscene number
-    this.savedSceneIndex = SceneFrom(room, entrance, this.age, this.nightFlag);
+    this.entranceIndex = SceneFrom(room, entrance, this.age, this.nightFlag);
   }
 
   get savedSceneIndex(): Scene {
@@ -706,16 +753,29 @@ export class SaveSlot {
 
   get currentlyEquippedEquipment(): CurrentEquipment {
     const equipData = toNumber(this.bytes.slice(0x0070, 0x0070 + 2));
+    const item = (shift: number): number => {
+      const tier = (equipData >>> shift) & 0xF;
+      return tier ? (1 << (tier - 1)) << shift : 0;
+    };
     return {
-      sword: equipData & 0x000F,
-      shield: equipData & 0x00F0,
-      tunic: equipData & 0x0F00,
-      boots: equipData & 0xF000,
+      sword: item(0),
+      shield: item(4),
+      tunic: item(8),
+      boots: item(12),
     };
   }
 
   set currentlyEquippedEquipment(value: CurrentEquipment) {
-    const data = value.sword | value.shield | value.tunic | value.boots;
+    const tier = (item: number, shift: number): number => {
+      if (item === 0) return 0;
+      const index = Math.log2(item >>> shift) + 1;
+      if (!Number.isInteger(index) || index < 1 || index > 3) {
+        throw new Error(`Invalid equipped item: ${item}.`);
+      }
+      return index << shift;
+    };
+    const data = tier(value.sword, 0) | tier(value.shield, 4) |
+      tier(value.tunic, 8) | tier(value.boots, 12);
     this.bytes.set(toUint8Array(data, 2), 0x0070);
   }
 
@@ -777,30 +837,35 @@ export class SaveSlot {
   }
 
   set obtainedEquipment(value: Array<EquippableItems>) {
-    const data = value.reduce((l, r) => l | r, 0);
+    const data = value.reduce((l, r) => l | r, 0) |
+      (toNumber(this.bytes.slice(0x9C, 0x9E)) & 0x8888);
     this.bytes.set(toUint8Array(data, 2), 0x009C);
   }
 
   get obtainedUpgrades(): Array<ObtainableUpgrades> {
-    const obtainedUpgrades: Array<ObtainableUpgrades> = [];
     const upgradeData = toNumber(this.bytes.slice(0x00A0, 0x00A0 + 4));
-
-    function addIfInData(upgrade: ObtainableUpgrades) {
-      if ((upgradeData & upgrade) === upgrade) {
-        obtainedUpgrades.push(upgrade);
-      }
-    }
-
-    Object.values(ObtainableUpgrades).map((v) => Number(v)).filter((v) =>
-      !Number.isNaN(v)
-    ).forEach((upgrade) => addIfInData(upgrade as ObtainableUpgrades));
-
-    return obtainedUpgrades;
+    return upgradeGroups.flatMap(({ mask, values }) =>
+      Object.values(values).filter((value): value is number =>
+        typeof value === "number"
+      )
+        .filter((value) =>
+          (upgradeData & mask) === value
+        ) as ObtainableUpgrades[]
+    );
   }
 
   set obtainedUpgrades(value: Array<ObtainableUpgrades>) {
-    const data = value.reduce((l, r) => l | r, 0);
-    this.bytes.set(toUint8Array(data, 4), 0x00A0);
+    for (const { values } of upgradeGroups) {
+      if (
+        value.filter((item) => Object.values(values).includes(item)).length > 1
+      ) {
+        throw new Error("Choose only one capacity or level for each upgrade.");
+      }
+    }
+    const mask = upgradeGroups.reduce((mask, group) => mask | group.mask, 0);
+    const data = value.reduce((l, r) => l | r, 0) |
+      (toNumber(this.bytes.slice(0xA0, 0xA4)) & ~mask);
+    this.bytes.set(toUint8Array(data >>> 0, 4), 0x00A0);
   }
 
   get questStatusItems(): Array<QuestItems> {
@@ -821,8 +886,9 @@ export class SaveSlot {
   }
 
   set questStatusItems(value: Array<QuestItems>) {
-    const data = value.reduce((l, r) => l | r, 0);
-    this.bytes.set(toUint8Array(data, 4), 0x00A4);
+    const data = value.reduce((l, r) => l | r, 0) |
+      (toNumber(this.bytes.slice(0x00A4, 0x00A8)) & 0xFF000000);
+    this.bytes.set(toUint8Array(data >>> 0, 4), 0x00A4);
   }
 
   get dungeonItems(): Array<Array<DungeonItems>> {
@@ -867,16 +933,16 @@ export class SaveSlot {
 
   get smallKeyAmount(): Array<number> {
     const keys: Array<number> = [];
-    for (let i = 0; i < 0x14; i++) {
+    for (let i = 0; i < SaveSlot.smallKeyCount; i++) {
       keys.push(toNumber(this.bytes.slice(0x00BC + i, 0x00BC + i + 1)));
     }
     return keys;
   }
 
   set smallKeyAmount(value: Array<number>) {
-    if (value.length != 0x14) {
+    if (value.length != SaveSlot.smallKeyCount) {
       throw Error(
-        `small key amount data needs to be ${0x14} bytes, got ${value.length}.`,
+        `small key amount data needs to be ${SaveSlot.smallKeyCount} bytes, got ${value.length}.`,
       );
     }
     this.bytes.set(value, 0x00BC);
@@ -906,7 +972,7 @@ export class SaveSlot {
   public get permanentSceneFlags(): Array<PermanentSceneFlags> {
     const sceneFlags: Array<PermanentSceneFlags> = [];
 
-    for (let i = 0; i < 101; i++) {
+    for (let i = 0; i < SaveSlot.permanentSceneCount; i++) {
       const offset = i * 0x1C;
       sceneFlags.push({
         chestFlags: new ChestFlags(this.get32bitWord(0x00D4 + offset)),
@@ -926,15 +992,15 @@ export class SaveSlot {
   }
 
   public set permanentSceneFlags(value: Array<PermanentSceneFlags>) {
-    if (value.length != (101)) {
+    if (value.length != SaveSlot.permanentSceneCount) {
       throw Error(
-        `permanent scene flags data needs to have ${101} scene entries (${
-          101 * 0x1C
+        `permanent scene flags data needs to have ${SaveSlot.permanentSceneCount} scene entries (${
+          SaveSlot.permanentSceneCount * 0x1C
         } bytes), got ${value.length} entries.`,
       );
     }
 
-    const data = new Uint8Array(101 * 0x1C);
+    const data = new Uint8Array(SaveSlot.permanentSceneCount * 0x1C);
     for (let i = 0; i < value.length; i++) {
       const offset = i * 0x1C;
       data.set(value[i].chestFlags.dataAsUint8Array, offset + 0);
@@ -950,35 +1016,55 @@ export class SaveSlot {
   }
 
   private get faroresWindWarpX(): number {
-    return toNumber(this.bytes.slice(0x0E64, 0x0E64 + 4));
+    return new DataView(this.bytes.buffer, this.bytes.byteOffset).getInt32(
+      0xE64,
+    );
   }
 
   private set faroresWindWarpX(value: number) {
-    this.bytes.set(toUint8Array(value, 4), 0x0E64);
+    this.setSignedWarpValue(0xE64, value);
   }
 
   private get faroresWindWarpY(): number {
-    return toNumber(this.bytes.slice(0x0E68, 0x0E68 + 4));
+    return new DataView(this.bytes.buffer, this.bytes.byteOffset).getInt32(
+      0xE68,
+    );
   }
 
   private set faroresWindWarpY(value: number) {
-    this.bytes.set(toUint8Array(value, 4), 0x0E68);
+    this.setSignedWarpValue(0xE68, value);
   }
 
   private get faroresWindWarpZ(): number {
-    return toNumber(this.bytes.slice(0x0E6C, 0x0E6C + 4));
+    return new DataView(this.bytes.buffer, this.bytes.byteOffset).getInt32(
+      0xE6C,
+    );
   }
 
   private set faroresWindWarpZ(value: number) {
-    this.bytes.set(toUint8Array(value, 4), 0x0E6C);
+    this.setSignedWarpValue(0xE6C, value);
   }
 
   private get faroresWindWarpYRotation(): number {
-    return toNumber(this.bytes.slice(0x0E72, 0x0E72 + 2));
+    return new DataView(this.bytes.buffer, this.bytes.byteOffset).getInt32(
+      0xE70,
+    );
   }
 
   private set faroresWindWarpYRotation(value: number) {
-    this.bytes.set(toUint8Array(value, 2), 0x0E72);
+    this.setSignedWarpValue(0xE70, value);
+  }
+
+  private setSignedWarpValue(offset: number, value: number): void {
+    if (!Number.isInteger(value) || value < -0x80000000 || value > 0x7FFFFFFF) {
+      throw new Error(
+        `Farore's Wind value must be a signed 32-bit integer, got ${value}.`,
+      );
+    }
+    new DataView(this.bytes.buffer, this.bytes.byteOffset).setInt32(
+      offset,
+      value,
+    );
   }
 
   get faroresWindWarp(): FaroresWindWarp {
@@ -998,26 +1084,26 @@ export class SaveSlot {
   }
 
   get entranceIndexTransport(): Scene {
-    return toNumber(this.bytes.slice(0x0E7A, 0x0E7A + 2));
+    return toNumber(this.bytes.slice(0x0E78, 0x0E7C));
   }
 
   set entranceIndexTransport(value: Scene) {
-    this.bytes.set(toUint8Array(value, 2), 0x0E7A);
+    this.bytes.set(toUint8Array(value, 4), 0x0E78);
   }
 
   // TODO check size of data structure and what structure is stored in there
   get mapNumber(): number {
-    return toNumber(this.bytes.slice(0x0E7F, 0x0E7F + 1));
+    return toNumber(this.bytes.slice(0x0E7C, 0x0E80));
   }
 
   set mapNumber(value: number) {
-    this.bytes.set(toUint8Array(value, 1), 0x0E7F);
+    this.bytes.set(toUint8Array(value, 4), 0x0E7C);
   }
 
   // TODO check size of data structure
   // TODO tie into setting the warp point
   get warpPointSet(): boolean {
-    const value = toNumber(this.bytes.slice(0x0E83, 0x0E83 + 1));
+    const value = toNumber(this.bytes.slice(0x0E80, 0x0E84));
     switch (value) {
       case 0:
         return false;
@@ -1031,7 +1117,7 @@ export class SaveSlot {
   }
 
   set warpPointSet(value: boolean) {
-    this.bytes.set(toUint8Array(value, 1), 0x0E83);
+    this.bytes.set(toUint8Array(value, 4), 0x0E80);
   }
 
   get bigPoePoints(): number {
@@ -1090,7 +1176,7 @@ export class SaveSlot {
     for (let i = 0; i < 0x09A9; i++) {
       const index = i * 2;
       sum += toNumber(this.bytes.slice(index, index + 2));
-      sum %= 0xFFFF;
+      sum &= 0xFFFF;
     }
     return sum;
   }

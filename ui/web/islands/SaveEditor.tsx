@@ -4,13 +4,14 @@ import {
   SoundOption,
   ZTargetOption,
 } from "../../../models/saveheader.ts";
-import { SraSaveFile, SrmSaveFile } from "../../../models/savefile.ts";
+import { SraSaveFile } from "../../../models/savefile.ts";
 import { SaveSlot } from "../../../models/saveslot.ts";
 import { FileFormat, FileUtil } from "../../../utils/fileutil.ts";
 import { DownloadButton } from "./DownloadButton.tsx";
 import Slot from "./Slot.tsx";
 import { Field } from "../components/Field.tsx";
 import { Section } from "../components/Section.tsx";
+import SaveManagement from "../components/SaveManagement.tsx";
 
 interface SaveEditorProps {
   filename: string;
@@ -56,9 +57,7 @@ function extensionFor(format: FileFormat): "sra" | "srm" {
 }
 
 function createSaveFile(bytes: Uint8Array): SraSaveFile {
-  const saveFile = new SraSaveFile();
-  saveFile.read(bytes);
-  return saveFile;
+  return FileUtil.loadFileFromBuffer(bytes);
 }
 
 function ensureFilenameExtension(filename: string, format: FileFormat): string {
@@ -87,20 +86,7 @@ export default function SaveEditor(props: SaveEditorProps) {
   const [version, setVersion] = useState(0);
 
   const downloadData = useMemo(() => {
-    if (outputFormat === FileFormat.SRA) {
-      const bytes = saveFile.getData();
-      if (swapWords) {
-        FileUtil.byteSwap(bytes, true);
-      }
-      return bytes;
-    }
-
-    const srm = SrmSaveFile.fromSaveFile(saveFile);
-    const bytes = srm.getData();
-    if (swapWords) {
-      FileUtil.byteSwap(bytes, true);
-    }
-    return bytes;
+    return FileUtil.getFileData(saveFile, outputFormat, swapWords);
   }, [saveFile, outputFormat, swapWords, version]);
 
   function onFormatChange(value: FileFormat) {
@@ -246,6 +232,7 @@ export default function SaveEditor(props: SaveEditorProps) {
           </Section>
         </div>
 
+        <SaveManagement save={saveFile} onChange={notifyChanged} />
         <div className="my-6 border-t border-slate-200" />
 
         <div className="space-y-4">
@@ -263,15 +250,16 @@ export default function SaveEditor(props: SaveEditorProps) {
 
         <details className="space-y-4">
           <summary className="cursor-pointer text-lg font-semibold text-slate-900">
-            Backup Slots (Read-only)
+            Backup Slots
           </summary>
           <div className="mt-4 space-y-4">
             {saveFile.backups.map((slot: SaveSlot, idx: number) => (
               <Slot
                 key={`backup-slot-${idx}`}
                 slot={slot}
-                index={idx + saveFile.slots.length}
-                readOnly
+                index={idx}
+                slotType="backup"
+                onChange={notifyChanged}
               />
             ))}
           </div>

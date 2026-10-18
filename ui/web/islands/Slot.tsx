@@ -1,3 +1,4 @@
+import { inventoryNames, sceneIdOptions, sceneLabel } from "../../labels.ts";
 import { useState } from "preact/hooks";
 import {
   Age,
@@ -37,6 +38,8 @@ import {
 import { Field } from "../components/Field.tsx";
 import { Section } from "../components/Section.tsx";
 import { JSX } from "preact/compat/jsx-dev-runtime";
+import { selectUpgrade, updateNamedFlag } from "../../../utils/saveeditor.ts";
+import AdditionalEditor from "../components/AdditionalEditor.tsx";
 
 interface SlotProps {
   slot: SaveSlot;
@@ -63,7 +66,11 @@ function Text(
         disabled={props.disabled}
         maxLength={props.maxLength}
         onInput={(event) => {
-          props.onChange?.(event.currentTarget.value);
+          if (/^[A-Za-z]*$/.test(event.currentTarget.value)) {
+            props.onChange?.(
+              event.currentTarget.value,
+            );
+          }
         }}
         className="w-full rounded border border-slate-300 px-2 py-1"
       />
@@ -115,6 +122,7 @@ function NumberInput(props: {
     <div>
       <input
         type="number"
+        required
         value={String(props.value)}
         min={props.min}
         max={props.max}
@@ -122,7 +130,7 @@ function NumberInput(props: {
         disabled={props.disabled}
         onInput={(event) => {
           const next = Number(event.currentTarget.value);
-          if (!Number.isNaN(next)) {
+          if (!Number.isNaN(next) && event.currentTarget.validity.valid) {
             props.onChange?.(next);
           }
         }}
@@ -347,7 +355,7 @@ const dungeonItemOptions: DungeonItems[] = enumValues<DungeonItems>(
   DungeonItems,
 );
 
-const permanentSceneCount = 101;
+const permanentSceneCount = SaveSlot.permanentSceneCount;
 const permanentSceneOptions = Array.from(
   { length: permanentSceneCount },
   (_, index) => index,
@@ -473,7 +481,7 @@ export default function Slot(props: SlotProps) {
     >
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h3 className="text-lg font-semibold text-slate-900 md:text-xl">
-          File {index + 1}
+          {slotType === "backup" ? "Backup" : "File"} {index + 1}
         </h3>
         <button
           type="button"
@@ -521,7 +529,7 @@ export default function Slot(props: SlotProps) {
         </Field>
         <Field
           label="Age"
-          help="Sets which Zelda forms Link can take. Affects certain events and DLC content."
+          help="Choose whether Link is a child or an adult."
         >
           <EnumSelect
             keyPrefix={`slot-${slotType}-${index}-age`}
@@ -557,7 +565,7 @@ export default function Slot(props: SlotProps) {
             </Field>
             <Field
               label="Cutscene"
-              help="Controls which story cutscene loads. Changes this resets dungeon progress."
+              help="Selects a cutscene for the next load."
             >
               <NumberInput
                 value={slot.cutSceneNumber}
@@ -572,7 +580,7 @@ export default function Slot(props: SlotProps) {
             </Field>
             <Field
               label="World Time"
-              help="Tracks the time of day in game as rendered frames. Day and night last each 1'050 seconds (NTSC: 31'500 frames, PAL: 26'250 frames). Midnight is at frame 0."
+              help="World clock value from 0 to 65535."
             >
               <NumberInput
                 value={slot.worldTime}
@@ -606,7 +614,7 @@ export default function Slot(props: SlotProps) {
                   slot.ddOnly = value;
                   changed();
                 }}
-                help="When enabled with maximum health, gives Double Defense hearts instead of regular hearts."
+                help="Marks a Nintendo 64 Disk Drive save. Keep disabled for ordinary cartridges."
               />
             </Field>
             <Field
@@ -655,37 +663,41 @@ export default function Slot(props: SlotProps) {
                     if (slot.currentHealth > slot.maxHealth) {
                       slot.currentHealth = slot.maxHealth;
                     }
-                    if (slot.doubleDefenseHearts > slot.maxHealth) {
-                      slot.doubleDefenseHearts = slot.maxHealth;
+                    if (slot.doubleDefenseHearts > slot.maxHealth / 16) {
+                      slot.doubleDefenseHearts = Math.floor(
+                        slot.maxHealth / 16,
+                      );
                     }
                     changed();
                   }}
                   help="Maximum health aka. hearts the player has."
                 />
                 <NumberInput
-                  value={slot.doubleDefenseHearts / 16}
+                  value={slot.doubleDefenseHearts}
                   disabled={readOnly}
                   min={0}
                   max={slot.maxHealth / 16}
-                  step={0.25}
+                  step={1}
                   onChange={(value) => {
-                    slot.doubleDefenseHearts = Math.round(value * 16);
-                    if (slot.doubleDefenseHearts > slot.maxHealth) {
-                      slot.doubleDefenseHearts = slot.maxHealth;
+                    slot.doubleDefenseHearts = Math.round(value);
+                    if (slot.doubleDefenseHearts > slot.maxHealth / 16) {
+                      slot.doubleDefenseHearts = Math.floor(
+                        slot.maxHealth / 16,
+                      );
                     }
                     changed();
                   }}
-                  help="Double Defense health pool - doubles when you defeat Ganon. Use with DD Only enabled."
+                  help="Number of hearts displayed with double-defense borders. The acquisition flag is in additional progress."
                 />
               </div>
             </Field>
             <Field label="Magic Meter">
               <div className="grid grid-cols-1 gap-2 md:grid-cols-3">
-                <EnumSelect
-                  enumObject={MagicAmount}
+                <NumberInput
+                  min={0}
+                  max={slot.magicFlag2 ? 96 : 48}
                   value={slot.currentMagic}
                   disabled={readOnly || !slot.magicFlag1}
-                  keyPrefix={`slot-${slotType}-${index}-magic`}
                   onChange={(value) => {
                     slot.currentMagic = value;
                     changed();
@@ -740,18 +752,7 @@ export default function Slot(props: SlotProps) {
           </Section>
 
           <Section title="Location & Progress">
-            <Field label="Biggoron Flag 1">
-              <BooleanCheckbox
-                value={slot.biggoronsSwordFlag1}
-                disabled={readOnly}
-                onChange={(value) => {
-                  slot.biggoronsSwordFlag1 = value;
-                  changed();
-                }}
-                help="Tracks Biggoron's Sword acquisition in Biggoron's Wrench. Unlocks special ending."
-              />
-            </Field>
-            <Field label="Biggoron Flag 2">
+            <Field label="Biggoron Sword acquired">
               <BooleanCheckbox
                 value={slot.biggoronsSwordFlag2}
                 disabled={readOnly}
@@ -767,7 +768,7 @@ export default function Slot(props: SlotProps) {
               help="The scene you last saved at. Used for auto-reload if you die."
             >
               <EnumSelect
-                enumObject={Scene}
+                enumObject={sceneIdOptions}
                 value={slot.savedSceneIndex}
                 disabled={readOnly}
                 keyPrefix={`slot-${slotType}-${index}-saved-scene`}
@@ -822,8 +823,8 @@ export default function Slot(props: SlotProps) {
                 value={slot.goldSkulltulaTokens}
                 disabled={readOnly}
                 min={0}
-                max={99}
-                help={`Min: 0 | Max: 99.`}
+                max={100}
+                help="Min: 0 | Max: 100."
                 onChange={(value) => {
                   slot.goldSkulltulaTokens = value;
                   changed();
@@ -931,7 +932,7 @@ export default function Slot(props: SlotProps) {
               <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
                 <EnumSelect
                   keyPrefix={`slot-${slotType}-${index}-currently-equipped-sword`}
-                  enumObject={Sword}
+                  enumObject={{ ...Sword, None: 0, 0: "None" }}
                   value={slot.currentlyEquippedEquipment.sword}
                   disabled={readOnly}
                   onChange={(value) => {
@@ -945,7 +946,7 @@ export default function Slot(props: SlotProps) {
                 />
                 <EnumSelect
                   keyPrefix={`slot-${slotType}-${index}-currently-equipped-shield`}
-                  enumObject={Shield}
+                  enumObject={{ ...Shield, None: 0, 0: "None" }}
                   value={slot.currentlyEquippedEquipment.shield}
                   disabled={readOnly}
                   onChange={(value) => {
@@ -959,7 +960,7 @@ export default function Slot(props: SlotProps) {
                 />
                 <EnumSelect
                   keyPrefix={`slot-${slotType}-${index}-currently-equipped-tunic`}
-                  enumObject={Tunic}
+                  enumObject={{ ...Tunic, None: 0, 0: "None" }}
                   value={slot.currentlyEquippedEquipment.tunic}
                   disabled={readOnly}
                   onChange={(value) => {
@@ -973,7 +974,7 @@ export default function Slot(props: SlotProps) {
                 />
                 <EnumSelect
                   keyPrefix={`slot-${slotType}-${index}-currently-equipped-boots`}
-                  enumObject={Boots}
+                  enumObject={{ ...Boots, None: 0, 0: "None" }}
                   value={slot.currentlyEquippedEquipment.boots}
                   disabled={readOnly}
                   onChange={(value) => {
@@ -995,7 +996,7 @@ export default function Slot(props: SlotProps) {
                 {slot.inventory.map((item, inventoryIndex) => (
                   <div key={`slot-${index}-inventory-${inventoryIndex}`}>
                     <span className="mb-1 block text-xs text-slate-600">
-                      Slot {inventoryIndex + 1}
+                      {inventoryNames[inventoryIndex]}
                     </span>
                     <EnumSelect
                       keyPrefix={`slot-${slotType}-${index}-inventory-${inventoryIndex}`}
@@ -1018,7 +1019,7 @@ export default function Slot(props: SlotProps) {
                 {slot.inventoryAmounts.map((amount, amountIndex) => (
                   <div key={`slot-${index}-inventory-amount-${amountIndex}`}>
                     <span className="mb-1 block text-xs text-slate-600">
-                      Amount {amountIndex + 1}
+                      {inventoryNames[amountIndex]}
                     </span>
                     <NumberInput
                       value={amount}
@@ -1074,7 +1075,7 @@ export default function Slot(props: SlotProps) {
                       value={slot.obtainedUpgrades.includes(item)}
                       disabled={readOnly}
                       onChange={(checked) => {
-                        slot.obtainedUpgrades = toggleArrayValue(
+                        slot.obtainedUpgrades = selectUpgrade(
                           slot.obtainedUpgrades,
                           item,
                           checked,
@@ -1122,7 +1123,7 @@ export default function Slot(props: SlotProps) {
                     className="rounded border border-slate-200 p-2"
                   >
                     <span className="mb-2 block text-xs font-semibold text-slate-600">
-                      Dungeon {dungeonIndex + 1}
+                      {sceneLabel(dungeonIndex)}
                     </span>
                     <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
                       {dungeonItemOptions.map((item) => (
@@ -1157,7 +1158,7 @@ export default function Slot(props: SlotProps) {
                 {slot.smallKeyAmount.map((value, dungeonIndex) => (
                   <div key={`slot-${index}-small-key-${dungeonIndex}`}>
                     <span className="mb-1 block text-xs text-slate-600">
-                      Dungeon {dungeonIndex + 1}
+                      {sceneLabel(dungeonIndex)}
                     </span>
                     <NumberInput
                       value={value}
@@ -1200,8 +1201,8 @@ export default function Slot(props: SlotProps) {
                 <NumberInput
                   value={slot.faroresWindWarp.x}
                   disabled={readOnly}
-                  min={0}
-                  max={0xFFFFFFFF}
+                  min={-0x80000000}
+                  max={0x7FFFFFFF}
                   onChange={(value) => {
                     slot.faroresWindWarp = {
                       ...slot.faroresWindWarp,
@@ -1214,8 +1215,8 @@ export default function Slot(props: SlotProps) {
                 <NumberInput
                   value={slot.faroresWindWarp.y}
                   disabled={readOnly}
-                  min={0}
-                  max={0xFFFFFFFF}
+                  min={-0x80000000}
+                  max={0x7FFFFFFF}
                   onChange={(value) => {
                     slot.faroresWindWarp = {
                       ...slot.faroresWindWarp,
@@ -1228,8 +1229,8 @@ export default function Slot(props: SlotProps) {
                 <NumberInput
                   value={slot.faroresWindWarp.z}
                   disabled={readOnly}
-                  min={0}
-                  max={0xFFFFFFFF}
+                  min={-0x80000000}
+                  max={0x7FFFFFFF}
                   onChange={(value) => {
                     slot.faroresWindWarp = {
                       ...slot.faroresWindWarp,
@@ -1242,8 +1243,8 @@ export default function Slot(props: SlotProps) {
                 <NumberInput
                   value={slot.faroresWindWarp.yRotation}
                   disabled={readOnly}
-                  min={0}
-                  max={0xFFFF}
+                  min={-0x80000000}
+                  max={0x7FFFFFFF}
                   onChange={(value) => {
                     slot.faroresWindWarp = {
                       ...slot.faroresWindWarp,
@@ -1290,17 +1291,8 @@ export default function Slot(props: SlotProps) {
                 help="Activates warp point system for certain dungeon exits."
               />
             </Field>
-            <Field label="Checksum">
-              <NumberInput
-                value={slot.checksum}
-                disabled={readOnly}
-                min={0}
-                max={0xFFFF}
-                onChange={(value) => {
-                  slot.checksum = value;
-                  changed();
-                }}
-              />
+            <Field label="Checksum (calculated automatically)">
+              <NumberInput value={slot.checksum} disabled />
             </Field>
             <Field label="File Index">
               <NumberInput
@@ -1319,6 +1311,11 @@ export default function Slot(props: SlotProps) {
             </Field>
           </Section>
 
+          <AdditionalEditor
+            slot={slot}
+            readOnly={readOnly}
+            onChange={changed}
+          />
           <Section title="Flags" cols="grid grid-cols-1 gap-3">
             <div className="rounded-lg border border-slate-200 bg-white/80 p-3">
               <details>
@@ -1335,12 +1332,7 @@ export default function Slot(props: SlotProps) {
                         value={flag.value}
                         disabled={readOnly}
                         onChange={(value) => {
-                          (slot.eventFlags as unknown as Record<
-                            string,
-                            unknown
-                          >)[
-                            flag.name
-                          ] = value;
+                          updateNamedFlag(slot, "eventFlags", flag.name, value);
                           changed();
                         }}
                       />
@@ -1366,12 +1358,7 @@ export default function Slot(props: SlotProps) {
                         value={flag.value}
                         disabled={readOnly}
                         onChange={(value) => {
-                          (slot.itemFlags as unknown as Record<
-                            string,
-                            unknown
-                          >)[
-                            flag.name
-                          ] = value;
+                          updateNamedFlag(slot, "itemFlags", flag.name, value);
                           changed();
                         }}
                       />
@@ -1397,12 +1384,7 @@ export default function Slot(props: SlotProps) {
                         value={flag.value}
                         disabled={readOnly}
                         onChange={(value) => {
-                          (slot.otherFlags as unknown as Record<
-                            string,
-                            unknown
-                          >)[
-                            flag.name
-                          ] = value;
+                          updateNamedFlag(slot, "otherFlags", flag.name, value);
                           changed();
                         }}
                       />
@@ -1440,7 +1422,7 @@ export default function Slot(props: SlotProps) {
                             key={`slot-${index}-permanent-scene-${scene}`}
                             value={String(scene)}
                           >
-                            Scene {scene}
+                            {sceneLabel(scene)}
                           </option>
                         ))}
                       </select>

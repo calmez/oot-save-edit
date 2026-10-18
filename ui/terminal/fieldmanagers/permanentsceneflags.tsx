@@ -8,9 +8,10 @@ import { Box, Text, useInput } from "ink";
 import SelectInput from "ink-select-input";
 import { SaveSlot } from "../../../models/saveslot.ts";
 import type { PermanentSceneFlags } from "../../../models/permanentsceneflags.ts";
+import { sceneLabel } from "../../labels.ts";
 
 export interface PermanentSceneFlagsData {
-  version: number;
+  bytes: number[];
 }
 
 type FormFieldPermScene =
@@ -22,7 +23,7 @@ type FormFieldPermScene =
     saveSlot: SaveSlot;
   };
 
-const SCENE_COUNT = 101;
+const SCENE_COUNT = SaveSlot.permanentSceneCount;
 
 const flagGroups: Array<{
   key: keyof PermanentSceneFlags;
@@ -39,7 +40,7 @@ const flagGroups: Array<{
 
 const sceneOptions: Array<{ label: string; value: number }> = Array.from(
   { length: SCENE_COUNT },
-  (_, i) => ({ label: `Scene ${i}`, value: i }),
+  (_, i) => ({ label: sceneLabel(i), value: i }),
 );
 
 const bitOptions = Array.from({ length: 32 }, (_, i) => i);
@@ -47,7 +48,10 @@ const bitOptions = Array.from({ length: 32 }, (_, i) => i);
 const PermanentSceneFlagsField: React.FC<
   SpecificFormFieldRendererProps<FormFieldPermScene>
 > = (props: SpecificFormFieldRendererProps<FormFieldPermScene>) => {
-  const saveSlot: SaveSlot = props.field.saveSlot;
+  const [saveSlot] = useState<SaveSlot>(() => {
+    const draft = new SaveSlot(props.field.saveSlot.data.slice());
+    return draft;
+  });
   const allFlags = saveSlot.permanentSceneFlags;
 
   const [sceneIndex, setSceneIndex] = useState(0);
@@ -59,7 +63,7 @@ const PermanentSceneFlagsField: React.FC<
   const activeGroup = activeScene[flagGroups[groupCursor].key];
 
   function changed() {
-    props.onChange({ version: (props.value?.version ?? 0) + 1 });
+    props.onChange({ bytes: Array.from(saveSlot.data.slice(0xD4, 0xE64)) });
   }
 
   function toggleBit(bit: number) {

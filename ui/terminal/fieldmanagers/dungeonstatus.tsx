@@ -1,3 +1,4 @@
+import { sceneLabel } from "../../labels.ts";
 import React, { useState } from "react";
 import {
   AbstractFormField,
@@ -6,7 +7,7 @@ import {
 } from "ink-form";
 import { Box, Text, useInput } from "ink";
 import TextInput from "ink-text-input";
-import { DungeonItems } from "../../../models/saveslot.ts";
+import { DungeonItems, SaveSlot } from "../../../models/saveslot.ts";
 
 export interface DungeonStatusData {
   items: DungeonItems[][];
@@ -24,29 +25,6 @@ const dungeonOptions: DungeonItems[] = Object.values(DungeonItems)
 
 const DUNGEON_COUNT = 20;
 
-const dungeonNames = [
-  "Deku Tree",
-  "Dodongo's Cavern",
-  "Jabu Jabu",
-  "Forest Temple",
-  "Fire Temple",
-  "Water Temple",
-  "Shadow Temple",
-  "Spirit Temple",
-  "Ice Cavern",
-  "Well",
-  "Ganon's Castle",
-  "GTG",
-  "Ganon's Tower",
-  "B0",
-  "B1",
-  "B2",
-  "B3",
-  "B4",
-  "B5",
-  "B6",
-];
-
 const DungeonField: React.FC<
   SpecificFormFieldRendererProps<FormFieldDungeon>
 > = (props: SpecificFormFieldRendererProps<FormFieldDungeon>) => {
@@ -54,7 +32,8 @@ const DungeonField: React.FC<
     { length: DUNGEON_COUNT },
     () => [] as DungeonItems[],
   );
-  const smallKeys = props.value?.smallKeys ?? new Array(DUNGEON_COUNT).fill(0);
+  const smallKeys = props.value?.smallKeys ??
+    new Array(SaveSlot.smallKeyCount).fill(0xFF);
 
   const totalRows = DUNGEON_COUNT;
   const colsPerRow = 4;
@@ -102,6 +81,7 @@ const DungeonField: React.FC<
   }, { isActive: true });
 
   function setKey(rowIdx: number, value: number) {
+    if (rowIdx >= SaveSlot.smallKeyCount) return;
     const newKeys = [...smallKeys];
     newKeys[rowIdx] = Math.max(0, Math.min(255, value));
     props.onChange({ items, smallKeys: newKeys });
@@ -110,42 +90,48 @@ const DungeonField: React.FC<
   return (
     <Box flexDirection="column" width="100">
       <Box borderStyle="round" paddingX={1} flexDirection="column">
-        {items.map((dungeonItems: DungeonItems[], di: number) => {
-          const isRow = cursor >= di * 4 && cursor < di * 4 + 4;
-          return (
-            <Box key={`dungeon-${di}`}>
-              <Box width={18}>
-                <Text inverse={isRow}>
-                  {dungeonNames[di] || `Dungeon ${di + 1}`}
-                </Text>
+        <Text>Dungeon Boss key Compass Map Keys</Text>
+        {items.slice(Math.floor(row / 8) * 8, Math.floor(row / 8) * 8 + 8).map(
+          (dungeonItems: DungeonItems[], i: number) => {
+            const di = Math.floor(row / 8) * 8 + i;
+            const isRow = cursor >= di * 4 && cursor < di * 4 + 4;
+            return (
+              <Box key={`dungeon-${di}`}>
+                <Box width={18}>
+                  <Text inverse={isRow}>
+                    {sceneLabel(di)}
+                  </Text>
+                </Box>
+                {[0, 1, 2].map((ci: number) => {
+                  const hasItem = dungeonItems.includes(dungeonOptions[ci]);
+                  const isCursor = cursor === di * 4 + ci;
+                  return (
+                    <Box key={`di-${di}-${ci}`} width={ci === 0 ? 10 : 8}>
+                      <Text inverse={isCursor}>
+                        {hasItem ? "X" : "-"}
+                      </Text>
+                    </Box>
+                  );
+                })}
+                <Box width={8}>
+                  {di >= SaveSlot.smallKeyCount
+                    ? <Text>—</Text>
+                    : cursor === di * 4 + 3
+                    ? (
+                      <TextInput
+                        value={String(smallKeys[di])}
+                        onChange={(v: string) => {
+                          const n = parseInt(v);
+                          if (!isNaN(n)) setKey(di, n);
+                        }}
+                      />
+                    )
+                    : <Text>{String(smallKeys[di])}</Text>}
+                </Box>
               </Box>
-              {[0, 1, 2].map((ci: number) => {
-                const hasItem = dungeonItems.includes(dungeonOptions[ci]);
-                const isCursor = cursor === di * 4 + ci;
-                return (
-                  <Box key={`di-${di}-${ci}`} width={ci === 0 ? 10 : 8}>
-                    <Text inverse={isCursor}>
-                      {hasItem ? "X" : "-"}
-                    </Text>
-                  </Box>
-                );
-              })}
-              <Box width={8}>
-                {cursor === di * 4 + 3
-                  ? (
-                    <TextInput
-                      value={String(smallKeys[di])}
-                      onChange={(v: string) => {
-                        const n = parseInt(v);
-                        if (!isNaN(n)) setKey(di, n);
-                      }}
-                    />
-                  )
-                  : <Text>{String(smallKeys[di])}</Text>}
-              </Box>
-            </Box>
-          );
-        })}
+            );
+          },
+        )}
       </Box>
     </Box>
   );

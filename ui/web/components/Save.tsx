@@ -13,7 +13,7 @@ export default function Save(props: SaveProps) {
   return (
     <SaveEditor
       filename={props.filename}
-      initialSaveData={saveFile.getData()}
+      initialSaveData={props.save}
       isByteSwapped={saveFile.isByteSwapped}
       detectedFormat={detectedFormat}
     />

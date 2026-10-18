@@ -1,3 +1,4 @@
+import { inventoryNames } from "../../labels.ts";
 import React, { useState } from "react";
 import {
   AbstractFormField,
@@ -31,123 +32,105 @@ const itemOptions: ItemOption[] = Object.values(InventoryItems)
     value: v,
   }));
 
-const InventoryField: React.FC<
-  SpecificFormFieldRendererProps<FormFieldInventory>
-> = (props: SpecificFormFieldRendererProps<FormFieldInventory>) => {
+function InventoryField(
+  props: SpecificFormFieldRendererProps<FormFieldInventory>,
+) {
   const items = props.value?.items ?? new Array(24).fill(InventoryItems.Empty);
   const amounts = props.value?.amounts ?? new Array(15).fill(0);
   const [cursor, setCursor] = useState(0);
+  const [editing, setEditing] = useState(false);
+  const [text, setText] = useState("");
   const isAmount = cursor >= 24;
-  const itemIndex = isAmount ? cursor - 24 : cursor;
-
-  useInput((input, key) => {
-    if (key.upArrow) {
-      const next = Math.max(0, cursor - 1);
-      if (next !== cursor) {
-        setCursor(next);
-      }
+  const start = Math.floor(cursor / 8) * 8;
+  useInput((_input, key) => {
+    if (editing) {
+      if (key.escape) setEditing(false);
+      return;
     }
-    if (key.downArrow) {
-      const next = Math.min(38, cursor + 1);
-      if (next !== cursor) {
-        setCursor(next);
-      }
+    if (key.upArrow) setCursor(Math.max(0, cursor - 1));
+    if (key.downArrow) setCursor(Math.min(38, cursor + 1));
+    if (key.return && !key.ctrl) {
+      setText(String(amounts[cursor - 24] ?? 0));
+      setEditing(true);
     }
-  }, { isActive: true });
-
-  function setItem(index: number, value: number) {
-    const newItems = [...items];
-    newItems[index] = value as InventoryItems;
-    props.onChange({ items: newItems, amounts: amounts });
-  }
-
-  function setAmount(index: number, value: number) {
-    const newAmounts = [...amounts];
-    newAmounts[index] = value;
-    props.onChange({ items: items, amounts: newAmounts });
-  }
-
-  function renderItem(item: number, i: number, offset: number) {
-    const idx = offset + i;
-    const isCursor = cursor === idx;
-    return (
-      <Box key={`inv-item-${idx}`}>
-        <Box width={10}>
-          <Text inverse={isCursor}>
-            {`Slot ${(idx + 1).toString().padStart(2, " ")}:`}
-          </Text>
-        </Box>
-        <Box>
-          {isCursor
-            ? (
-              <SelectInput
-                items={itemOptions}
-                onHighlight={(option: { value: number }) =>
-                  setItem(idx, option.value)}
-                initialIndex={itemOptions.findIndex(
-                  (o: ItemOption) => o.value === item,
-                )}
-                limit={5}
-              />
-            )
-            : (
-              <Text>
-                {invEnumName(item) || "Empty"}
-              </Text>
-            )}
-        </Box>
-      </Box>
-    );
-  }
-
-  function renderAmount(amount: number, i: number) {
-    const idx = i + 24;
-    const isCursor = cursor === idx;
-    return (
-      <Box key={`inv-amount-${i}`}>
-        <Box width={10}>
-          <Text inverse={isCursor}>
-            {`Amt ${(i + 1).toString().padStart(2, " ")}:`}
-          </Text>
-        </Box>
-        <Box>
-          {isCursor
-            ? (
-              <TextInput
-                value={String(amount)}
-                onChange={(v: string) => {
-                  const n = parseInt(v);
-                  if (!isNaN(n)) setAmount(i, Math.max(0, Math.min(255, n)));
-                }}
-              />
-            )
-            : <Text>{amount}</Text>}
-        </Box>
-      </Box>
-    );
-  }
-
+  });
   return (
-    <Box flexDirection="column" width="100">
-      <Box borderStyle="round" paddingX={1} flexDirection="column">
-        {items.slice(0, 12).map((item: number, i: number) =>
-          renderItem(item, i, 0)
+    <Box flexDirection="column" borderStyle="round" paddingX={1}>
+      {editing
+        ? (
+          <>
+            <Text bold>
+              {inventoryNames[isAmount ? cursor - 24 : cursor]}
+              {isAmount ? " ammunition" : " item"}
+            </Text>
+            {isAmount
+              ? (
+                <TextInput
+                  value={text}
+                  onChange={setText}
+                  onSubmit={() => {
+                    const value = Number(text);
+                    if (
+                      text.trim() && Number.isInteger(value) && value >= 0 &&
+                      value <= 255
+                    ) {
+                      const next = [...amounts];
+                      next[cursor - 24] = value;
+                      props.onChange({ items, amounts: next });
+                      setEditing(false);
+                    }
+                  }}
+                />
+              )
+              : (
+                <SelectInput
+                  items={itemOptions}
+                  limit={8}
+                  initialIndex={Math.max(
+                    0,
+                    itemOptions.findIndex((option) =>
+                      option.value === items[cursor]
+                    ),
+                  )}
+                  onSelect={({ value }) => {
+                    const next = [...items];
+                    next[cursor] = value as InventoryItems;
+                    props.onChange({ items: next, amounts });
+                    setEditing(false);
+                  }}
+                />
+              )}
+          </>
+        )
+        : (
+          <>
+            {Array.from({ length: Math.min(8, 39 - start) }, (_, i) => {
+              const index = start + i;
+              return (
+                <Box key={index}>
+                  <Text inverse={cursor === index}>
+                    {index < 24
+                      ? inventoryNames[index]
+                      : `${inventoryNames[index - 24]} ammunition`}:{" "}
+                    {index < 24
+                      ? invEnumName(items[index])
+                      : amounts[index - 24]}
+                  </Text>
+                </Box>
+              );
+            })}
+            <Text dimColor>
+              ↑↓ select · Enter edits · Ctrl+Enter completes inventory
+            </Text>
+          </>
         )}
-      </Box>
-      <Box borderStyle="round" paddingX={1} flexDirection="column">
-        {items.slice(12, 24).map((item: number, i: number) =>
-          renderItem(item, i, 12)
-        )}
-      </Box>
-      <Box borderStyle="round" paddingX={1} flexDirection="column">
-        {amounts.map((amount: number, i: number) => renderAmount(amount, i))}
-      </Box>
     </Box>
   );
-};
+}
 
 export const InventoryFormFieldManager = {
   type: "inventory",
+  needCtrlToReturnSave: true,
   renderValue: (
     props: SpecificFormFieldRendererProps<FormFieldInventory>,
   ) => {

@@ -1,3 +1,4 @@
+import { selectUpgrade } from "../../../utils/saveeditor.ts";
 import React, { useState } from "react";
 import {
   AbstractFormField,
@@ -63,10 +64,13 @@ const questItemOptions: number[] = Object.values({
 })
   .filter((v): v is number => typeof v === "number");
 
-function optionLabel(value: number): string {
-  return EquippableItems[value as keyof typeof EquippableItems] as string ||
-    ObtainableUpgrades[value as keyof typeof ObtainableUpgrades] as string ||
-    QuestItems[value as keyof typeof QuestItems] as string ||
+function optionLabel(value: number, group: string): string {
+  const labels = group === "Equipment"
+    ? EquippableItems
+    : group === "Upgrades"
+    ? ObtainableUpgrades
+    : QuestItems;
+  return (labels as unknown as Record<number, string>)[value] ||
     `0x${value.toString(16)}`;
 }
 
@@ -103,7 +107,7 @@ const ObtainedField: React.FC<
         props.onChange({ equipment: newEq, upgrades, questItems });
       } else if (cursor < eqCount + upCount) {
         const opt = upgradeOptions[cursor - eqCount] as ObtainableUpgrades;
-        const newUp = toggleItem(upgrades, opt);
+        const newUp = selectUpgrade(upgrades, opt, !upgrades.includes(opt));
         props.onChange({ equipment, upgrades: newUp, questItems });
       } else {
         const opt = questItemOptions[cursor - eqCount - upCount] as QuestItems;
@@ -119,17 +123,19 @@ const ObtainedField: React.FC<
     selected: number[],
     offset: number,
   ) {
+    if (cursor < offset || cursor >= offset + allOptions.length) return null;
+    const start = Math.floor((cursor - offset) / 8) * 8;
     return (
       <Box borderStyle="round" paddingX={1} flexDirection="column">
-        <Text bold>{label}</Text>
-        {allOptions.map((opt: number, i: number) => {
-          const idx = offset + i;
+        <Text bold>{label} (↑↓ select, space toggle)</Text>
+        {allOptions.slice(start, start + 8).map((opt: number, i: number) => {
+          const idx = offset + start + i;
           const checked = selected.includes(opt);
           return (
             <Box key={`opt-${idx}`}>
               <Text inverse={cursor === idx}>
                 {cursor === idx ? "▶" : " "} {checked ? "[X]" : "[ ]"}{" "}
-                {optionLabel(opt)}
+                {optionLabel(opt, label)}
               </Text>
             </Box>
           );
