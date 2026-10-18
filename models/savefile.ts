@@ -68,6 +68,7 @@ export class SaveFile {
 }
 
 export class SraSaveFile extends SaveFile {
+  sourceSrmData?: Uint8Array;
   header = SaveHeader.createBlank();
   slots: [SaveSlot, SaveSlot, SaveSlot] = [
     SaveSlot.createBlank(),
@@ -117,7 +118,7 @@ export class SraSaveFile extends SaveFile {
     }
 
     if ((this.byteSwapped && !forceSwap) || (!this.byteSwapped && forceSwap)) {
-      FileUtil.byteSwap(bytes);
+      FileUtil.byteSwap(bytes, true);
     }
 
     return bytes;
@@ -155,26 +156,18 @@ export class SraSaveFile extends SaveFile {
   }
 
   override getDataForWrite(): Uint8Array {
-    const data = super.getDataForWrite();
-    if (this.byteSwapped) {
-      FileUtil.byteSwap(data, true);
-    }
-    return data;
+    return this.getData();
   }
 
   private ensureByteOrder(bytes: Uint8Array): Uint8Array {
-    if (
-      SaveHeader.validCheckPattern.some((value, index) => {
-        if (bytes[index + 0x03] === value) {
-          return false;
-        }
-        return true;
-      })
-    ) {
-      bytes = FileUtil.byteSwap(bytes);
-      this.byteSwapped = true;
-    }
-    return bytes;
+    const swapped = FileUtil.byteSwap(bytes);
+    const score = (data: Uint8Array) =>
+      SaveHeader.validCheckPattern.reduce(
+        (total, value, index) => total + Number(data[index + 3] === value),
+        0,
+      );
+    this.byteSwapped = score(swapped) > score(bytes);
+    return this.byteSwapped ? swapped : bytes;
   }
 }
 
@@ -213,8 +206,10 @@ export class SrmSaveFile extends SaveFile {
   }
 
   static fromSaveFile(save: SraSaveFile): SrmSaveFile {
-    const srm = new SrmSaveFile();
-    srm.sram.set(save.getData(true), 0);
+    const srm = save.sourceSrmData
+      ? new SrmSaveFile().read(save.sourceSrmData)
+      : new SrmSaveFile();
+    srm.sram.set(save.getData(!save.isByteSwapped), 0);
 
     return srm;
   }
@@ -280,6 +275,8 @@ export class SrmSaveFile extends SaveFile {
 
   get saveFile(): SraSaveFile {
     const sra = new SraSaveFile();
-    return sra.read(this.sram);
+    sra.read(this.sram);
+    sra.sourceSrmData = this.data;
+    return sra;
   }
 }

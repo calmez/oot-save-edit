@@ -176,3 +176,65 @@ Deno.test({
     }
   },
 });
+
+Deno.test("SRM editing preserves emulator sections and writes word-swapped SRAM", () => {
+  const original = new SrmSaveFile();
+  original.eeprom.fill(0x11);
+  original.mempacks.forEach((pack, index) => pack.fill(0x22 + index));
+  original.flashram.fill(0x77);
+  const save = new SraSaveFile();
+  original.sram.set(FileUtil.byteSwap(save.getData()));
+  const editor = FileUtil.loadFileFromBuffer(original.getData());
+  assertEquals(editor.isByteSwapped, true);
+  editor.slots[0].rupees = 500;
+  const exported = new SrmSaveFile().read(
+    FileUtil.getFileData(editor, FileFormat.SRM),
+  );
+  assertEquals(exported.eeprom, original.eeprom);
+  assertEquals(exported.mempacks, original.mempacks);
+  assertEquals(exported.flashram, original.flashram);
+  assertEquals(
+    exported.sram.slice(0, 4),
+    FileUtil.byteSwap(editor.getData(true)).slice(0, 4),
+  );
+  assertEquals(exported.saveFile.slots[0].rupees, 500);
+  assertEquals(exported.saveFile.slots[0].isValid, true);
+});
+
+Deno.test("SRA exports retain the loaded word order and allow an explicit swap", () => {
+  const save = new SraSaveFile();
+  const swapped = FileUtil.byteSwap(save.getData());
+  const loaded = FileUtil.loadFileFromBuffer(swapped);
+  assertEquals(loaded.isByteSwapped, true);
+  assertEquals(FileUtil.getFileData(loaded, FileFormat.SRA), swapped);
+  assertEquals(
+    FileUtil.getFileData(loaded, FileFormat.SRA, true),
+    save.getData(),
+  );
+});
+
+for (const format of [FileFormat.SRA, FileFormat.SRM]) {
+  Deno.test(`browser buffer editing and export work for ${FileFormat[format]} without Deno`, () => {
+    const original = FileUtil.getFileData(new SraSaveFile(), format);
+    const denoDescriptor = Object.getOwnPropertyDescriptor(globalThis, "Deno");
+    if (!denoDescriptor) throw new Error("Missing test runtime descriptor.");
+    Reflect.deleteProperty(globalThis, "Deno");
+    try {
+      const editor = FileUtil.loadFileFromBuffer(original);
+      editor.slots[0].playerName = "Link";
+      editor.slots[0].rupees = 123;
+      const exported = FileUtil.getFileData(editor, format);
+      const reloaded = FileUtil.loadFileFromBuffer(exported);
+      assertEquals(reloaded.slots[0].playerName, "Link");
+      assertEquals(reloaded.slots[0].rupees, 123);
+      assertEquals(reloaded.slots[0].isValid, true);
+      assertThrows(
+        () => FileUtil.loadFileFromBuffer(new Uint8Array(1)),
+        Error,
+        "Cannot detect file type by size. Unknown buffer size: 1.",
+      );
+    } finally {
+      Object.defineProperty(globalThis, "Deno", denoDescriptor);
+    }
+  });
+}

@@ -26,6 +26,24 @@ for me where I am experimenting a bit and hoping to grow as a developer.
 Combining multiple things that I like and hopefully creating something useful
 also to less techy people is what I aim for here.
 
+## Using the editors
+
+Run `deno task run:tui path/to/save.sra` to edit an existing SRA or SRM file.
+Run `deno task run:tui --new` (or omit the filename) to start a new save. Use
+the slot tabs for primary and backup saves, `[` and `]` for field pages, and
+Ctrl+G for copy/restore, backup synchronization, reset, and repair actions.
+Changes are written when you submit the save form.
+
+Run `deno task web:dev` for the web editor or `deno task run:gui` for the
+desktop wrapper after building the web UI. Both expose editable backup slots and
+save-management controls. Download the save to keep your changes.
+
+Both editors include additional progress and advanced data: saved child/adult
+equipment, minigame records, individual Skulltula flags, world-map discovery,
+Epona's position, and recorded Scarecrow songs. Arrays use comma-separated
+integers; recorded song data uses hexadecimal bytes. Checksums are refreshed on
+export, and SRM exports preserve the original emulator sections.
+
 ## Other Projects in this space
 
 - [Game Tools Collection](https://github.com/RyudoSynbios/game-tools-collection)

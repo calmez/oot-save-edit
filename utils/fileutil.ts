@@ -94,7 +94,7 @@ export class FileUtil {
    * format detection
    */
   static loadFile(path: string): SraSaveFile {
-    const span = Span.loadFile(path);
+    const span = Span.loadFile(path, Deno.cwd());
     const startTime = new Date().getTime();
 
     const file = Deno.openSync(path, { read: true });
@@ -186,23 +186,24 @@ export class FileUtil {
     save: SraSaveFile,
     forceSwap: boolean = false,
   ): void {
-    const span = Span.saveFile(path, format, forceSwap);
+    const span = Span.saveFile(path, format, forceSwap, Deno.cwd());
     const startTime = new Date().getTime();
 
-    const file = Deno.openSync(path, { write: true, create: true });
+    const data = this.getFileData(save, format, forceSwap);
+    const file = Deno.openSync(path, {
+      write: true,
+      create: true,
+      truncate: true,
+    });
 
     try {
-      switch (format) {
-        case FileFormat.SRA:
-          save.write(file, forceSwap);
-          break;
-        case FileFormat.SRM: {
-          const srm = SrmSaveFile.fromSaveFile(save);
-          srm.write(file, forceSwap);
-          break;
+      let offset = 0;
+      while (offset < data.length) {
+        const written = file.writeSync(data.subarray(offset));
+        if (written === 0) {
+          throw new Error(`Could not finish writing save file: ${path}.`);
         }
-        default:
-          throw new Error(`Unsupported save format for writing: ${format}`);
+        offset += written;
       }
     } finally {
       file.close();
@@ -212,5 +213,20 @@ export class FileUtil {
       Metric.saveFileDuration.record(endTime - startTime);
       span.end();
     }
+  }
+
+  static getFileData(
+    save: SraSaveFile,
+    format: FileFormat,
+    forceSwap = false,
+  ): Uint8Array {
+    if (format !== FileFormat.SRA && format !== FileFormat.SRM) {
+      throw new Error(`Unsupported save format for writing: ${format}`);
+    }
+    for (const slot of [...save.slots, ...save.backups]) slot.updateChecksum();
+    const data = format === FileFormat.SRA
+      ? save.getData()
+      : SrmSaveFile.fromSaveFile(save).getData();
+    return forceSwap ? FileUtil.byteSwap(data, true) : data;
   }
 }

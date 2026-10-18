@@ -1,6 +1,7 @@
 {
   "tasks": {
-    "check": "deno fmt --check . && deno lint . && deno check",
+    "check": "deno fmt --check . && deno lint . && deno check index.ts main.ts models/*.test.ts utils/*.test.ts ui/main.ts ui/additionalfields.test.ts ui/terminal/main.tsx ui/terminal/*.test.ts && deno task --cwd ./ui/web check",
+    "test": "deno test --allow-env",
     "web:dev": "deno task --cwd ./ui/web dev",
     "web:start": "deno task --cwd ./ui/web start",
     "web:update": "deno task --cwd ./ui/web update",
@@ -29,7 +30,9 @@
     },
     "build:gui": {
       "command": "COMMAND=compile ARGS=\"--no-prompt --output=./build/$PLATFORM/gui --target $PLATFORM\" deno task template:gui",
-      "dependencies": ["build:web"]
+      "dependencies": [
+        "build:web"
+      ]
     },
     "build:gui:linux-x86": "PLATFORM=x86_64-unknown-linux-gnu deno task build:gui",
     "build:gui:linux-aarch64": "PLATFORM=aarch64-unknown-linux-gnu deno task build:gui",
@@ -63,7 +66,6 @@
     "@std/path": "jsr:@std/path@^1.1.4",
     "@std/testing": "jsr:@std/testing@^1.0.17",
     "@opentelemetry/api": "npm:@opentelemetry/api@^1.9.0",
-
     "@webview/webview": "jsr:@webview/webview@0.9.0",
     "react": "npm:react@^19.2.4",
     "ink": "npm:ink@^6.8.0",
