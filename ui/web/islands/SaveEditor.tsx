@@ -1,17 +1,20 @@
 import { useMemo, useState } from "preact/hooks";
+
+import { ExportByteOrder } from "../../../models/savefile.ts";
+import type { SraSaveFile } from "../../../models/savefile.ts";
 import {
   LanguageOption,
   SoundOption,
   ZTargetOption,
 } from "../../../models/saveheader.ts";
-import { SraSaveFile } from "../../../models/savefile.ts";
 import { SaveSlot } from "../../../models/saveslot.ts";
 import { FileFormat, FileUtil } from "../../../utils/fileutil.ts";
+import { exportByteOrderOptions } from "../../exportoptions.ts";
+import { Field } from "../components/Field.tsx";
+import SaveManagement from "../components/SaveManagement.tsx";
+import { Section } from "../components/Section.tsx";
 import { DownloadButton } from "./DownloadButton.tsx";
 import Slot from "./Slot.tsx";
-import { Field } from "../components/Field.tsx";
-import { Section } from "../components/Section.tsx";
-import SaveManagement from "../components/SaveManagement.tsx";
 
 interface SaveEditorProps {
   filename: string;
@@ -82,12 +85,12 @@ export default function SaveEditor(props: SaveEditorProps) {
   const [outputFilename, setOutputFilename] = useState<string>(() =>
     ensureFilenameExtension(props.filename, outputFormat)
   );
-  const [swapWords, setSwapWords] = useState<boolean>(false);
+  const [byteOrder, setByteOrder] = useState(ExportByteOrder.Automatic);
   const [version, setVersion] = useState(0);
 
   const downloadData = useMemo(() => {
-    return FileUtil.getFileData(saveFile, outputFormat, swapWords);
-  }, [saveFile, outputFormat, swapWords, version]);
+    return FileUtil.getFileData(saveFile, outputFormat, byteOrder);
+  }, [saveFile, outputFormat, byteOrder, version]);
 
   function onFormatChange(value: FileFormat) {
     setOutputFormat(value);
@@ -139,16 +142,29 @@ export default function SaveEditor(props: SaveEditorProps) {
               />
             </Field>
             <Field
-              label="Swap Words"
-              help="Some emulators/systems require word-swapped saves. Use this only if you're converting for a specific emulator."
+              label="SRAM Byte Order"
+              help="Automatic preserves source order for the same format; new files and conversions use the selected layout's default. Overrides apply only to SRAM."
             >
-              <BooleanCheckbox value={swapWords} onChange={setSwapWords} />
+              <select
+                aria-label="SRAM Byte Order"
+                value={byteOrder}
+                onChange={(event) =>
+                  setByteOrder(event.currentTarget.value as ExportByteOrder)}
+                className="w-full rounded border border-slate-300 bg-white px-2 py-1"
+              >
+                {exportByteOrderOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
             </Field>
             <Field
               label="File Format"
-              help="SRM: Save file format used by emulators like retroarch that combines multiple ways cartridges were saving games. SRA: Specific save format for Everdrive cartridges and original SRAM cartridges. Keep as SRA unless you specifically need SRM."
+              help="SRA: raw SRAM, with big-endian as its layout default. SRM: the Mupen64Plus-Next layout on little-endian hosts, with word-swapped SRAM as its default. Other emulator layouts are unverified. Newly created SRM containers have provisional empty sections."
             >
               <select
+                aria-label="File Format"
                 value={String(outputFormat)}
                 onChange={(event) =>
                   onFormatChange(

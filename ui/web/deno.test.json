@@ -1,0 +1,10 @@
+{
+  "importMap": "./deno.json",
+  "nodeModulesDir": "auto",
+  "exclude": ["**/_fresh/*"],
+  "compilerOptions": {
+    "lib": ["dom", "dom.iterable", "deno.ns"],
+    "jsx": "react-jsx",
+    "jsxImportSource": "preact"
+  }
+}

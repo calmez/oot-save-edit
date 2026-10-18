@@ -1,50 +1,32 @@
-import { getSlot, slotCount, slotLabel } from "../../utils/saveeditor.ts";
-import {
-  applySlotFields,
-  getBooleanFlags,
-  makeSlotFields,
-} from "./slotdata.ts";
-import { AdditionalDataFormFieldManager } from "./fieldmanagers/additionaldata.tsx";
-import SaveManagement from "./management.tsx";
-import { sceneIdOptions } from "../labels.ts";
-import React, { useEffect, useMemo, useState } from "react";
-import { SraSaveFile } from "../../models/savefile.ts";
 import { Box, Text, useInput, useStdout } from "ink";
 import { Form } from "ink-form";
+import React, { useEffect, useMemo, useState } from "react";
+
+import { ValidEntrancesForRoom } from "../../index.ts";
+import { ExportByteOrder, SraSaveFile } from "../../models/savefile.ts";
 import {
   LanguageOption,
   SoundOption,
   ZTargetOption,
 } from "../../models/saveheader.ts";
-import { Age } from "../../models/saveslot.ts";
-import { EnumFormFieldManager } from "./fieldmanagers/enum.tsx";
-import { ReadonlyStringFormFieldManager } from "./fieldmanagers/readonlystring.tsx";
-import { ReadonlyBooleanFormFieldManager } from "./fieldmanagers/readonlyboolean.tsx";
-import { ReadonlyEnumFormFieldManager } from "./fieldmanagers/readonlyenum.tsx";
+import {
+  Age,
+  Boots,
+  InventoryItems,
+  Shield,
+  Sword,
+  Tunic,
+} from "../../models/saveslot.ts";
 import { Entrance, Room, Scene, Time } from "../../models/scene.ts";
-import { ValidEntrancesForRoom } from "../../index.ts";
-import { SelectionFormFieldManager } from "./fieldmanagers/selection.tsx";
+import { FileFormat, FileUtil } from "../../utils/fileutil.ts";
+import { getSlot, slotCount, slotLabel } from "../../utils/saveeditor.ts";
+import { exportByteOrderOptions } from "../exportoptions.ts";
+import { sceneIdOptions } from "../labels.ts";
 import {
   Point3DFieldRenderer,
   Point3DFormFieldManager,
 } from "./fieldmanagers/3dpoint.tsx";
-import {
-  HealthData,
-  HealthFieldRenderer,
-  HealthFormFieldManager,
-} from "./fieldmanagers/health.tsx";
-import {
-  RoomData,
-  RoomFieldEnumRenderer,
-  RoomFieldSelectionRenderer,
-  RoomFormFieldManager,
-} from "./fieldmanagers/room.tsx";
-import {
-  MagicBooleanFieldRenderer,
-  MagicData,
-  MagicFormFieldManager,
-  MagicNumberFieldRenderer,
-} from "./fieldmanagers/magic.tsx";
+import { AdditionalDataFormFieldManager } from "./fieldmanagers/additionaldata.tsx";
 import {
   ButtonEquipsBButtonRenderer,
   ButtonEquipsCOffsetRenderer,
@@ -57,23 +39,43 @@ import {
   CurrentEquipSwordRenderer,
   CurrentEquipTunicRenderer,
 } from "./fieldmanagers/currentequip.tsx";
-import { InventoryFormFieldManager } from "./fieldmanagers/inventory.tsx";
-import { ObtainedFormFieldManager } from "./fieldmanagers/obtained.tsx";
 import {
   DungeonStatusFormFieldManager,
 } from "./fieldmanagers/dungeonstatus.tsx";
+import { EnumFormFieldManager } from "./fieldmanagers/enum.tsx";
 import { FlagsGroupFormFieldManager } from "./fieldmanagers/flagsgroup.tsx";
+import {
+  HealthFieldRenderer,
+  HealthFormFieldManager,
+} from "./fieldmanagers/health.tsx";
+import type { HealthData } from "./fieldmanagers/health.tsx";
+import { InventoryFormFieldManager } from "./fieldmanagers/inventory.tsx";
+import {
+  MagicBooleanFieldRenderer,
+  MagicFormFieldManager,
+  MagicNumberFieldRenderer,
+} from "./fieldmanagers/magic.tsx";
+import type { MagicData } from "./fieldmanagers/magic.tsx";
+import { ObtainedFormFieldManager } from "./fieldmanagers/obtained.tsx";
 import {
   PermanentSceneFlagsFormFieldManager,
 } from "./fieldmanagers/permanentsceneflags.tsx";
-import { FileFormat, FileUtil } from "../../utils/fileutil.ts";
+import { ReadonlyBooleanFormFieldManager } from "./fieldmanagers/readonlyboolean.tsx";
+import { ReadonlyEnumFormFieldManager } from "./fieldmanagers/readonlyenum.tsx";
+import { ReadonlyStringFormFieldManager } from "./fieldmanagers/readonlystring.tsx";
 import {
-  Boots,
-  InventoryItems,
-  Shield,
-  Sword,
-  Tunic,
-} from "../../models/saveslot.ts";
+  RoomFieldEnumRenderer,
+  RoomFieldSelectionRenderer,
+  RoomFormFieldManager,
+} from "./fieldmanagers/room.tsx";
+import type { RoomData } from "./fieldmanagers/room.tsx";
+import { SelectionFormFieldManager } from "./fieldmanagers/selection.tsx";
+import SaveManagement from "./management.tsx";
+import {
+  applySlotFields,
+  getBooleanFlags,
+  makeSlotFields,
+} from "./slotdata.ts";
 
 type SlotIndex = 0 | 1 | 2 | 3 | 4 | 5;
 
@@ -94,7 +96,7 @@ type FormFields =
     info_wordSwapped: boolean;
     info_fileFormat: FileFormat;
     saveoptions_filename: string;
-    saveoptions_swapWords: boolean;
+    saveoptions_byteOrder: ExportByteOrder;
     saveoptions_fileFormat: FileFormat;
     header_languageOption: LanguageOption;
     header_zTargetOption: ZTargetOption;
@@ -617,7 +619,7 @@ const SaveForm = (
       info_wordSwapped: originalSaveFile.isByteSwapped,
       info_fileFormat: FileUtil.detectFileFormatByExtension(filename),
       saveoptions_filename: filename,
-      saveoptions_swapWords: false,
+      saveoptions_byteOrder: ExportByteOrder.Automatic,
       saveoptions_fileFormat: FileUtil.detectFileFormatByExtension(filename),
       header_languageOption: originalSaveFile.header.languageOption,
       header_zTargetOption: originalSaveFile.header.zTargetOption,
@@ -703,15 +705,17 @@ const SaveForm = (
             initialValue: filename,
           },
           {
-            type: "boolean",
-            name: "saveoptions_swapWords",
-            label: "Swap Words",
-            initialValue: false,
+            type: "selection",
+            name: "saveoptions_byteOrder",
+            label: "SRAM Byte Order",
+            options: exportByteOrderOptions,
+            initialValue: ExportByteOrder.Automatic,
           },
           {
             type: "enum",
             name: "saveoptions_fileFormat",
-            label: "File Format",
+            label:
+              "File Format (SRM: Mupen64Plus-Next LE, new containers provisional)",
             enum: FileFormat,
             initialValue: FileUtil.detectFileFormatByExtension(filename),
           },
@@ -878,7 +882,7 @@ const SaveForm = (
                 values.saveoptions_filename,
                 values.saveoptions_fileFormat,
                 formState.saveFile,
-                values.saveoptions_swapWords,
+                values.saveoptions_byteOrder,
               );
               setSaveMessage(`Saved ${values.saveoptions_filename}`);
             } catch (error) {

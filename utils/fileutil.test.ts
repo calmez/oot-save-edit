@@ -7,6 +7,7 @@ import {
 import { stub } from "@std/testing/mock";
 import {
   ChecksumPolicy,
+  ExportByteOrder,
   SraSaveFile,
   SrmSaveFile,
 } from "../models/savefile.ts";
@@ -49,7 +50,7 @@ for (const format of [FileFormat.SRA, FileFormat.SRM]) {
         const policy of [ChecksumPolicy.MaintainEdited, ChecksumPolicy.Preserve]
       ) {
         assertEquals(
-          FileUtil.getFileData(save, format, false, policy),
+          FileUtil.getFileData(save, format, ExportByteOrder.Automatic, policy),
           original,
         );
         assertEquals(save.slots[1].isChecksumValid(), false);
@@ -69,7 +70,12 @@ for (const format of [FileFormat.SRA, FileFormat.SRM]) {
       const workingData = save.getData();
 
       const preserved = FileUtil.loadFileFromBuffer(
-        FileUtil.getFileData(save, format, false, ChecksumPolicy.Preserve),
+        FileUtil.getFileData(
+          save,
+          format,
+          ExportByteOrder.Automatic,
+          ChecksumPolicy.Preserve,
+        ),
       );
       assertEquals(preserved.getData(), workingData);
       assertEquals(preserved.slots[1].isChecksumValid(), false);
@@ -83,7 +89,12 @@ for (const format of [FileFormat.SRA, FileFormat.SRM]) {
       assertEquals(save.getData(), workingData);
       assertEquals(
         FileUtil.loadFileFromBuffer(
-          FileUtil.getFileData(save, format, false, ChecksumPolicy.Preserve),
+          FileUtil.getFileData(
+            save,
+            format,
+            ExportByteOrder.Automatic,
+            ChecksumPolicy.Preserve,
+          ),
         ).getData(),
         workingData,
       );
@@ -184,7 +195,7 @@ Deno.test("disk exports forward the checksum policy without changing the working
       "preserved.sra",
       FileFormat.SRA,
       save,
-      false,
+      ExportByteOrder.Automatic,
       ChecksumPolicy.Preserve,
     );
     assertEquals(written, workingData);
@@ -207,6 +218,53 @@ function createStoredSave(
   );
   bytes.set(storedSram, 0x20800);
   return bytes;
+}
+
+for (const sourceFormat of [FileFormat.SRA, FileFormat.SRM]) {
+  for (const swapped of [false, true]) {
+    for (const outputFormat of [FileFormat.SRA, FileFormat.SRM]) {
+      for (const order of Object.values(ExportByteOrder)) {
+        Deno.test(`${FileFormat[sourceFormat]} (${swapped ? "word-swapped" : "big-endian"}) exports ${FileFormat[outputFormat]} with ${order} SRAM order`, () => {
+          const native = createSraWithUnknownBytes();
+          native.set([0x12, 0x34, 0x56, 0x78], SraSaveFile.requiredSize);
+          const original = createStoredSave(native, sourceFormat, swapped);
+          const save = FileUtil.loadFileFromBuffer(original);
+          const expectedSwapped = order === ExportByteOrder.Automatic
+            ? sourceFormat === outputFormat
+              ? swapped
+              : outputFormat === FileFormat.SRM
+            : order === ExportByteOrder.WordSwapped;
+          const expectedSram = expectedSwapped
+            ? FileUtil.byteSwap(native)
+            : native;
+          const expected = outputFormat === FileFormat.SRA
+            ? expectedSram
+            : sourceFormat === FileFormat.SRM
+            ? original.slice()
+            : new Uint8Array(SrmSaveFile.acceptedSize);
+          if (outputFormat === FileFormat.SRM) {
+            expected.set(expectedSram, 0x20800);
+          }
+
+          const exported = FileUtil.getFileData(save, outputFormat, order);
+          assertEquals(exported.length, expected.length);
+          assert(exported.every((value, index) => value === expected[index]));
+          assertEquals(
+            FileUtil.getFileData(save, outputFormat, order),
+            exported,
+          );
+          const direct = outputFormat === FileFormat.SRA
+            ? save.getData(order)
+            : SrmSaveFile.fromSaveFile(save, order).getData();
+          assertEquals(direct, exported);
+          assertEquals(save.isByteSwapped, swapped);
+          if (sourceFormat === FileFormat.SRM) {
+            assertEquals(save.sourceSrmData, original);
+          }
+        });
+      }
+    }
+  }
 }
 
 for (const format of [FileFormat.SRA, FileFormat.SRM]) {
@@ -457,20 +515,20 @@ Deno.test("SRM editing preserves emulator sections and writes word-swapped SRAM"
   assertEquals(exported.flashram, original.flashram);
   assertEquals(
     exported.sram.slice(0, 4),
-    FileUtil.byteSwap(editor.getData(true)).slice(0, 4),
+    editor.getData(ExportByteOrder.WordSwapped).slice(0, 4),
   );
   assertEquals(exported.saveFile.slots[0].rupees, 500);
   assertEquals(exported.saveFile.slots[0].isValid, true);
 });
 
-Deno.test("SRA exports retain the loaded word order and allow an explicit swap", () => {
+Deno.test("SRA exports retain the loaded word order and allow explicit big-endian output", () => {
   const save = new SraSaveFile();
   const swapped = FileUtil.byteSwap(save.getData());
   const loaded = FileUtil.loadFileFromBuffer(swapped);
   assertEquals(loaded.isByteSwapped, true);
   assertEquals(FileUtil.getFileData(loaded, FileFormat.SRA), swapped);
   assertEquals(
-    FileUtil.getFileData(loaded, FileFormat.SRA, true),
+    FileUtil.getFileData(loaded, FileFormat.SRA, ExportByteOrder.BigEndian),
     save.getData(),
   );
 });

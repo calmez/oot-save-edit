@@ -1,11 +1,16 @@
-import { ChecksumPolicy, SaveFile } from "../models/savefile.ts";
-import { SraSaveFile, SrmSaveFile } from "../models/savefile.ts";
+import {
+  ChecksumPolicy,
+  ExportByteOrder,
+  SraSaveFile,
+  SrmSaveFile,
+} from "../models/savefile.ts";
+import type { SaveFile } from "../models/savefile.ts";
 import { Metric, Span } from "./telemetry.ts";
 
 /**
  * Supported file formats for save files
  * SRA is the core format used by the cartridge
- * SRM is used by emulators such as through libretro
+ * SRM is the Mupen64Plus-Next container layout on little-endian hosts.
  */
 export enum FileFormat {
   SRA,
@@ -68,7 +73,8 @@ export class FileUtil {
   }
 
   /**
-   * Swaps bytes in a Uint8Array.
+   * Reverses each four-byte word: [a, b, c, d] becomes [d, c, b, a].
+   * A final partial word is reversed within its available bytes.
    * @param input Uint8Array to swap bytes in
    * @param inPlace Determine if the input array should be modified in place
    * (default: false, returns a new Uint8Array)
@@ -176,9 +182,8 @@ export class FileUtil {
    * @param path to write the file to
    * @param format save file format to write
    * @param save savefile data to write
-   * @param forceSwap force a byte swap before writing (when converting from SRA
-   * to SRM the swap will be done automatically, force swapping will reverse the
-   * effect in that case)
+   * @param order desired SRAM byte order; automatic preserves same-format source
+   * order and uses target-layout defaults for new files and conversions
    * @param checksumPolicy maintain edited-slot checksums by default, or preserve
    * stored checksum bytes even when content was edited
    */
@@ -186,13 +191,13 @@ export class FileUtil {
     path: string,
     format: FileFormat,
     save: SraSaveFile,
-    forceSwap: boolean = false,
+    order = ExportByteOrder.Automatic,
     checksumPolicy = ChecksumPolicy.MaintainEdited,
   ): void {
-    const span = Span.saveFile(path, format, forceSwap, Deno.cwd());
+    const span = Span.saveFile(path, format, order, Deno.cwd());
     const startTime = new Date().getTime();
 
-    const data = this.getFileData(save, format, forceSwap, checksumPolicy);
+    const data = this.getFileData(save, format, order, checksumPolicy);
     const file = Deno.openSync(path, {
       write: true,
       create: true,
@@ -222,15 +227,14 @@ export class FileUtil {
   static getFileData(
     save: SraSaveFile,
     format: FileFormat,
-    forceSwap = false,
+    order = ExportByteOrder.Automatic,
     checksumPolicy = ChecksumPolicy.MaintainEdited,
   ): Uint8Array {
     if (format !== FileFormat.SRA && format !== FileFormat.SRM) {
       throw new Error(`Unsupported save format for writing: ${format}`);
     }
-    const data = format === FileFormat.SRA
-      ? save.getDataForWrite(checksumPolicy)
-      : SrmSaveFile.fromSaveFile(save, checksumPolicy).getData();
-    return forceSwap ? FileUtil.byteSwap(data, true) : data;
+    return format === FileFormat.SRA
+      ? save.getDataForWrite(order, checksumPolicy)
+      : SrmSaveFile.fromSaveFile(save, order, checksumPolicy).getData();
   }
 }

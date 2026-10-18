@@ -11,8 +11,13 @@ import {
   returnsNext,
   stub,
 } from "@std/testing/mock";
-import { FileUtil } from "../utils/fileutil.ts";
-import { SraSaveFile, SrmSaveFile } from "./savefile.ts";
+import { FileFormat, FileUtil } from "../utils/fileutil.ts";
+import {
+  ChecksumPolicy,
+  ExportByteOrder,
+  SraSaveFile,
+  SrmSaveFile,
+} from "./savefile.ts";
 import { SaveHeader } from "./saveheader.ts";
 import { SaveSlot } from "./saveslot.ts";
 
@@ -24,6 +29,110 @@ function createSraWithTail(): Uint8Array {
   return bytes;
 }
 
+Deno.test("explicit SRA output order is independent of source order", () => {
+  const native = createSraWithTail();
+  native.set([0x12, 0x34, 0x56, 0x78], SraSaveFile.requiredSize);
+  const swapped = FileUtil.byteSwap(native);
+  for (const source of [native, swapped]) {
+    const save = new SraSaveFile().read(source);
+    assertEquals(save.getData(ExportByteOrder.BigEndian), native);
+    assertEquals(save.getData(ExportByteOrder.WordSwapped), swapped);
+    assertEquals(save.getData(), source);
+  }
+});
+
+Deno.test("direct SRM export changes only SRAM to the requested order", () => {
+  const native = createSraWithTail();
+  const swapped = FileUtil.byteSwap(native);
+  for (const source of [native, swapped]) {
+    const original = Uint8Array.from(
+      { length: SrmSaveFile.acceptedSize },
+      (_, index) => (index % 251) + 1,
+    );
+    original.set(source, 0x20800);
+    const save = new SrmSaveFile().read(original);
+    for (
+      const [order, expectedSram] of [
+        [ExportByteOrder.BigEndian, native],
+        [ExportByteOrder.WordSwapped, swapped],
+      ] as const
+    ) {
+      const expected = original.slice();
+      expected.set(expectedSram, 0x20800);
+      const exported = save.getData(order);
+      assertEquals(exported.length, expected.length);
+      assert(exported.every((value, index) => value === expected[index]));
+      assertEquals(save.getData(order), exported);
+      let written = new Uint8Array();
+      save.write({
+        writeSync(data: Uint8Array) {
+          written = data.slice();
+          return data.length;
+        },
+      } as Deno.FsFile, order);
+      assertEquals(written, expected);
+      assertEquals(save.getData(), original);
+      assertEquals(save.sram, source);
+    }
+  }
+});
+
+Deno.test("SRM exports retain known SRAM order after header-marker damage", () => {
+  const native = createSraWithTail();
+  for (const swapped of [false, true]) {
+    const save = new SraSaveFile().read(
+      swapped ? FileUtil.byteSwap(native) : native,
+    );
+    save.header.data.fill(0, 3, 12);
+    save.slots[0].rupees = 123;
+    for (
+      const order of [ExportByteOrder.BigEndian, ExportByteOrder.WordSwapped]
+    ) {
+      const converted = SrmSaveFile.fromSaveFile(save, order);
+      const expected = converted.getData();
+      assertEquals(
+        converted.getData(order).subarray(0x20854, 0x20858),
+        new Uint8Array(
+          order === ExportByteOrder.BigEndian ? [0, 123, 0, 0] : [0, 0, 123, 0],
+        ),
+      );
+      assertEquals(converted.getData(order), expected);
+      assertEquals(converted.getData(order), expected);
+      assertEquals(converted.getData(), expected);
+      assertEquals(
+        FileUtil.getFileData(
+          save,
+          FileFormat.SRM,
+          order,
+          ChecksumPolicy.Preserve,
+        ),
+        expected,
+      );
+    }
+  }
+
+  const loaded = new SrmSaveFile();
+  loaded.sram.set(FileUtil.byteSwap(native));
+  const stored = loaded.getData();
+  loaded.read(stored);
+  loaded.sram.fill(0, 0, 0x20);
+  assertEquals(loaded.getData(ExportByteOrder.WordSwapped), loaded.getData());
+  assertEquals(loaded.saveFile.isByteSwapped, true);
+  const highLevel = FileUtil.getFileData(
+    loaded.saveFile,
+    FileFormat.SRM,
+    ExportByteOrder.WordSwapped,
+    ChecksumPolicy.Preserve,
+  );
+  const direct = loaded.getData(ExportByteOrder.WordSwapped);
+  assertEquals(highLevel.length, direct.length);
+  assert(highLevel.every((value, index) => value === direct[index]));
+  const extracted = loaded.saveFile;
+  extracted.read(native);
+  assertEquals(extracted.isByteSwapped, false);
+  assertEquals(extracted.getData(), native);
+});
+
 for (const swapped of [false, true]) {
   Deno.test(`SRA buffer loading preserves the complete image in ${swapped ? "swapped" : "native"} byte order`, () => {
     const original = createSraWithTail();
@@ -31,7 +140,12 @@ for (const swapped of [false, true]) {
     const save = new SraSaveFile().read(stored);
 
     assertEquals(save.getData(), stored);
-    assertEquals(save.getData(true), FileUtil.byteSwap(stored));
+    assertEquals(
+      save.getData(
+        swapped ? ExportByteOrder.BigEndian : ExportByteOrder.WordSwapped,
+      ),
+      FileUtil.byteSwap(stored),
+    );
     assertEquals(save.isByteSwapped, swapped);
   });
 
@@ -65,7 +179,10 @@ for (const swapped of [false, true]) {
       written.every((value, index) => value === stored[index]),
       "File round-trip must retain every byte, including the SRAM tail.",
     );
-    save.write(file, true);
+    save.write(
+      file,
+      swapped ? ExportByteOrder.BigEndian : ExportByteOrder.WordSwapped,
+    );
     assertEquals(written, FileUtil.byteSwap(stored));
   });
 
@@ -322,7 +439,7 @@ Deno.test({
     const instance = new SraSaveFile();
     instance.read(testFile);
     assertFalse(instance.isByteSwapped);
-    instance.write(testFile, true);
+    instance.write(testFile, ExportByteOrder.WordSwapped);
     assertSpyCallArgs(writeSyncStub, 0, 0, [
       swappedBytes,
     ]);
