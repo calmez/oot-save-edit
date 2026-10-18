@@ -4,7 +4,13 @@ import {
   assertInstanceOf,
   assertThrows,
 } from "@std/assert";
-import { SraSaveFile, SrmSaveFile } from "../models/savefile.ts";
+import { stub } from "@std/testing/mock";
+import {
+  ChecksumPolicy,
+  SraSaveFile,
+  SrmSaveFile,
+} from "../models/savefile.ts";
+import { SaveSlot } from "../models/saveslot.ts";
 import { FileFormat, FileUtil } from "./fileutil.ts";
 
 function createSraWithUnknownBytes(): Uint8Array {
@@ -19,6 +25,174 @@ function createSraWithUnknownBytes(): Uint8Array {
   }
   return bytes;
 }
+
+function createSraWithDamagedSlots(): Uint8Array {
+  const save = new SraSaveFile();
+  save.slots[1].checksum ^= 0x1234;
+  save.backups[0].checksum ^= 0x4321;
+  save.slots[2].data.fill(0, 0x1C, 0x22);
+  save.slots[2].updateChecksum();
+  save.backups[1] = new SaveSlot();
+  return save.getData();
+}
+
+for (const format of [FileFormat.SRA, FileFormat.SRM]) {
+  for (const swapped of [false, true]) {
+    Deno.test(`${FileFormat[format]} no-edit exports preserve invalid checksums in ${swapped ? "swapped" : "native"} SRAM order`, () => {
+      const original = createStoredSave(
+        createSraWithDamagedSlots(),
+        format,
+        swapped,
+      );
+      const save = FileUtil.loadFileFromBuffer(original);
+      for (
+        const policy of [ChecksumPolicy.MaintainEdited, ChecksumPolicy.Preserve]
+      ) {
+        assertEquals(
+          FileUtil.getFileData(save, format, false, policy),
+          original,
+        );
+        assertEquals(save.slots[1].isChecksumValid(), false);
+        assertEquals(save.backups[0].isChecksumValid(), false);
+      }
+    });
+
+    Deno.test(`${FileFormat[format]} can preserve mismatched checksums after edits in ${swapped ? "swapped" : "native"} SRAM order`, () => {
+      const original = createStoredSave(
+        createSraWithDamagedSlots(),
+        format,
+        swapped,
+      );
+      const save = FileUtil.loadFileFromBuffer(original);
+      save.slots[1].rupees = 500;
+      save.backups[0].rupees = 123;
+      const workingData = save.getData();
+
+      const preserved = FileUtil.loadFileFromBuffer(
+        FileUtil.getFileData(save, format, false, ChecksumPolicy.Preserve),
+      );
+      assertEquals(preserved.getData(), workingData);
+      assertEquals(preserved.slots[1].isChecksumValid(), false);
+      assertEquals(preserved.backups[0].isChecksumValid(), false);
+
+      const maintained = FileUtil.loadFileFromBuffer(
+        FileUtil.getFileData(save, format),
+      );
+      assertEquals(maintained.slots[1].isChecksumValid(), true);
+      assertEquals(maintained.backups[0].isChecksumValid(), true);
+      assertEquals(save.getData(), workingData);
+      assertEquals(
+        FileUtil.loadFileFromBuffer(
+          FileUtil.getFileData(save, format, false, ChecksumPolicy.Preserve),
+        ).getData(),
+        workingData,
+      );
+    });
+
+    Deno.test(`${FileFormat[format]} maintains only the edited slot checksum and preserves damaged records in ${swapped ? "swapped" : "native"} SRAM order`, () => {
+      const original = createStoredSave(
+        createSraWithDamagedSlots(),
+        format,
+        swapped,
+      );
+      const save = FileUtil.loadFileFromBuffer(original);
+      const checksum = save.slots[0].checksum;
+      save.slots[0].rupees = 500;
+      const workingData = save.getData();
+      const expectedSlot = save.slots[0].data.slice();
+      // Increasing rupees by 500 adds 500 to the checksum's word sum.
+      expectedSlot.set(
+        [(checksum + 500) >> 8, (checksum + 500) & 0xFF],
+        0x1352,
+      );
+      const expected = original.slice();
+      expected.set(
+        swapped ? FileUtil.byteSwap(expectedSlot) : expectedSlot,
+        (format === FileFormat.SRA ? 0 : 0x20800) + 0x20,
+      );
+
+      const exported = FileUtil.getFileData(save, format);
+      const reloaded = FileUtil.loadFileFromBuffer(exported);
+      assertEquals(reloaded.slots[0].data, expectedSlot);
+      assertEquals(exported.length, expected.length);
+      assert(exported.every((value, index) => value === expected[index]));
+      assertEquals(reloaded.slots[1].isChecksumValid(), false);
+      assertEquals(reloaded.backups[0].isChecksumValid(), false);
+      assertEquals(reloaded.slots[2].isValid, false);
+      assertEquals(save.getData(), workingData);
+      assertEquals(FileUtil.getFileData(save, format), exported);
+    });
+  }
+}
+
+Deno.test("reverting an edit after preview restores the original invalid checksum on export", () => {
+  const original = createSraWithDamagedSlots();
+  const save = FileUtil.loadFileFromBuffer(original);
+  save.slots[1].rupees = 500;
+  const preview = FileUtil.loadFileFromBuffer(
+    FileUtil.getFileData(save, FileFormat.SRA),
+  );
+  assertEquals(preview.slots[1].isChecksumValid(), true);
+  save.slots[1].rupees = 0;
+  assertEquals(FileUtil.getFileData(save, FileFormat.SRA), original);
+});
+
+Deno.test("ordinary export preserves checksum-only edits", () => {
+  const save = FileUtil.loadFileFromBuffer(new SraSaveFile().getData());
+  save.slots[0].checksum = 0x1234;
+  save.backups[0].checksum = 0x5678;
+  assertEquals(FileUtil.getFileData(save, FileFormat.SRA), save.getData());
+});
+
+Deno.test("slot replacement and raw-byte edits receive checksum maintenance", () => {
+  const save = FileUtil.loadFileFromBuffer(createSraWithDamagedSlots());
+  save.backups[0].data.set([0, 123], 0x34);
+  const replacement = save.slots[0].data.slice();
+  replacement.set([0x01, 0xF4], 0x34);
+  save.slots[0] = new SaveSlot(replacement);
+  const exported = FileUtil.loadFileFromBuffer(
+    FileUtil.getFileData(save, FileFormat.SRA),
+  );
+  assertEquals(exported.slots[0].rupees, 500);
+  assertEquals(exported.slots[0].isChecksumValid(), true);
+  assertEquals(exported.backups[0].rupees, 123);
+  assertEquals(exported.backups[0].isChecksumValid(), true);
+  assertEquals(exported.slots[1].data, save.slots[1].data);
+});
+
+Deno.test("disk exports forward the checksum policy without changing the working save", () => {
+  const save = FileUtil.loadFileFromBuffer(createSraWithDamagedSlots());
+  const originalChecksum = save.slots[0].checksum;
+  save.slots[0].rupees = 500;
+  const workingData = save.getData();
+  let written: Uint8Array = new Uint8Array();
+  const open = stub(Deno, "openSync", () =>
+    ({
+      writeSync(data: Uint8Array) {
+        written = data.slice();
+        return data.length;
+      },
+      close() {},
+    }) as Deno.FsFile);
+  try {
+    FileUtil.saveFile("edited.sra", FileFormat.SRA, save);
+    assertEquals(
+      FileUtil.loadFileFromBuffer(written).slots[0].checksum,
+      (originalChecksum + 500) & 0xFFFF,
+    );
+    FileUtil.saveFile(
+      "preserved.sra",
+      FileFormat.SRA,
+      save,
+      false,
+      ChecksumPolicy.Preserve,
+    );
+    assertEquals(written, workingData);
+    assertEquals(save.getData(), workingData);
+  } finally {
+    open.restore();
+  }
+});
 
 function createStoredSave(
   sra: Uint8Array,
