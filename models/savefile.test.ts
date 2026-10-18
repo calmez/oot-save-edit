@@ -11,9 +11,102 @@ import {
   returnsNext,
   stub,
 } from "@std/testing/mock";
+import { FileUtil } from "../utils/fileutil.ts";
 import { SraSaveFile, SrmSaveFile } from "./savefile.ts";
 import { SaveHeader } from "./saveheader.ts";
 import { SaveSlot } from "./saveslot.ts";
+
+function createSraWithTail(): Uint8Array {
+  const bytes = new SraSaveFile().getData();
+  for (let index = SraSaveFile.requiredSize; index < bytes.length; index++) {
+    bytes[index] = (index % 255) + 1;
+  }
+  return bytes;
+}
+
+for (const swapped of [false, true]) {
+  Deno.test(`SRA buffer loading preserves the complete image in ${swapped ? "swapped" : "native"} byte order`, () => {
+    const original = createSraWithTail();
+    const stored = swapped ? FileUtil.byteSwap(original) : original;
+    const save = new SraSaveFile().read(stored);
+
+    assertEquals(save.getData(), stored);
+    assertEquals(save.getData(true), FileUtil.byteSwap(stored));
+    assertEquals(save.isByteSwapped, swapped);
+  });
+
+  Deno.test(`SRA file loading and writing preserve the tail across partial reads in ${swapped ? "swapped" : "native"} byte order`, () => {
+    const original = createSraWithTail();
+    const stored = swapped ? FileUtil.byteSwap(original) : original;
+    let offset = 0;
+    let written = new Uint8Array();
+    const file = {
+      readSync(buffer: Uint8Array): number | null {
+        if (offset === stored.length) return null;
+        const length = Math.min(
+          offset === 0 ? SraSaveFile.requiredSize : 0x101,
+          buffer.length,
+          stored.length - offset,
+        );
+        buffer.set(stored.subarray(offset, offset + length));
+        offset += length;
+        return length;
+      },
+      writeSync(buffer: Uint8Array): number {
+        written = buffer.slice();
+        return buffer.length;
+      },
+    } as Deno.FsFile;
+    const save = new SraSaveFile().read(file);
+    save.write(file);
+
+    assertEquals(written.length, stored.length);
+    assert(
+      written.every((value, index) => value === stored[index]),
+      "File round-trip must retain every byte, including the SRAM tail.",
+    );
+    save.write(file, true);
+    assertEquals(written, FileUtil.byteSwap(stored));
+  });
+
+  Deno.test(`SRA data copies preserve byte order and remain editable in ${swapped ? "swapped" : "native"} order`, () => {
+    const original = createSraWithTail();
+    const stored = swapped ? FileUtil.byteSwap(original) : original;
+    const source = new SraSaveFile().read(stored);
+    const copy = new SraSaveFile();
+    copy.data = source.data;
+    assertEquals(copy.isByteSwapped, swapped);
+    assertEquals(copy.data, stored);
+
+    copy.slots[0].rupees = 500;
+    copy.slots[0].updateChecksum();
+    const reloaded = new SraSaveFile().read(copy.data);
+    assertEquals(reloaded.slots[0].rupees, 500);
+    assert(reloaded.slots[0].isChecksumValid());
+    assertEquals(
+      reloaded.data.subarray(SraSaveFile.requiredSize),
+      stored.subarray(SraSaveFile.requiredSize),
+    );
+    assertEquals(source.data, stored);
+  });
+}
+
+Deno.test("SRA data copies retain independent SRAM tails", () => {
+  const original = new SraSaveFile().getData();
+  original.fill(0xA5, SraSaveFile.requiredSize);
+  const save = new SraSaveFile();
+  save.data = original;
+  const expected = original.slice();
+  original.fill(0, SraSaveFile.requiredSize);
+  save.getData().fill(0, SraSaveFile.requiredSize);
+  assertEquals(save.data, expected);
+
+  const copy = new SraSaveFile();
+  copy.data = save.data;
+  save.read(new SraSaveFile().getData().slice(0, SraSaveFile.requiredSize));
+  assertEquals(save.data, new SraSaveFile().getData());
+  assertEquals(copy.data, expected);
+});
 
 Deno.test({
   name: "should create",
@@ -45,11 +138,11 @@ Deno.test({
     const readSyncStub = stub(
       testFile,
       "readSync",
-      returnsNext([expectedFileSize]),
+      returnsNext([expectedFileSize, null]),
     );
     const instance = new SraSaveFile();
     instance.read(testFile);
-    assertSpyCalls(readSyncStub, 1);
+    assertSpyCalls(readSyncStub, 2);
   },
 });
 
@@ -72,7 +165,7 @@ Deno.test({
     stub(
       testFile,
       "readSync",
-      returnsNext([wrongFileSize]),
+      returnsNext([wrongFileSize, null]),
     );
     const instance = new SraSaveFile();
     assertThrows(() => instance.read(testFile));
@@ -109,7 +202,7 @@ Deno.test({
     const testFile = {} as Deno.FsFile;
     stub(testFile, "readSync", (buffer: Uint8Array) => {
       buffer.set(fakeBytes);
-      return SraSaveFile.requiredSize;
+      return buffer.length;
     });
     const instance = new SraSaveFile();
     instance.read(testFile);
@@ -131,7 +224,7 @@ Deno.test({
     const testFile = {} as Deno.FsFile;
     stub(testFile, "readSync", (buffer: Uint8Array) => {
       buffer.set(fakeBytes);
-      return SraSaveFile.requiredSize;
+      return buffer.length;
     });
     const instance = new SraSaveFile();
     instance.read(testFile);
@@ -152,7 +245,7 @@ Deno.test({
     const testFile = {} as Deno.FsFile;
     stub(testFile, "readSync", (buffer: Uint8Array) => {
       buffer.set(fakeBytes);
-      return SraSaveFile.requiredSize;
+      return buffer.length;
     });
     const instance = new SraSaveFile();
     instance.read(testFile);
@@ -177,7 +270,7 @@ Deno.test({
     const testFile = {} as Deno.FsFile;
     stub(testFile, "readSync", (buffer: Uint8Array) => {
       buffer.set(fakeBytes.slice(0, SraSaveFile.requiredSize));
-      return SraSaveFile.requiredSize;
+      return buffer.length;
     });
     const writeSyncStub = stub(testFile, "writeSync");
     const instance = new SraSaveFile();
@@ -205,7 +298,7 @@ Deno.test({
     const testFile = {} as Deno.FsFile;
     stub(testFile, "readSync", (buffer: Uint8Array) => {
       buffer.set(fakeBytes.slice(0, SraSaveFile.requiredSize));
-      return SraSaveFile.requiredSize;
+      return buffer.length;
     });
     const writeSyncStub = stub(testFile, "writeSync");
     const instance = new SraSaveFile();
@@ -281,7 +374,7 @@ Deno.test({
     const wrongFileSize = 1234;
     const testFile = {
       statSync: () => ({ size: wrongFileSize }),
-      readSync: (_: Uint8Array) => wrongFileSize,
+      readSync: returnsNext([wrongFileSize, null]),
     } as Deno.FsFile;
     const instance = new SrmSaveFile();
     assertThrows(() => instance.read(testFile));

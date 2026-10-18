@@ -38,11 +38,16 @@ export class SaveFile {
           `Incorrect data size, cannot read save file. Expected at least ${requiredSize} bytes, got ${source.length}.`,
         );
       }
-      bytes = source.slice(0, requiredSize);
+      bytes = source.slice(0, klass.acceptedSize);
     } else {
-      bytes = new Uint8Array(requiredSize);
-      const readBytes = source.readSync(bytes);
-      if ((readBytes ?? 0) < requiredSize) {
+      bytes = new Uint8Array(klass.acceptedSize);
+      let readBytes = 0;
+      while (readBytes < bytes.length) {
+        const count = source.readSync(bytes.subarray(readBytes));
+        if (count === null || count === 0) break;
+        readBytes += count;
+      }
+      if (readBytes < requiredSize) {
         throw Error(
           `Incorrect file size, cannot read save file. Expected at least ${requiredSize} bytes, got ${readBytes}.`,
         );
@@ -81,6 +86,9 @@ export class SraSaveFile extends SaveFile {
     SaveSlot.createBlank(),
   ];
   private byteSwapped: boolean = false;
+  private trailingData = new Uint8Array(
+    SraSaveFile.acceptedSize - SraSaveFile.requiredSize,
+  );
 
   private static get saveSlots(): number {
     return 3;
@@ -117,6 +125,8 @@ export class SraSaveFile extends SaveFile {
       currentOffset += SaveSlot.requiredSize;
     }
 
+    bytes.set(this.trailingData, currentOffset);
+
     if ((this.byteSwapped && !forceSwap) || (!this.byteSwapped && forceSwap)) {
       FileUtil.byteSwap(bytes, true);
     }
@@ -129,6 +139,7 @@ export class SraSaveFile extends SaveFile {
   }
 
   override set data(bytes: Uint8Array) {
+    bytes = this.ensureByteOrder(bytes);
     let currentOffset = 0x00;
 
     this.header = new SaveHeader(
@@ -149,10 +160,8 @@ export class SraSaveFile extends SaveFile {
       );
       currentOffset += SaveSlot.requiredSize;
     }
-  }
 
-  protected override checkDataOnRead(bytes: Uint8Array): Uint8Array {
-    return this.ensureByteOrder(bytes);
+    this.trailingData = bytes.slice(currentOffset, SraSaveFile.acceptedSize);
   }
 
   override getDataForWrite(): Uint8Array {
@@ -209,7 +218,8 @@ export class SrmSaveFile extends SaveFile {
     const srm = save.sourceSrmData
       ? new SrmSaveFile().read(save.sourceSrmData)
       : new SrmSaveFile();
-    srm.sram.set(save.getData(!save.isByteSwapped), 0);
+    const forceSwap = !save.sourceSrmData && !save.isByteSwapped;
+    srm.sram.set(save.getData(forceSwap), 0);
 
     return srm;
   }
