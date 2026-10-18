@@ -12,6 +12,7 @@ const fixturePath = fromFileUrl(
   new URL("../test-data/new-game.sra", import.meta.url),
 );
 const videoPath = fromFileUrl(new URL("../demos/gui.webm", import.meta.url));
+const gifPath = fromFileUrl(new URL("../demos/gui.gif", import.meta.url));
 const temporaryDirectory = await Deno.makeTempDir({
   prefix: "oot-save-edit-gui-demo-",
 });
@@ -112,3 +113,27 @@ try {
 } finally {
   await browser.close();
 }
+
+const conversion = await new Deno.Command("ffmpeg", {
+  args: [
+    "-y",
+    "-hide_banner",
+    "-loglevel",
+    "error",
+    "-i",
+    videoPath,
+    "-filter_complex",
+    "fps=12,scale=960:-1:flags=lanczos,split[frames][colors];[colors]palettegen[palette];[frames][palette]paletteuse=dither=bayer:bayer_scale=3",
+    "-loop",
+    "0",
+    gifPath,
+  ],
+}).output();
+if (!conversion.success) {
+  throw new Error(
+    `Could not create GUI GIF: ${
+      new TextDecoder().decode(conversion.stderr).trim()
+    }`,
+  );
+}
+console.log(`GUI GIF: ${gifPath}`);

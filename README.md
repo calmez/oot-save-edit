@@ -6,7 +6,7 @@
 ⚠️ This project is still very much work in progress and not fully usable at this
 moment. ⚠️
 
-![Editing an Ocarina of Time save file in the web UI](demos/gui.webm)
+![Editing an Ocarina of Time save file in the web UI](demos/gui.gif)
 
 ![Editing an Ocarina of Time save file in the terminal UI](demos/tui.gif)
 
@@ -51,14 +51,14 @@ export, and SRM exports preserve the original emulator sections.
 ## Building the demos
 
 Run `deno task build:demo:tui` to generate `demos/tui.gif`,
-`deno task build:demo:gui` to generate `demos/gui.webm`, or
+`deno task build:demo:gui` to generate `demos/gui.gif`, or
 `deno task build:demos` to generate both.
 
 The TUI recording requires [VHS](https://github.com/charmbracelet/vhs) and its
-`ttyd` and `ffmpeg` dependencies. For the GUI recording, install Chromium once
-with `deno run -A npm:playwright@1.64.1 install chromium` and keep
-`deno task web:dev` running in another terminal. To use a different server, pass
-its URL to `deno task build:demo:gui http://localhost:5174`.
+`ttyd` and `ffmpeg` dependencies. The GUI recording also requires `ffmpeg`.
+Install Chromium once with `deno run -A npm:playwright@1.64.1 install chromium`
+and keep `deno task web:dev` running in another terminal. To use a different
+server, pass its URL to `deno task build:demo:gui http://localhost:5174`.
 
 ## Other Projects in this space
 
