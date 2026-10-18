@@ -268,7 +268,7 @@ jobs:
         uses: JamesIves/github-pages-deploy-action@d92aa235d04922e8f08b40ce78cc5442fcfbfa2f
         with:
           ssh-key: ${{ secrets.DEPLOY_KEY }}
-          folder: docs
+          folder: build/docs
           clean: true
           single-commit: true
           git-config-name: calmez-ghbot
