@@ -145,3 +145,78 @@ Deno.test("a retained outcome survives confirmation and reopening until explicit
   review.confirm();
   assertEquals(save.slots[0].isChecksumValid(), true);
 });
+
+Deno.test("review compares paired progress and replaces only after explicit selection and confirmation", () => {
+  const save = new SraSaveFile();
+  save.slots[0].maxHealth = 160;
+  save.backups[0].maxHealth = 48;
+  save.backups[0].updateChecksum();
+  save.backups[0].fileIndex = 2;
+  const source = save.backups[0].data.slice();
+  const before = save.getData();
+  const review = new CorrectionReview(save);
+  review.open();
+  const recovery = review.plan.recovery.find((item) =>
+    item.action === "restore"
+  )!;
+
+  assertEquals(
+    review.recoveryPairs[0].comparisons.find((item) =>
+      item.field === "healthCapacity"
+    )?.equal,
+    false,
+  );
+  assertEquals(review.selected.includes(recovery.id), false);
+  assertEquals(save.getData(), before);
+  review.toggle(recovery.id);
+  const preview = review.preview();
+  assertEquals(preview.replacements.length, 1);
+  assertEquals(save.getData(), before);
+  const result = review.confirm();
+  assertEquals(result.replacements.length, 1);
+  assertEquals(save.slots[0].maxHealth, 48);
+  assertEquals(save.slots[0].fileIndex, 0);
+  assertEquals(save.backups[0].data, source);
+});
+
+Deno.test("declining restoration checksum recalculation preserves the copied checksum through export", () => {
+  const save = new SraSaveFile();
+  save.slots[0].maxHealth = 160;
+  save.backups[0].maxHealth = 48;
+  save.backups[0].checksum = 0x1234;
+  const review = new CorrectionReview(save);
+  review.open();
+  const recovery = review.plan.recovery.find((item) =>
+    item.action === "restore"
+  )!;
+  review.toggle(recovery.id);
+  review.setReplacementChecksum(recovery.id, false);
+  review.confirm();
+
+  assertEquals(save.slots[0].checksum, 0x1234);
+  assertEquals(review.checksumPolicy, ChecksumPolicy.Preserve);
+  assertEquals(
+    save.getDataForWrite(undefined, review.checksumPolicy).slice(
+      0x20 + 0x1352,
+      0x20 + 0x1354,
+    ),
+    new Uint8Array([0x12, 0x34]),
+  );
+});
+
+Deno.test("stale recovery records require a refreshed review", () => {
+  const save = new SraSaveFile();
+  save.slots[0].maxHealth = 160;
+  save.backups[0].maxHealth = 48;
+  const review = new CorrectionReview(save);
+  review.open();
+  const recovery = review.plan.recovery.find((item) =>
+    item.action === "restore"
+  )!;
+  review.toggle(recovery.id);
+  save.backups[0].rupees = 10;
+  const edited = save.getData();
+
+  assertThrows(() => review.confirm(), Error, "stale");
+  assertEquals(save.getData(), edited);
+});

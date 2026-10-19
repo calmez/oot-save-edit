@@ -586,8 +586,12 @@ Deno.test("TUI review requires an explicit outcome change and refreshed confirma
     await editor.input("\r");
     assertStringIncludes(editor.frame(), "Review suggested corrections");
     assertEquals(editor.frame().includes("Inspecting header: padding"), false);
-    await editor.input("]");
-    assertStringIncludes(editor.frame(), "uncertainty");
+    let reviewPages = editor.frame();
+    for (let page = 0; page < 5; page++) {
+      await editor.input("]");
+      reviewPages += editor.frame();
+    }
+    assertStringIncludes(reviewPages, "uncertainty");
   } finally {
     await editor.cleanup();
     load.restore();

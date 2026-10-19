@@ -13,4 +13,5 @@ export * from "./utils/diagnostics.ts";
 export * from "./utils/fileutil.ts";
 export * from "./utils/fieldinterpretation.ts";
 export * from "./utils/inputdiagnostics.ts";
+export * from "./utils/recovery.ts";
 export * from "./utils/text.ts";

@@ -26,12 +26,16 @@ export default function SaveManagement(
 ) {
   const [stage, setStage] = useState("actions");
   const [source, setSource] = useState(0);
+  const [target, setTarget] = useState(0);
   const [message, setMessage] = useState("");
   useInput((_input, key) => {
     if (key.escape && stage !== "review") onClose();
   });
-  function openReview(filter?: Parameters<CorrectionReview["open"]>[0]) {
-    review.open(filter);
+  function openReview(
+    filter?: Parameters<CorrectionReview["open"]>[0],
+    recoveryFilter?: Parameters<CorrectionReview["open"]>[1],
+  ) {
+    review.open(filter, recoveryFilter);
     setStage("review");
   }
   if (stage === "review") {
@@ -76,13 +80,26 @@ export default function SaveManagement(
           ? "Copy from:"
           : stage === "target"
           ? `Copy ${slotLabel(source)} to:`
+          : stage === "confirm-empty-copy"
+          ? `${
+            slotLabel(source)
+          } is empty. This replaces initialized progress in ${
+            slotLabel(target)
+          }. Confirm?`
           : stage === "repair" || stage === "reset"
           ? "Choose slot:"
           : "Choose action:"}
       </Text>
       <Box key={stage}>
         <SelectInput
-          items={stage === "actions" ? actions : slots}
+          items={stage === "actions"
+            ? actions
+            : stage === "confirm-empty-copy"
+            ? [
+              { label: "Confirm empty record copy", value: "confirm" },
+              { label: "Cancel", value: "cancel" },
+            ]
+            : slots}
           onSelect={({ value }) => {
             if (stage === "actions") {
               if (value === "close") return onClose();
@@ -91,13 +108,20 @@ export default function SaveManagement(
                 return;
               }
               if (value === "header") {
-                openReview((item) => item.scope.kind === "header");
+                openReview(
+                  (item) => item.scope.kind === "header",
+                  () => false,
+                );
                 return;
               }
               if (value === "sync") {
-                for (let i = 0; i < 3; i++) {
-                  copySlot(save, i, i + 3);
-                }
+                openReview(
+                  () => false,
+                  (item) => item.action === "synchronize",
+                );
+                review.recoverySuggestions
+                  .forEach((item) => review.toggle(item.id));
+                return;
               } else {
                 setStage(value);
                 return;
@@ -107,17 +131,34 @@ export default function SaveManagement(
               setStage("target");
               return;
             } else if (stage === "target") {
-              copySlot(
-                save,
-                source,
-                Number(value),
-              );
+              const destination = Number(value);
+              if (
+                getSlot(save, source).isEmpty &&
+                !getSlot(save, destination).isEmpty
+              ) {
+                setTarget(destination);
+                setStage("confirm-empty-copy");
+                return;
+              }
+              copySlot(save, source, destination);
+            } else if (stage === "confirm-empty-copy") {
+              if (value === "confirm") {
+                copySlot(save, source, target);
+                onChange();
+                setMessage(
+                  `Copied empty ${slotLabel(source)} to ${slotLabel(target)}.`,
+                );
+              }
+              setStage("actions");
+              return;
             } else if (stage === "repair") {
               const target = Number(value);
+              const record = target < 3 ? "primary" : "backup";
               openReview((item) =>
                 item.scope.kind === "slot" && item.scope.index === target % 3 &&
-                item.scope.record === (target < 3 ? "primary" : "backup")
-              );
+                item.scope.record === record, (item) =>
+                item.index === target % 3 &&
+                (item.source === record || item.destination === record));
               return;
             } else if (stage === "reset") {
               resetSlotToNewGame(save, Number(value));
