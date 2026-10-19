@@ -12,6 +12,7 @@ import {
 } from "../../models/scene.ts";
 import type { Entrance, Room } from "../../models/scene.ts";
 import { getSlot, updateNamedFlag } from "../../utils/saveeditor.ts";
+import { slotDisplayError } from "../slotreadability.ts";
 import type { HealthData } from "./fieldmanagers/health.tsx";
 import type { MagicData } from "./fieldmanagers/magic.tsx";
 import type { InventoryData } from "./fieldmanagers/inventory.tsx";
@@ -63,6 +64,15 @@ export function makeSlotFields(
   save: SraSaveFile,
 ): Record<string, unknown> {
   const slot = getSlot(save, index);
+  const displayError = slotDisplayError(slot);
+  if (slot.isEmpty || displayError) {
+    return {
+      [`slot_${index}_fileValid`]: slot.isValid,
+      [`slot_${index}_checksum`]: slot.checksum,
+      [`slot_${index}_slotState`]: displayError ??
+        "Empty slot. Use Ctrl+G to create a new-game slot.",
+    };
+  }
   const fields: Record<string, unknown> = Object.fromEntries(
     scalarFields.map((key) => [`slot_${index}_${key}`, slot[key]]),
   );

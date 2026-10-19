@@ -5,6 +5,7 @@ import {
   Boots,
   ChecksumPolicy,
   diagnoseSave,
+  ExportByteOrder,
   InventoryItems,
   Shield,
   SraSaveFile,
@@ -93,7 +94,10 @@ Deno.test("diagnosis preserves complete bytes, object identity and export state 
   const header = save.header;
   const snapshot = () => ({
     data: save.getData(),
-    export: save.getDataForWrite(ChecksumPolicy.MaintainEdited),
+    export: save.getDataForWrite(
+      ExportByteOrder.Automatic,
+      ChecksumPolicy.MaintainEdited,
+    ),
     source: save.sourceSrmData?.slice(),
     srm: SrmSaveFile.fromSaveFile(save).getData(),
     swapped: save.isByteSwapped,

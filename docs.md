@@ -4,6 +4,66 @@ To get started parsing a save file you will want to use
 [`FileUtil`](./classes/FileUtil.html#loadfile) with a filepath to read a SRA or
 SRM file from.
 
+### Input byte order
+
+`inspectInputByteOrder(sramBytes)` inspects both big-endian and 32-bit
+word-swapped SRAM candidates without changing bytes. Its result contains
+`candidates`, shared diagnostic `findings`, `confidence`, and one of three
+states: `detected`, `overridden`, or `unresolved`. Each candidate reports the
+header signature and primary/backup marker, emptiness, and checksum evidence.
+Pass only the SRAM region to this inspection function, not a whole SRM
+container.
+
+Automatic detection requires a complete header signature or occupied-slot marker
+supporting exactly one candidate. Partial signatures, empty slots, and checksums
+alone cannot select an order. Conflicting complete evidence also remains
+unresolved, regardless of how many records support each side.
+
+`FileUtil.loadFile`, `loadFileFromBuffer`, and both save-file models' `read`
+methods accept an optional input order. Without one, unresolved input throws
+`UnresolvedByteOrderError`, carrying the inspection result and a copy of the
+original SRA or SRM bytes in `sourceData`. No editable model is returned. An
+explicit choice permits loading while keeping conflicting evidence visible in
+`save.inputInterpretation` and `diagnoseSave(save)`. Selection never repairs the
+save and does not verify its game version or platform.
+
+In-memory conversion retains the original `inputInterpretation` and its
+evidence; changing output order does not create an input override. On a
+converted editable save, `isByteSwapped` describes the current stored
+representation, which can differ from the original input's `selectedOrder`.
+
+```typescript
+import {
+  ExportByteOrder,
+  FileUtil,
+  UnresolvedByteOrderError,
+} from "./index.ts";
+
+try {
+  const save = FileUtil.loadFile("game.srm");
+  console.log(save.inputInterpretation);
+} catch (error) {
+  if (!(error instanceof UnresolvedByteOrderError)) throw error;
+  console.log(error.inspection.candidates);
+  // After the user explicitly chooses word-swapped input:
+  const save = FileUtil.loadFileFromBuffer(
+    error.sourceData,
+    ExportByteOrder.WordSwapped,
+  );
+  console.log(save.inputInterpretation);
+}
+```
+
+Both editors offer input choices and cancellation before opening unresolved
+saves. To revisit a detected interpretation, use **Choose input byte order** in
+the web editor or **Ctrl+O** in the terminal editor. Choosing reloads the
+original bytes and discards edits. These input choices are separate from the
+export representation below.
+
+If the selected interpretation contains record values that strict field readers
+cannot display, the editors identify those fields and retain the record's bytes.
+Other records, export, and input reselection remain available.
+
 ## Exporting edited saves
 
 ### SRAM byte order
@@ -57,7 +117,7 @@ that source metadata or the working bytes.
 
 `SraSaveFile.read(source, knownOrder)` accepts an already known source order,
 which the SRM adapter passes through even if the header marker was edited.
-Omitting it uses header detection; this does not resolve ambiguous input.
+Omitting it uses the input evidence policy above and rejects unresolved input.
 
 ```typescript
 import { ExportByteOrder, FileFormat, FileUtil } from "./index.ts";

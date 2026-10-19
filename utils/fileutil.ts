@@ -4,7 +4,6 @@ import {
   SraSaveFile,
   SrmSaveFile,
 } from "../models/savefile.ts";
-import type { SaveFile } from "../models/savefile.ts";
 import { Metric, Span } from "./telemetry.ts";
 
 /**
@@ -99,7 +98,10 @@ export class FileUtil {
    * @param path to load the save file data from, is also used for automatic
    * format detection
    */
-  static loadFile(path: string): SraSaveFile {
+  static loadFile(
+    path: string,
+    sourceOrder = ExportByteOrder.Automatic,
+  ): SraSaveFile {
     const span = Span.loadFile(path, Deno.cwd());
     const startTime = new Date().getTime();
 
@@ -117,7 +119,7 @@ export class FileUtil {
       }
 
       file.seekSync(0, Deno.SeekMode.Start);
-      let save: SaveFile;
+      let save: SraSaveFile | SrmSaveFile;
 
       switch (fileType) {
         case FileFormat.SRA:
@@ -130,7 +132,7 @@ export class FileUtil {
           throw new Error(`Unknown or unsupported save file format: ${path}`);
       }
 
-      save.read(file);
+      save.read(file, sourceOrder);
       if (save instanceof SrmSaveFile) {
         return save.saveFile;
       }
@@ -145,13 +147,16 @@ export class FileUtil {
     }
   }
 
-  static loadFileFromBuffer(buffer: Uint8Array): SraSaveFile {
+  static loadFileFromBuffer(
+    buffer: Uint8Array,
+    sourceOrder = ExportByteOrder.Automatic,
+  ): SraSaveFile {
     const span = Span.loadFile("buffer");
     const startTime = new Date().getTime();
 
     try {
       const fileType = this.detectFileFormatByBufferSize(buffer);
-      let save: SaveFile;
+      let save: SraSaveFile | SrmSaveFile;
 
       switch (fileType) {
         case FileFormat.SRA:
@@ -164,7 +169,7 @@ export class FileUtil {
           throw new Error(`Unknown or unsupported save file format`);
       }
 
-      save.read(buffer);
+      save.read(buffer, sourceOrder);
       if (save instanceof SrmSaveFile) {
         return save.saveFile;
       }

@@ -7,6 +7,7 @@ import type { ReadStream, WriteStream } from "node:tty";
 import { stripVTControlCharacters } from "node:util";
 import { act, createElement } from "react";
 
+import { SraSaveFile, SrmSaveFile } from "../../models/savefile.ts";
 import { FileUtil } from "../../utils/fileutil.ts";
 import { Save } from "./save.tsx";
 
@@ -19,7 +20,11 @@ interface TestEditor {
   cleanup: () => Promise<void>;
 }
 
-async function renderEditor(rows: number): Promise<TestEditor> {
+async function renderEditor(
+  rows: number,
+  createNew = true,
+  filename = "new-save.sra",
+): Promise<TestEditor> {
   const stdout = Object.assign(new PassThrough(), { columns: 140, rows });
   const stdin = Object.assign(new PassThrough(), {
     isTTY: true,
@@ -40,7 +45,7 @@ async function renderEditor(rows: number): Promise<TestEditor> {
   let instance: ReturnType<typeof render>;
   await act(async () => {
     instance = render(
-      createElement(Save, { filename: "new-save.sra", createNew: true }),
+      createElement(Save, { filename, createNew }),
       {
         stdin: stdin as unknown as ReadStream,
         stdout: stdout as unknown as WriteStream,
@@ -77,6 +82,47 @@ async function renderEditor(rows: number): Promise<TestEditor> {
       stdin.destroy();
     },
   };
+}
+
+for (const format of ["sra", "srm"]) {
+  Deno.test(`TUI ${format} input choices and cancellation gate editing without rereading the file`, async () => {
+    const source = new Uint8Array(
+      format === "sra" ? SraSaveFile.acceptedSize : SrmSaveFile.acceptedSize,
+    );
+    if (format === "srm") source[0] = 0xAB;
+    const before = source.slice();
+    const open = stub(Deno, "openSync", () =>
+      ({
+        statSync: () => ({ size: source.length }),
+        seekSync() {},
+        readSync(buffer: Uint8Array) {
+          buffer.set(source);
+          return source.length;
+        },
+        close() {},
+      }) as unknown as Deno.FsFile);
+    const editor = await renderEditor(40, false, `ambiguous.${format}`);
+    try {
+      assertStringIncludes(editor.frame(), "Choose input byte order");
+      assertStringIncludes(editor.frame(), "checksums passing");
+      assertEquals(editor.frame().includes("Filename"), false);
+      for (const [key, order] of [["w", "word-swapped"], ["b", "big-endian"]]) {
+        await editor.input(key);
+        assertStringIncludes(editor.frame(), "Filename");
+        assertStringIncludes(editor.frame(), `overridden (${order})`);
+        await editor.input("\u000f");
+        assertStringIncludes(editor.frame(), "Choose input byte order");
+      }
+      await editor.input("\u001b");
+      assertStringIncludes(editor.frame(), "Load cancelled");
+      assertEquals(editor.frame().includes("Filename"), false);
+      assertEquals(source, before);
+      assertEquals(open.calls.length, 1);
+    } finally {
+      await editor.cleanup();
+      open.restore();
+    }
+  });
 }
 
 Deno.test("TUI Info page navigation stays within its own page count", async () => {
@@ -241,3 +287,38 @@ Deno.test("TUI page and tab shortcuts stay inactive while editing a field", asyn
     await editor.cleanup();
   }
 });
+
+for (const format of ["sra", "srm"]) {
+  Deno.test(`TUI can override detected ${format} input without crashing on uninterpretable fields`, async () => {
+    const save = new SraSaveFile();
+    const source = format === "sra"
+      ? save.getData()
+      : SrmSaveFile.fromSaveFile(save).getData();
+    const open = stub(Deno, "openSync", () =>
+      ({
+        statSync: () => ({ size: source.length }),
+        seekSync() {},
+        readSync(buffer: Uint8Array) {
+          buffer.set(source);
+          return source.length;
+        },
+        close() {},
+      }) as unknown as Deno.FsFile);
+    const editor = await renderEditor(40, false, `detected.${format}`);
+    try {
+      await editor.input("\u000f");
+      await editor.input(format === "sra" ? "w" : "b");
+      assertStringIncludes(editor.frame(), "overridden");
+      await editor.input("4");
+      assertStringIncludes(editor.frame(), "Cannot display this record");
+      assertStringIncludes(editor.frame(), "ddOnly");
+      await editor.input("\u000f");
+      await editor.input(format === "sra" ? "b" : "w");
+      await editor.input("4");
+      assertStringIncludes(editor.frame(), "Player Name");
+    } finally {
+      await editor.cleanup();
+      open.restore();
+    }
+  });
+}

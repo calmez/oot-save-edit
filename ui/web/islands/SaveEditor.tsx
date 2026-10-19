@@ -1,3 +1,4 @@
+import type { JSX } from "preact";
 import { useMemo, useState } from "preact/hooks";
 
 import { ExportByteOrder } from "../../../models/savefile.ts";
@@ -9,7 +10,13 @@ import {
 } from "../../../models/saveheader.ts";
 import { SaveSlot } from "../../../models/saveslot.ts";
 import { FileFormat, FileUtil } from "../../../utils/fileutil.ts";
+import { UnresolvedByteOrderError } from "../../../utils/inputdiagnostics.ts";
+import type { InputInterpretation } from "../../../utils/inputdiagnostics.ts";
 import { exportByteOrderOptions } from "../../exportoptions.ts";
+import {
+  inputByteOrderOptions,
+  inputEvidenceLines,
+} from "../../inputoptions.ts";
 import { Field } from "../components/Field.tsx";
 import SaveManagement from "../components/SaveManagement.tsx";
 import { Section } from "../components/Section.tsx";
@@ -19,7 +26,6 @@ import Slot from "./Slot.tsx";
 interface SaveEditorProps {
   filename: string;
   initialSaveData: Uint8Array;
-  isByteSwapped: boolean;
   detectedFormat: FileFormat;
 }
 
@@ -59,8 +65,21 @@ function extensionFor(format: FileFormat): "sra" | "srm" {
   return format === FileFormat.SRA ? "sra" : "srm";
 }
 
-function createSaveFile(bytes: Uint8Array): SraSaveFile {
-  return FileUtil.loadFileFromBuffer(bytes);
+interface LoadedInput {
+  save: SraSaveFile | null;
+  inspection: InputInterpretation;
+}
+
+function createSaveFile(bytes: Uint8Array): LoadedInput {
+  try {
+    const save = FileUtil.loadFileFromBuffer(bytes);
+    return { save, inspection: save.inputInterpretation! };
+  } catch (error) {
+    if (error instanceof UnresolvedByteOrderError) {
+      return { save: null, inspection: error.inspection };
+    }
+    throw error;
+  }
 }
 
 function ensureFilenameExtension(filename: string, format: FileFormat): string {
@@ -75,10 +94,82 @@ function ensureFilenameExtension(filename: string, format: FileFormat): string {
   return parts.join(".");
 }
 
-export default function SaveEditor(props: SaveEditorProps) {
-  const [saveFile, setSaveFile] = useState(() =>
+export default function SaveEditor(props: SaveEditorProps): JSX.Element {
+  const [loaded, setLoaded] = useState(() =>
     createSaveFile(props.initialSaveData)
   );
+  const [choosing, setChoosing] = useState(!loaded.save);
+  const [cancelled, setCancelled] = useState(false);
+  if (cancelled) {
+    return (
+      <div>
+        Load cancelled. <a href="/save">Choose another save</a>
+      </div>
+    );
+  }
+  if (choosing || !loaded.save) {
+    return (
+      <section class="mx-auto max-w-3xl space-y-4 rounded border p-6">
+        <h2 class="text-xl font-bold">Choose input byte order</h2>
+        <p>
+          {loaded.inspection.findings.map((finding) => finding.explanation)
+            .join(" ") || "Review the input interpretation before editing."}
+        </p>
+        <p>
+          Choosing reloads the original file and discards any edits. It does not
+          repair the save.
+        </p>
+        <ul>
+          {inputEvidenceLines(loaded.inspection).map((line) => (
+            <li key={line}>{line}</li>
+          ))}
+        </ul>
+        <div class="flex gap-3">
+          {inputByteOrderOptions.map((option) => (
+            <button
+              type="button"
+              class="rounded border px-3 py-2"
+              key={option.value}
+              onClick={() => {
+                const save = FileUtil.loadFileFromBuffer(
+                  props.initialSaveData,
+                  option.value,
+                );
+                setLoaded({ save, inspection: save.inputInterpretation! });
+                setChoosing(false);
+              }}
+            >
+              {option.label}
+            </button>
+          ))}
+          <button
+            type="button"
+            class="rounded border px-3 py-2"
+            onClick={() => setCancelled(true)}
+          >
+            Cancel
+          </button>
+        </div>
+      </section>
+    );
+  }
+  return (
+    <ResolvedSaveEditor
+      key={loaded.inspection.selectedOrder}
+      {...props}
+      initialSave={loaded.save}
+      onChooseInput={() => setChoosing(true)}
+    />
+  );
+}
+
+interface ResolvedSaveEditorProps extends SaveEditorProps {
+  initialSave: SraSaveFile;
+  onChooseInput: () => void;
+}
+
+function ResolvedSaveEditor(props: ResolvedSaveEditorProps): JSX.Element {
+  const [saveFile, setSaveFile] = useState(props.initialSave);
   const [outputFormat, setOutputFormat] = useState<FileFormat>(
     props.detectedFormat,
   );
@@ -118,13 +209,29 @@ export default function SaveEditor(props: SaveEditorProps) {
 
         <div className="space-y-4">
           <Section title="File Info">
+            <Field label="Input interpretation">
+              <span>
+                {saveFile.inputInterpretation?.state}:{" "}
+                {saveFile.inputInterpretation?.selectedOrder}
+              </span>
+              <button
+                type="button"
+                class="ml-3 rounded border px-2 py-1"
+                onClick={props.onChooseInput}
+              >
+                Choose input byte order
+              </button>
+              {saveFile.inputInterpretation?.findings.map((finding) => (
+                <p key={finding.id}>{finding.explanation}</p>
+              ))}
+            </Field>
             <Field label="Filename">{props.filename}</Field>
             <Field label="Data Size">{saveFile.data.byteLength}</Field>
             <Field label="Header Valid">
               <BooleanCheckbox value={saveFile.header.isValid} disabled />
             </Field>
             <Field label="Word Swapped">
-              <BooleanCheckbox value={props.isByteSwapped} disabled />
+              <BooleanCheckbox value={saveFile.isByteSwapped} disabled />
             </Field>
             <Field label="File Format">
               {FileFormat[props.detectedFormat]}
