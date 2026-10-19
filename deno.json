@@ -1,6 +1,6 @@
 {
   "tasks": {
-    "check": "deno fmt --check . && deno lint . && deno check index.ts main.ts models/*.test.ts utils/*.test.ts ui/main.ts ui/additionalfields.test.ts ui/terminal/main.tsx ui/terminal/*.test.ts && deno task --cwd ./ui/web check",
+    "check": "deno fmt --check . && deno lint . && deno check index.ts main.ts models/*.test.ts utils/*.test.ts ui/main.ts ui/*.test.ts ui/terminal/main.tsx ui/terminal/*.test.ts && deno task --cwd ./ui/web check",
     "test": "deno test --allow-env && deno task --cwd ./ui/web test",
     "web:dev": "deno task --cwd ./ui/web dev",
     "web:start": "deno task --cwd ./ui/web start",

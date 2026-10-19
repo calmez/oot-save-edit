@@ -1,20 +1,31 @@
 import { useState } from "preact/hooks";
-import type { SraSaveFile } from "../../../models/savefile.ts";
+import type { ChecksumPolicy, SraSaveFile } from "../../../models/savefile.ts";
 import {
   copySlot,
-  getSlot,
-  repairSave,
   resetSlotToNewGame,
   slotCount,
   slotLabel,
 } from "../../../utils/saveeditor.ts";
+import { changeBytes, correctionLabel } from "../../correctionreview.ts";
+import ReviewCorrections from "../islands/correctionreview.tsx";
+import type { CorrectionReview } from "../../correctionreview.ts";
 import { Button } from "./Button.tsx";
 import { Field } from "./Field.tsx";
 import { Section } from "./Section.tsx";
 
-export default function SaveManagement(
-  props: { save: SraSaveFile; onChange: () => void },
-) {
+interface SaveManagementProps {
+  save: SraSaveFile;
+  review: CorrectionReview;
+  onChange: () => void;
+  onChecksumPolicy: (policy: ChecksumPolicy) => void;
+}
+
+export default function SaveManagement(props: SaveManagementProps) {
+  const [reviewOpen, setReviewOpen] = useState(false);
+  function openReview(filter?: Parameters<CorrectionReview["open"]>[0]) {
+    props.review.open(filter);
+    setReviewOpen(true);
+  }
   const [source, setSource] = useState(0);
   const [target, setTarget] = useState(3);
   const [message, setMessage] = useState("");
@@ -29,6 +40,42 @@ export default function SaveManagement(
   }
   return (
     <Section title="Save management">
+      <div class="md:col-span-2">
+        <Button type="button" onClick={() => openReview()}>
+          Review suggested corrections
+        </Button>
+        {reviewOpen && (
+          <ReviewCorrections
+            review={props.review}
+            onCancel={() => setReviewOpen(false)}
+            onConfirm={() => {
+              if (props.review.checksumPolicy) {
+                props.onChecksumPolicy(props.review.checksumPolicy);
+              }
+              props.onChange();
+              setReviewOpen(false);
+              setMessage("Reviewed corrections confirmed.");
+            }}
+          />
+        )}
+        {props.review.history.length > 0 && (
+          <details>
+            <summary>Accepted correction history</summary>
+            {props.review.history.map((result, index) => (
+              <div key={index}>
+                Review {index + 1}: {result.changes.length === 0
+                  ? "No byte changes."
+                  : result.changes.map((change) => (
+                    <p key={correctionLabel(change.scope)}>
+                      {correctionLabel(change.scope)}:{" "}
+                      {changeBytes(change.before)} → {changeBytes(change.after)}
+                    </p>
+                  ))}
+              </div>
+            ))}
+          </details>
+        )}
+      </div>
       <Field label="Copy from">
         <select
           aria-label="Copy from"
@@ -70,28 +117,23 @@ export default function SaveManagement(
         </Button>
         <Button
           type="button"
-          onClick={() =>
-            perform(() => props.save.header.makeValid(), "Header repaired.")}
+          onClick={() => openReview((item) => item.scope.kind === "header")}
         >
           Repair header
         </Button>
         <Button
           type="button"
           onClick={() =>
-            perform(
-              () => getSlot(props.save, target).makeValid(),
-              `${slotLabel(target)} repaired.`,
+            openReview((item) =>
+              item.scope.kind === "slot" && item.scope.index === target % 3 &&
+              item.scope.record === (target < 3 ? "primary" : "backup")
             )}
         >
           Repair selected slot
         </Button>
         <Button
           type="button"
-          onClick={() =>
-            perform(
-              () => repairSave(props.save),
-              "Header and all slots repaired.",
-            )}
+          onClick={() => openReview()}
         >
           Repair all
         </Button>
