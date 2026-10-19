@@ -94,8 +94,19 @@ Deno.test("web Skulltula intents review uncertainty, decline, cancellation, stal
     await click("Refresh review");
     await click("Confirm selected corrections");
     assertEquals(changed, 2);
+    const nextLocation = container.querySelector<HTMLInputElement>(
+      'input[aria-label="Kokiri Forest: Know-It-All House"]',
+    );
+    assertExists(nextLocation);
+    nextLocation.checked = true;
+    await act(() => {
+      nextLocation.dispatchEvent(new window.Event("change", { bubbles: true }));
+    });
+    await click("Confirm selected corrections");
+    assertEquals(save.slots[0].data[0xA5] & 0x80, 0x80);
+    assertEquals(save.slots[0].isChecksumValid(), true);
     assertEquals(save.slots[0].goldSkulltulaTokens, 0);
-    assertEquals(save.slots[0].data[0xEAB], 0x81);
+    assertEquals(save.slots[0].data[0xEAB], 0x83);
   } finally {
     await act(() => render(null, container));
     if (descriptor) Object.defineProperty(globalThis, "document", descriptor);

@@ -98,6 +98,12 @@ Deno.test("TUI location and total intents allow cancellation, decline, stale ref
     assertEquals(changed, 2);
     assertEquals(save.slots[0].goldSkulltulaTokens, 0);
     assertEquals(save.slots[0].data[0xEAB], 0x81);
+    await input("\u001b[B"); // Second known location, confirm recommended indicator.
+    await input("\r");
+    await input("a");
+    assertEquals(save.slots[0].data[0xEAB], 0x83);
+    assertEquals(save.slots[0].data[0xA5] & 0x80, 0x80);
+    assertEquals(save.slots[0].isChecksumValid(), true);
   } finally {
     await act(async () => {
       instance.unmount();
