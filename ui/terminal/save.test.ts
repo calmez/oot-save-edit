@@ -1,4 +1,5 @@
 import { assertEquals, assertStringIncludes } from "@std/assert";
+import { stub } from "@std/testing/mock";
 import { render } from "ink";
 import { PassThrough } from "node:stream";
 import { setImmediate } from "node:timers/promises";
@@ -6,6 +7,7 @@ import type { ReadStream, WriteStream } from "node:tty";
 import { stripVTControlCharacters } from "node:util";
 import { act, createElement } from "react";
 
+import { FileUtil } from "../../utils/fileutil.ts";
 import { Save } from "./save.tsx";
 
 Object.assign(globalThis, { IS_REACT_ACT_ENVIRONMENT: true });
@@ -91,6 +93,37 @@ Deno.test("TUI Info page navigation stays within its own page count", async () =
     assertStringIncludes(editor.frame(), "page 1 / 1");
   } finally {
     await editor.cleanup();
+  }
+});
+
+Deno.test("TUI saves the selected SRAM output order", async () => {
+  let written = new Uint8Array();
+  const open = stub(Deno, "openSync", () =>
+    ({
+      writeSync(data: Uint8Array) {
+        written = data.slice();
+        return data.length;
+      },
+      close() {},
+    }) as Deno.FsFile);
+  const editor = await renderEditor(40);
+  try {
+    await editor.input("2");
+    assertStringIncludes(editor.frame(), "SRAM Byte Order");
+    for (let i = 0; i < 3; i++) await editor.input("\u001b[B");
+    await editor.input("\r");
+    await editor.input("\u001b[B");
+    await editor.input("\u001b[B");
+    await editor.input("\r");
+    assertStringIncludes(editor.frame(), "Word-swapped (32-bit)");
+    await editor.input("\u001b[B");
+    await editor.input("\u001b[B");
+    await editor.input("\r");
+    assertStringIncludes(editor.frame(), "Saved new-save.sra");
+    assertEquals(FileUtil.loadFileFromBuffer(written).isByteSwapped, true);
+  } finally {
+    await editor.cleanup();
+    open.restore();
   }
 });
 

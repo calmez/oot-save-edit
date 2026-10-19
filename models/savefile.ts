@@ -2,6 +2,37 @@ import { FileUtil } from "../utils/fileutil.ts";
 import { SaveHeader } from "./saveheader.ts";
 import { SaveSlot } from "./saveslot.ts";
 
+/** Desired SRAM representation, independent of the source byte order. */
+export enum ExportByteOrder {
+  /** Preserve same-format source order; otherwise use the target layout default. */
+  Automatic = "automatic",
+  BigEndian = "big-endian",
+  WordSwapped = "word-swapped",
+}
+
+function isWordSwapped(bytes: Uint8Array): boolean {
+  const swapped = FileUtil.byteSwap(bytes);
+  const score = (data: Uint8Array) =>
+    SaveHeader.validCheckPattern.reduce(
+      (total, value, index) => total + Number(data[index + 3] === value),
+      0,
+    );
+  return score(swapped) > score(bytes);
+}
+
+function resolveByteOrder(
+  order: ExportByteOrder,
+  automatic: ExportByteOrder,
+): ExportByteOrder {
+  if (order === ExportByteOrder.Automatic) return automatic;
+  if (
+    order !== ExportByteOrder.BigEndian && order !== ExportByteOrder.WordSwapped
+  ) {
+    throw new Error(`Unsupported SRAM export byte order: ${order}.`);
+  }
+  return order;
+}
+
 /** Checksum handling for serialized output; neither policy mutates the save. */
 export enum ChecksumPolicy {
   MaintainEdited = "maintain-edited",
@@ -17,12 +48,12 @@ export class SaveFile {
     throw new Error("Method not implemented.");
   }
 
-  getData(_forceSwap: boolean = false): Uint8Array {
+  getData(_order = ExportByteOrder.Automatic): Uint8Array {
     throw new Error("Method not implemented.");
   }
 
   get data(): Uint8Array {
-    return this.getData(false);
+    return this.getData();
   }
 
   set data(_bytes: Uint8Array) {
@@ -66,20 +97,18 @@ export class SaveFile {
   }
 
   getDataForWrite(
+    order = ExportByteOrder.Automatic,
     _checksumPolicy = ChecksumPolicy.MaintainEdited,
   ): Uint8Array {
-    return this.getData();
+    return this.getData(order);
   }
 
   write(
     file: Deno.FsFile,
-    forceSwap: boolean = false,
+    order = ExportByteOrder.Automatic,
     checksumPolicy = ChecksumPolicy.MaintainEdited,
   ): void {
-    const data = this.getDataForWrite(checksumPolicy);
-    if (forceSwap) {
-      FileUtil.byteSwap(data, true);
-    }
+    const data = this.getDataForWrite(order, checksumPolicy);
     file.writeSync(data);
   }
 }
@@ -101,6 +130,7 @@ export class SraSaveFile extends SaveFile {
     slot.data.slice()
   );
   private byteSwapped: boolean = false;
+  private readByteOrder = ExportByteOrder.Automatic;
   private trailingData = new Uint8Array(
     SraSaveFile.acceptedSize - SraSaveFile.requiredSize,
   );
@@ -122,9 +152,22 @@ export class SraSaveFile extends SaveFile {
     return this.byteSwapped;
   }
 
-  /** Raw snapshot by default, including stored checksum bytes. */
+  /** An already known source order takes precedence over header detection. */
+  override read(
+    source: Deno.FsFile | Uint8Array,
+    sourceOrder = ExportByteOrder.Automatic,
+  ): this {
+    this.readByteOrder = sourceOrder;
+    try {
+      return super.read(source);
+    } finally {
+      this.readByteOrder = ExportByteOrder.Automatic;
+    }
+  }
+
+  /** Serializes SRAM with stored checksum bytes by default; never mutates the save. */
   override getData(
-    forceSwap = false,
+    order = ExportByteOrder.Automatic,
     checksumPolicy = ChecksumPolicy.Preserve,
   ): Uint8Array {
     const bytes = new Uint8Array(SraSaveFile.acceptedSize);
@@ -153,7 +196,13 @@ export class SraSaveFile extends SaveFile {
 
     bytes.set(this.trailingData, currentOffset);
 
-    if ((this.byteSwapped && !forceSwap) || (!this.byteSwapped && forceSwap)) {
+    const outputOrder = resolveByteOrder(
+      order,
+      this.byteSwapped && !this.sourceSrmData
+        ? ExportByteOrder.WordSwapped
+        : ExportByteOrder.BigEndian,
+    );
+    if (outputOrder === ExportByteOrder.WordSwapped) {
       FileUtil.byteSwap(bytes, true);
     }
 
@@ -165,6 +214,7 @@ export class SraSaveFile extends SaveFile {
   }
 
   override set data(bytes: Uint8Array) {
+    this.sourceSrmData = undefined;
     bytes = this.ensureByteOrder(bytes);
     let currentOffset = 0x00;
 
@@ -194,26 +244,26 @@ export class SraSaveFile extends SaveFile {
   }
 
   override getDataForWrite(
+    order = ExportByteOrder.Automatic,
     checksumPolicy = ChecksumPolicy.MaintainEdited,
   ): Uint8Array {
-    return this.getData(false, checksumPolicy);
+    return this.getData(order, checksumPolicy);
   }
 
   private ensureByteOrder(bytes: Uint8Array): Uint8Array {
-    const swapped = FileUtil.byteSwap(bytes);
-    const score = (data: Uint8Array) =>
-      SaveHeader.validCheckPattern.reduce(
-        (total, value, index) => total + Number(data[index + 3] === value),
-        0,
-      );
-    this.byteSwapped = score(swapped) > score(bytes);
-    return this.byteSwapped ? swapped : bytes;
+    this.byteSwapped = resolveByteOrder(
+      this.readByteOrder,
+      isWordSwapped(bytes)
+        ? ExportByteOrder.WordSwapped
+        : ExportByteOrder.BigEndian,
+    ) === ExportByteOrder.WordSwapped;
+    return this.byteSwapped ? FileUtil.byteSwap(bytes) : bytes;
   }
 }
 
 /**
- * SRM file wrapper that extracts SRAM, EEPROM, MemPak, and FlashRAM sections.
- * Offsets and sizes are typical but may need adjustment for specific emulators.
+ * Mupen64Plus-Next SRM layout: EEPROM, four MemPaks, SRAM, then FlashRAM.
+ * New containers retain provisional zero-filled non-SRAM sections.
  */
 export class SrmSaveFile extends SaveFile {
   static EEPROM_SIZE = 0x800; // 2 KiB
@@ -231,6 +281,8 @@ export class SrmSaveFile extends SaveFile {
   ];
   sram = new Uint8Array(SrmSaveFile.SRAM_SIZE);
   flashram = new Uint8Array(SrmSaveFile.FLASHRAM_SIZE);
+  // Header edits must not discard the order known from a read or conversion.
+  private sramByteSwapped?: boolean;
 
   static override get requiredSize(): number {
     return (
@@ -247,18 +299,25 @@ export class SrmSaveFile extends SaveFile {
 
   static fromSaveFile(
     save: SraSaveFile,
+    order = ExportByteOrder.Automatic,
     checksumPolicy = ChecksumPolicy.Preserve,
   ): SrmSaveFile {
     const srm = save.sourceSrmData
       ? new SrmSaveFile().read(save.sourceSrmData)
       : new SrmSaveFile();
-    const forceSwap = !save.sourceSrmData && !save.isByteSwapped;
-    srm.sram.set(save.getData(forceSwap, checksumPolicy), 0);
+    const outputOrder = resolveByteOrder(
+      order,
+      save.sourceSrmData && !save.isByteSwapped
+        ? ExportByteOrder.BigEndian
+        : ExportByteOrder.WordSwapped,
+    );
+    srm.sram.set(save.getData(outputOrder, checksumPolicy), 0);
+    srm.sramByteSwapped = outputOrder === ExportByteOrder.WordSwapped;
 
     return srm;
   }
 
-  override getData(forceSwap = false): Uint8Array {
+  override getData(order = ExportByteOrder.Automatic): Uint8Array {
     const bytes = new Uint8Array(SrmSaveFile.acceptedSize);
     let currentOffset = 0x00;
 
@@ -270,15 +329,18 @@ export class SrmSaveFile extends SaveFile {
       currentOffset += SrmSaveFile.MEMPACK_SIZE;
     }
 
-    bytes.set(this.sram, currentOffset);
+    const sourceSwapped = this.sramByteSwapped ?? isWordSwapped(this.sram);
+    const outputOrder = resolveByteOrder(
+      order,
+      sourceSwapped ? ExportByteOrder.WordSwapped : ExportByteOrder.BigEndian,
+    );
+    const swap = (outputOrder === ExportByteOrder.WordSwapped) !==
+      sourceSwapped;
+    bytes.set(swap ? FileUtil.byteSwap(this.sram) : this.sram, currentOffset);
     currentOffset += SrmSaveFile.SRAM_SIZE;
 
     bytes.set(this.flashram, currentOffset);
     currentOffset += SrmSaveFile.FLASHRAM_SIZE;
-
-    if (forceSwap) {
-      FileUtil.byteSwap(bytes);
-    }
 
     return bytes;
   }
@@ -308,6 +370,7 @@ export class SrmSaveFile extends SaveFile {
       currentOffset,
       currentOffset + SrmSaveFile.SRAM_SIZE,
     );
+    this.sramByteSwapped = isWordSwapped(this.sram);
     currentOffset += SrmSaveFile.SRAM_SIZE;
 
     this.flashram = bytes.slice(
@@ -319,7 +382,12 @@ export class SrmSaveFile extends SaveFile {
 
   get saveFile(): SraSaveFile {
     const sra = new SraSaveFile();
-    sra.read(this.sram);
+    sra.read(
+      this.sram,
+      (this.sramByteSwapped ?? isWordSwapped(this.sram))
+        ? ExportByteOrder.WordSwapped
+        : ExportByteOrder.BigEndian,
+    );
     sra.sourceSrmData = this.data;
     return sra;
   }
