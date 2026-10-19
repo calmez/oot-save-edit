@@ -1,8 +1,18 @@
 import type { SraSaveFile } from "../models/savefile.ts";
 import { SaveHeader } from "../models/saveheader.ts";
 import { SaveSlot } from "../models/saveslot.ts";
+import {
+  inspectSkulltulaProgress,
+  skulltulaEvidence,
+  stageSkulltulaIntent,
+} from "../models/skulltulas.ts";
+import type { SkulltulaIntent } from "../models/skulltulas.ts";
 import { toUint8Array } from "./conversions.ts";
-import { diagnoseSave, DiagnosticConfidence } from "./diagnostics.ts";
+import {
+  diagnoseSave,
+  DiagnosticCategory,
+  DiagnosticConfidence,
+} from "./diagnostics.ts";
 import type {
   DiagnosticEvidence,
   DiagnosticFinding,
@@ -46,6 +56,7 @@ export interface CorrectionConflict {
 }
 
 export interface CorrectionPlan {
+  skulltula?: { intent: SkulltulaIntent; precondition: number[] };
   suggestions: CorrectionSuggestion[];
   recovery: RecoverySuggestion[];
   outcome: OutcomeConstraint[];
@@ -112,6 +123,8 @@ function fieldLayout(
     if (scope.field === "padding") return { offset: 12, size: 5 };
   }
   if (scope.kind === "slot") {
+    if (scope.field === "skulltula.indicator") return { offset: 0xA5, size: 1 };
+    if (scope.field === "goldSkulltulaTokens") return { offset: 0xD0, size: 2 };
     if (scope.field === "marker") return { offset: 0x1C, size: 6 };
     if (scope.field === "checksum") return { offset: 0x1352, size: 2 };
   }
@@ -125,6 +138,7 @@ function equal(a: readonly number[], b: readonly number[]): boolean {
 function collectCorrections(
   save: SraSaveFile,
   outcome: OutcomeConstraint[] = [],
+  intent?: SkulltulaIntent,
 ): CorrectionPlan {
   const diagnosis = diagnoseSave(save);
   const suggestions: CorrectionSuggestion[] = [];
@@ -210,6 +224,84 @@ function collectCorrections(
       !suggestions.some((item) => item.findingIds.includes(finding.id))
     ),
   };
+  if (intent) {
+    const scope: DiagnosticScope = {
+      kind: "slot",
+      record: intent.record,
+      index: intent.index,
+      field: "skulltula",
+    };
+    if (!validSlotScope(scope)) {
+      throw new Error("Invalid Skulltula record selection.");
+    }
+    const data = recordData(save, scope);
+    const slot = new SaveSlot(data.slice());
+    if (slot.isEmpty) {
+      throw new Error("Initialize a game before editing Skulltula progress.");
+    }
+    stageSkulltulaIntent(slot, intent);
+    plan.skulltula = {
+      intent: structuredClone(intent),
+      precondition: [...data],
+    };
+    const stagedFindings: DiagnosticFinding[] = inspectSkulltulaProgress(slot)
+      .map((finding) => ({
+        ...finding,
+        id:
+          `${finding.ruleId}:${intent.record}.${intent.index}.${finding.field}`,
+        scope: { ...scope, field: finding.field },
+        category: DiagnosticCategory.Uncertainty,
+        confidence: DiagnosticConfidence.Unknown,
+        evidence: [skulltulaEvidence],
+        context: diagnosis.context,
+      }));
+    plan.unresolved = plan.unresolved.filter((finding) =>
+      !(finding.ruleId.startsWith("skulltula.") &&
+        finding.scope.kind === "slot" &&
+        finding.scope.record === intent.record &&
+        finding.scope.index === intent.index)
+    );
+    plan.unresolved.push(...stagedFindings);
+    const indicator = stagedFindings.find((finding) =>
+      finding.ruleId === "skulltula.indicator"
+    );
+    if (indicator) {
+      const collectedIntent = intent.kind === "locations" &&
+        Object.values(intent.locations).some((value) => value === true);
+      add({
+        ...indicator,
+        confidence: collectedIntent
+          ? DiagnosticConfidence.Evidenced
+          : DiagnosticConfidence.Unknown,
+      }, new Uint8Array([slot.data[0xA5] | 0x80]));
+      const suggestion = suggestions[suggestions.length - 1];
+      suggestion.rationale =
+        "Set the token indicator, as the original N64 acquisition path does. This is independently declinable; a requested total alone does not establish acquisition.";
+      suggestion.alternatives = [
+        "Keep the indicator unchanged by declining this adjustment.",
+        "Choose a different total or location intent explicitly; locations are never invented to match a total.",
+      ];
+    }
+
+    const checksumScope = { ...scope, field: "checksum" };
+    if (
+      !suggestions.some((item) =>
+        scopeKey(item.scope) === scopeKey(checksumScope)
+      )
+    ) {
+      add({
+        id: `slot.checksum:${scopeKey(checksumScope)}`,
+        ruleId: "slot.checksum",
+        scope: checksumScope,
+        explanation:
+          "Recalculate checksum from the final requested edits and selected adjustments.",
+        category: DiagnosticCategory.Structural,
+        confidence: DiagnosticConfidence.Evidenced,
+        evidence: [skulltulaEvidence],
+        context: diagnosis.context,
+      }, toUint8Array(slot.calculateChecksum(), 2));
+    }
+  }
   return plan;
 }
 
@@ -311,7 +403,7 @@ function validateSelection(
   plan: CorrectionPlan,
   selected: string[],
 ): { chosen: CorrectionSuggestion[]; recoveries: RecoverySuggestion[] } {
-  const current = collectCorrections(save);
+  const current = collectCorrections(save, [], plan.skulltula?.intent);
   const chosen: CorrectionSuggestion[] = [];
   const recoveries: RecoverySuggestion[] = [];
   const currentRecovery = collectRecovery(save);
@@ -425,6 +517,53 @@ export function previewCorrections(
   replacementMarkers: Record<string, boolean> = {},
 ): CorrectionResult {
   const { chosen, recoveries } = validateSelection(save, plan, selected);
+  const requestedChanges: CorrectionChange[] = [];
+  if (plan.skulltula) {
+    const { intent, precondition } = plan.skulltula;
+    const scope: DiagnosticScope = {
+      kind: "slot",
+      record: intent.record,
+      index: intent.index,
+      field: "skulltula",
+    };
+    const data = recordData(save, scope);
+    if (!equal(precondition, [...data])) {
+      fail({
+        code: "stale",
+        scope,
+        explanation: "Skulltula review is stale; refresh before confirming.",
+      });
+    }
+    if (
+      recoveries.some((item) =>
+        item.index === intent.index && item.destination === intent.record
+      )
+    ) {
+      fail({
+        code: "selection",
+        scope,
+        explanation:
+          "Review Skulltula edits separately from replacement of the same record.",
+      });
+    }
+    const staged = new SaveSlot(data.slice());
+    stageSkulltulaIntent(staged, intent);
+    for (let offset = 0; offset < data.length; offset++) {
+      if (data[offset] !== staged.data[offset]) {
+        requestedChanges.push({
+          scope: {
+            ...scope,
+            field: intent.kind === "total"
+              ? "goldSkulltulaTokens"
+              : "skulltula.locations",
+          },
+          offset,
+          before: [data[offset]],
+          after: [staged.data[offset]],
+        });
+      }
+    }
+  }
   const copies = new Map<string, Uint8Array>();
   const recordKey = (scope: DiagnosticScope): string =>
     scope.kind === "slot" ? `${scope.record}.${scope.index}` : scope.kind;
@@ -465,6 +604,9 @@ export function previewCorrections(
       markerRepaired,
     };
   });
+  for (const change of requestedChanges) {
+    copyFor(change.scope).set(change.after, change.offset);
+  }
   for (const item of chosen) {
     if (item.scope.field === "checksum") continue;
     for (const change of item.changes) {
@@ -487,17 +629,20 @@ export function previewCorrections(
     }
   }
   validateOutcome(plan.outcome, copyFor);
-  const changes = chosen.flatMap((item) =>
-    item.changes.map((change) => ({
-      ...structuredClone(change),
-      after: [
-        ...copyFor(change.scope).slice(
-          change.offset,
-          change.offset + change.before.length,
-        ),
-      ],
-    }))
-  ).filter((change) => !equal(change.before, change.after));
+  const changes = [
+    ...requestedChanges,
+    ...chosen.flatMap((item) =>
+      item.changes.map((change) => ({
+        ...structuredClone(change),
+        after: [
+          ...copyFor(change.scope).slice(
+            change.offset,
+            change.offset + change.before.length,
+          ),
+        ],
+      }))
+    ),
+  ].filter((change) => !equal(change.before, change.after));
   const requiredCorrections = chosen.filter((item) =>
     item.scope.field === "marker" &&
     !new SaveSlot(copyFor(item.scope)).isChecksumValid()
@@ -595,8 +740,9 @@ export function applyCorrections(
 export function discoverCorrections(
   save: SraSaveFile,
   outcome: OutcomeConstraint[] = [],
+  intent?: SkulltulaIntent,
 ): CorrectionPlan {
-  const plan = collectCorrections(save, outcome);
+  const plan = collectCorrections(save, outcome, intent);
   const recommendation = recommendedSelection(save, plan);
   plan.conflicts = recommendation.conflicts;
   for (const suggestion of plan.suggestions) {

@@ -893,17 +893,11 @@ export default function Slot(props: SlotProps) {
               label="Gold Skulltula Tokens"
               help="Tokens collected by defeating Gold Skulltulas."
             >
-              <NumberInput
-                value={slot.goldSkulltulaTokens}
-                disabled={readOnly}
-                min={0}
-                max={100}
-                help="Min: 0 | Max: 100."
-                onChange={(value) => {
-                  slot.goldSkulltulaTokens = value;
-                  changed();
-                }}
-              />
+              <p>
+                {slot.goldSkulltulaTokens}{" "}
+                tokens. Use Skulltula reconciliation in Save management to
+                review a requested total.
+              </p>
             </Field>
           </Section>
 

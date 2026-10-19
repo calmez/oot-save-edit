@@ -544,14 +544,6 @@ const SaveForm = (
           initialValue: slot.magicBeans,
         },
         {
-          type: "integer",
-          min: 0,
-          max: 100,
-          name: slotKeyForIndex("goldSkulltulaTokens"),
-          label: "Gold Skulltula Tokens",
-          initialValue: slot.goldSkulltulaTokens,
-        },
-        {
           type: "buttonequips",
           name: slotKeyForIndex("buttonEquips"),
           label: "Button Equips & Offsets",

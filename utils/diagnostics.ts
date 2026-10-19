@@ -1,5 +1,9 @@
 import type { SraSaveFile } from "../models/savefile.ts";
 import { Age, ButtonItemId, InventoryItems } from "../models/saveslot.ts";
+import {
+  inspectSkulltulaProgress,
+  skulltulaEvidence,
+} from "../models/skulltulas.ts";
 import { toNumber } from "./conversions.ts";
 import { inspectSlotFields } from "./fieldinterpretation.ts";
 
@@ -265,6 +269,15 @@ export function diagnoseSave(save: SraSaveFile): SaveDiagnosis {
           index,
           field: "checksum",
         }, "The stored checksum differs from the calculated checksum.");
+      }
+      for (const finding of inspectSkulltulaProgress(slot)) {
+        report(
+          finding.ruleId,
+          { kind: "slot", record, index, field: finding.field },
+          finding.explanation,
+          DiagnosticCategory.Uncertainty,
+          skulltulaEvidence,
+        );
       }
       if (slot.age === Age.Invalid) {
         report(
