@@ -12,7 +12,162 @@ import {
   SrmSaveFile,
 } from "../models/savefile.ts";
 import { SaveSlot } from "../models/saveslot.ts";
+import { diagnoseSave } from "./diagnostics.ts";
 import { FileFormat, FileUtil } from "./fileutil.ts";
+import { UnresolvedByteOrderError } from "./inputdiagnostics.ts";
+
+for (const format of [FileFormat.SRA, FileFormat.SRM]) {
+  Deno.test(`${FileFormat[format]} filename metadata agrees across filesystem and buffer loading`, () => {
+    const bytes = FileUtil.getFileData(new SraSaveFile(), format);
+    const before = bytes.slice();
+    const ext = format === FileFormat.SRA ? "sra" : "srm";
+    const opposite = format === FileFormat.SRA ? "srm" : "sra";
+    const open = stub(Deno, "openSync", () =>
+      ({
+        statSync: () => ({ size: bytes.length }),
+        seekSync() {},
+        readSync(buffer: Uint8Array) {
+          buffer.set(bytes);
+          return bytes.length;
+        },
+        close() {},
+      }) as unknown as Deno.FsFile);
+    try {
+      for (
+        const [name, mismatch] of [
+          [`game.${ext}`, false],
+          [`game.${ext.toUpperCase()}`, false],
+          [`game.${opposite}`, true],
+          ["game", false],
+          ["game.bin", false],
+        ] as const
+      ) {
+        const file = FileUtil.loadFile(name);
+        const buffer = FileUtil.loadFileFromBuffer(
+          bytes,
+          ExportByteOrder.Automatic,
+          name,
+        );
+        assertEquals(file.sourceFile, buffer.sourceFile);
+        assertEquals(file.sourceFile?.format, format);
+        assertEquals(file.sourceFile?.filename, name);
+        assertEquals(file.sourceFile?.suggestedFilename, `game.${ext}`);
+        assertEquals(file.sourceFile?.findings.length, mismatch ? 1 : 0);
+        assertEquals(FileUtil.getFileData(file, format), before);
+        assertEquals(diagnoseSave(file), diagnoseSave(buffer));
+        assertEquals(
+          diagnoseSave(file).findings.some((finding) =>
+            finding.ruleId === "file.extension-mismatch"
+          ),
+          mismatch,
+        );
+      }
+      const unnamed = FileUtil.loadFileFromBuffer(bytes);
+      assertEquals(unnamed.sourceFile, { format, findings: [] });
+      assertEquals(bytes, before);
+    } finally {
+      open.restore();
+    }
+  });
+
+  Deno.test(`${FileFormat[format]} unresolved input retains filename metadata through explicit choices`, () => {
+    const bytes = new Uint8Array(
+      format === FileFormat.SRA
+        ? SraSaveFile.acceptedSize
+        : SrmSaveFile.acceptedSize,
+    );
+    const filename = format === FileFormat.SRA
+      ? "ambiguous.srm"
+      : "ambiguous.sra";
+    const error = assertThrows(
+      () =>
+        FileUtil.loadFileFromBuffer(bytes, ExportByteOrder.Automatic, filename),
+      UnresolvedByteOrderError,
+    );
+    assertEquals(
+      error.sourceFile?.findings[0].ruleId,
+      "file.extension-mismatch",
+    );
+    assertEquals(error.sourceData, bytes);
+    for (
+      const order of [ExportByteOrder.BigEndian, ExportByteOrder.WordSwapped]
+    ) {
+      const save = FileUtil.loadFileFromBuffer(
+        error.sourceData,
+        order,
+        filename,
+      );
+      assertEquals(save.sourceFile, error.sourceFile);
+      assertEquals(save.inputInterpretation?.state, "overridden");
+      assertEquals(FileUtil.getFileData(save, format), bytes);
+    }
+  });
+}
+
+Deno.test("export filename suggestions respect paths, hidden files, and the selected format", () => {
+  for (
+    const [name, expected] of [
+      ["game.srm", "game.sra"],
+      ["game.SRA", "game.sra"],
+      ["game", "game.sra"],
+      ["game.bin", "game.sra"],
+      ["game.", "game.sra"],
+      [".game", ".game.sra"],
+      ["/saves.srm/game", "/saves.srm/game.sra"],
+      ["C:\\saves.srm\\game", "C:\\saves.srm\\game.sra"],
+    ]
+  ) {
+    assertEquals(
+      FileUtil.suggestExportFilename(name, FileFormat.SRA),
+      expected,
+    );
+  }
+  assertEquals(
+    FileUtil.suggestExportFilename("game.sra", FileFormat.SRM),
+    "game.srm",
+  );
+  assertThrows(() => FileUtil.suggestExportFilename("game", 42 as FileFormat));
+});
+
+Deno.test("recognized extensions cannot admit unknown or truncated inputs", () => {
+  for (
+    const size of [
+      0,
+      100,
+      SraSaveFile.acceptedSize - 1,
+      SrmSaveFile.acceptedSize - 1,
+    ]
+  ) {
+    const bytes = new Uint8Array(size);
+    const open = stub(Deno, "openSync", () =>
+      ({
+        statSync: () => ({ size }),
+        seekSync() {},
+        close() {},
+      }) as unknown as Deno.FsFile);
+    try {
+      for (const filename of ["game.sra", "game.srm"]) {
+        assertThrows(
+          () => FileUtil.loadFile(filename),
+          Error,
+          `Unknown file size: ${size}.`,
+        );
+        assertThrows(
+          () =>
+            FileUtil.loadFileFromBuffer(
+              bytes,
+              ExportByteOrder.Automatic,
+              filename,
+            ),
+          Error,
+          `Unknown buffer size: ${size}.`,
+        );
+      }
+    } finally {
+      open.restore();
+    }
+  }
+});
 
 function createSraWithUnknownBytes(): Uint8Array {
   const save = new SraSaveFile();
@@ -478,12 +633,16 @@ Deno.test({
 });
 
 Deno.test({
-  name: "should throw on file format mismatch",
+  name:
+    "recognized saves load despite a conflicting filename and report the mismatch",
   fn() {
     const file = {
       statSync: () => ({ size: SraSaveFile.acceptedSize }),
       seekSync: () => {},
-      readSync: (_buf: Uint8Array) => SraSaveFile.acceptedSize,
+      readSync: (buffer: Uint8Array) => {
+        buffer.set(new SraSaveFile().getData());
+        return SraSaveFile.acceptedSize;
+      },
       close: () => {},
     } as unknown as Deno.FsFile;
 
@@ -491,7 +650,13 @@ Deno.test({
     // deno-lint-ignore no-explicit-any
     (Deno as any).openSync = () => file;
     try {
-      assertThrows(() => FileUtil.loadFile("save.srm"));
+      const save = FileUtil.loadFile("save.srm");
+      assertEquals(save.sourceFile?.format, FileFormat.SRA);
+      assertEquals(save.sourceFile?.suggestedFilename, "save.sra");
+      assertEquals(
+        save.sourceFile?.findings[0].ruleId,
+        "file.extension-mismatch",
+      );
     } finally {
       // deno-lint-ignore no-explicit-any
       (Deno as any).openSync = origOpenSync;
@@ -542,7 +707,15 @@ for (const format of [FileFormat.SRA, FileFormat.SRM]) {
     if (!denoDescriptor) throw new Error("Missing test runtime descriptor.");
     Reflect.deleteProperty(globalThis, "Deno");
     try {
-      const editor = FileUtil.loadFileFromBuffer(original);
+      const editor = FileUtil.loadFileFromBuffer(
+        original,
+        ExportByteOrder.Automatic,
+        format === FileFormat.SRA ? "browser.srm" : "browser.sra",
+      );
+      assertEquals(
+        editor.sourceFile?.findings[0].ruleId,
+        "file.extension-mismatch",
+      );
       editor.slots[0].playerName = "Link";
       editor.slots[0].rupees = 123;
       const exported = FileUtil.getFileData(editor, format);

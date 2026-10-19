@@ -4,6 +4,9 @@ import {
   SraSaveFile,
   SrmSaveFile,
 } from "../models/savefile.ts";
+import { DiagnosticCategory, DiagnosticConfidence } from "./diagnostics.ts";
+import type { DiagnosticFinding } from "./diagnostics.ts";
+import { UnresolvedByteOrderError } from "./inputdiagnostics.ts";
 import { Metric, Span } from "./telemetry.ts";
 
 /**
@@ -16,14 +19,103 @@ export enum FileFormat {
   SRM,
 }
 
+export interface SourceFileInfo {
+  format: FileFormat;
+  filename?: string;
+  suggestedFilename?: string;
+  findings: DiagnosticFinding[];
+}
+
 /**
  * Detects the {@link FileFormat} of save file (SRA or SRM) based on file size
  * and returns the appropriate SaveFile instance.
  */
 export class FileUtil {
+  /** Suggest an export path without touching the source file. */
+  static suggestExportFilename(filename: string, format: FileFormat): string {
+    if (format !== FileFormat.SRA && format !== FileFormat.SRM) {
+      throw new Error(`Unsupported save format for filename: ${format}.`);
+    }
+    const separator = Math.max(
+      filename.lastIndexOf("/"),
+      filename.lastIndexOf("\\"),
+    );
+    const dot = filename.lastIndexOf(".");
+    const stem = dot > separator + 1 ? filename.slice(0, dot) : filename;
+    return `${stem}.${FileFormat[format].toLowerCase()}`;
+  }
+
+  private static describeSourceFile(
+    format: FileFormat,
+    filename?: string,
+  ): SourceFileInfo {
+    const info: SourceFileInfo = { format, findings: [] };
+    if (filename === undefined) return info;
+    info.filename = filename;
+    info.suggestedFilename = this.suggestExportFilename(filename, format);
+    const separator = Math.max(
+      filename.lastIndexOf("/"),
+      filename.lastIndexOf("\\"),
+    );
+    const dot = filename.lastIndexOf(".");
+    const extension = dot > separator + 1
+      ? filename.slice(dot + 1).toLowerCase()
+      : "";
+    if (
+      (extension === "sra" || extension === "srm") &&
+      extension !== FileFormat[format].toLowerCase()
+    ) {
+      info.findings.push({
+        id: "file.extension-mismatch:file:filename",
+        ruleId: "file.extension-mismatch",
+        category: DiagnosticCategory.Structural,
+        scope: { kind: "file", field: "filename" },
+        explanation:
+          `Filename extension .${extension} disagrees with the recognized ${
+            FileFormat[format]
+          } layout. Suggested export filename: ${info.suggestedFilename}.`,
+        confidence: DiagnosticConfidence.Evidenced,
+        evidence: [{
+          source: "FileUtil",
+          reference: "Recognized container size and source filename extension",
+          applicability: "Recognized SRA and SRM layouts",
+          limitations:
+            "Filename and size do not establish byte order, game version, or platform compatibility.",
+        }],
+        context: {
+          layout: "sra",
+          container: format === FileFormat.SRA ? "sra" : "srm",
+          gameVersion: null,
+          platformCompatibility: "unverified",
+        },
+      });
+    }
+    return info;
+  }
+
+  private static readSave(
+    source: Deno.FsFile | Uint8Array,
+    info: SourceFileInfo,
+    sourceOrder: ExportByteOrder,
+  ): SraSaveFile {
+    try {
+      const container = info.format === FileFormat.SRA
+        ? new SraSaveFile()
+        : new SrmSaveFile();
+      container.read(source, sourceOrder);
+      const save = container instanceof SrmSaveFile
+        ? container.saveFile
+        : container;
+      save.sourceFile = info;
+      return save;
+    } catch (error) {
+      if (error instanceof UnresolvedByteOrderError) error.sourceFile = info;
+      throw error;
+    }
+  }
   /**
    * Detect the {@link FileFormat} based on size
-   * SRA: < 0x8000 bytes (32KB)
+   * SRA: 0x8000 bytes (32KB)
    * SRM: 0x48800 (contains EEPROM, MemPak, SRAM, FlashRAM sections)
    */
   static detectFileFormatByFileSize(file: Deno.FsFile): FileFormat {
@@ -95,8 +187,7 @@ export class FileUtil {
 
   /**
    * Load a save file from either format and always return the core SRA save
-   * @param path to load the save file data from, is also used for automatic
-   * format detection
+   * @param path to load; its extension is diagnostic metadata, not parser input
    */
   static loadFile(
     path: string,
@@ -109,34 +200,12 @@ export class FileUtil {
 
     try {
       const fileType = this.detectFileFormatByFileSize(file);
-      const fileTypeByExtension = this.detectFileFormatByExtension(path);
-      if (fileType !== fileTypeByExtension) {
-        throw new Error(
-          `File format mismatch: detected ${FileFormat[fileType]}, expected ${
-            FileFormat[fileTypeByExtension]
-          } - try renaming the file.`,
-        );
-      }
-
       file.seekSync(0, Deno.SeekMode.Start);
-      let save: SraSaveFile | SrmSaveFile;
-
-      switch (fileType) {
-        case FileFormat.SRA:
-          save = new SraSaveFile();
-          break;
-        case FileFormat.SRM:
-          save = new SrmSaveFile();
-          break;
-        default:
-          throw new Error(`Unknown or unsupported save file format: ${path}`);
-      }
-
-      save.read(file, sourceOrder);
-      if (save instanceof SrmSaveFile) {
-        return save.saveFile;
-      }
-      return save as SraSaveFile;
+      return this.readSave(
+        file,
+        this.describeSourceFile(fileType, path),
+        sourceOrder,
+      );
     } finally {
       file.close();
 
@@ -147,33 +216,22 @@ export class FileUtil {
     }
   }
 
+  /** Load by layout size; an optional source filename enables naming diagnostics. */
   static loadFileFromBuffer(
     buffer: Uint8Array,
     sourceOrder = ExportByteOrder.Automatic,
+    filename?: string,
   ): SraSaveFile {
     const span = Span.loadFile("buffer");
     const startTime = new Date().getTime();
 
     try {
       const fileType = this.detectFileFormatByBufferSize(buffer);
-      let save: SraSaveFile | SrmSaveFile;
-
-      switch (fileType) {
-        case FileFormat.SRA:
-          save = new SraSaveFile();
-          break;
-        case FileFormat.SRM:
-          save = new SrmSaveFile();
-          break;
-        default:
-          throw new Error(`Unknown or unsupported save file format`);
-      }
-
-      save.read(buffer, sourceOrder);
-      if (save instanceof SrmSaveFile) {
-        return save.saveFile;
-      }
-      return save as SraSaveFile;
+      return this.readSave(
+        buffer,
+        this.describeSourceFile(fileType, filename),
+        sourceOrder,
+      );
     } finally {
       const endTime = new Date().getTime();
       span.setAttributes({ "file.readDuration": endTime - startTime });

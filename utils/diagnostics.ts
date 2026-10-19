@@ -194,7 +194,10 @@ export function diagnoseSave(save: SraSaveFile): SaveDiagnosis {
     platformCompatibility: "unverified",
   };
   const findings: DiagnosticFinding[] = structuredClone(
-    save.inputInterpretation?.findings ?? [],
+    [
+      ...(save.sourceFile?.findings ?? []),
+      ...(save.inputInterpretation?.findings ?? []),
+    ],
   );
   const slots: SlotDiagnosis[] = [];
   const report = (

@@ -4,6 +4,7 @@ import { SaveSlot } from "../models/saveslot.ts";
 import { DiagnosticCategory, DiagnosticConfidence } from "./diagnostics.ts";
 import type { DiagnosticFinding } from "./diagnostics.ts";
 import { FileUtil } from "./fileutil.ts";
+import type { SourceFileInfo } from "./fileutil.ts";
 
 export type InputByteOrder =
   | ExportByteOrder.BigEndian
@@ -51,6 +52,7 @@ export type InputInterpretation =
   );
 
 export class UnresolvedByteOrderError extends Error {
+  sourceFile?: SourceFileInfo;
   constructor(
     readonly inspection: InputInterpretation,
     readonly sourceData: Uint8Array,

@@ -8,7 +8,7 @@ import { stripVTControlCharacters } from "node:util";
 import { act, createElement } from "react";
 
 import { SraSaveFile, SrmSaveFile } from "../../models/savefile.ts";
-import { FileUtil } from "../../utils/fileutil.ts";
+import { FileFormat, FileUtil } from "../../utils/fileutil.ts";
 import { Save } from "./save.tsx";
 
 Object.assign(globalThis, { IS_REACT_ACT_ENVIRONMENT: true });
@@ -84,6 +84,46 @@ async function renderEditor(
   };
 }
 
+for (const format of [FileFormat.SRA, FileFormat.SRM]) {
+  Deno.test(`TUI ${FileFormat[format]} input and export defaults follow the data rather than the filename`, async () => {
+    const bytes = FileUtil.getFileData(new SraSaveFile(), format);
+    const before = bytes.slice();
+    const open = stub(Deno, "openSync", () =>
+      ({
+        statSync: () => ({ size: bytes.length }),
+        seekSync() {},
+        readSync(buffer: Uint8Array) {
+          buffer.set(bytes);
+          return bytes.length;
+        },
+        close() {},
+      }) as unknown as Deno.FsFile);
+    const ext = format === FileFormat.SRA ? "sra" : "srm";
+    const opposite = format === FileFormat.SRA ? "srm" : "sra";
+    try {
+      for (const filename of [`game.${opposite}`, "game", "game.bin"]) {
+        const editor = await renderEditor(40, false, filename);
+        try {
+          assertStringIncludes(editor.frame(), "File Format");
+          assertStringIncludes(editor.frame(), FileFormat[format]);
+          assertEquals(
+            editor.frame().includes("disagrees with the recognized"),
+            filename === `game.${opposite}`,
+          );
+          await editor.input("2");
+          assertStringIncludes(editor.frame(), `game.${ext}`);
+          assertStringIncludes(editor.frame(), FileFormat[format]);
+        } finally {
+          await editor.cleanup();
+        }
+      }
+      assertEquals(bytes, before);
+    } finally {
+      open.restore();
+    }
+  });
+}
+
 for (const format of ["sra", "srm"]) {
   Deno.test(`TUI ${format} input choices and cancellation gate editing without rereading the file`, async () => {
     const source = new Uint8Array(
@@ -101,15 +141,18 @@ for (const format of ["sra", "srm"]) {
         },
         close() {},
       }) as unknown as Deno.FsFile);
-    const editor = await renderEditor(40, false, `ambiguous.${format}`);
+    const filename = format === "sra" ? "ambiguous.srm" : "ambiguous.sra";
+    const editor = await renderEditor(40, false, filename);
     try {
       assertStringIncludes(editor.frame(), "Choose input byte order");
+      assertStringIncludes(editor.frame(), "disagrees with the recognized");
       assertStringIncludes(editor.frame(), "checksums passing");
-      assertEquals(editor.frame().includes("Filename"), false);
+      assertEquals(editor.frame().includes("Header Valid"), false);
       for (const [key, order] of [["w", "word-swapped"], ["b", "big-endian"]]) {
         await editor.input(key);
         assertStringIncludes(editor.frame(), "Filename");
         assertStringIncludes(editor.frame(), `overridden (${order})`);
+        assertStringIncludes(editor.frame(), "disagrees with the recognized");
         await editor.input("\u000f");
         assertStringIncludes(editor.frame(), "Choose input byte order");
       }
@@ -172,6 +215,50 @@ Deno.test("TUI saves the selected SRAM output order", async () => {
     open.restore();
   }
 });
+
+for (const format of [FileFormat.SRA, FileFormat.SRM]) {
+  Deno.test(`TUI export-format changes control the output extension for ${FileFormat[format]} input`, async () => {
+    const bytes = FileUtil.getFileData(new SraSaveFile(), format);
+    let written = new Uint8Array();
+    let outputPath = "";
+    const open = stub(Deno, "openSync", (path, options) => {
+      if (options?.write) outputPath = String(path);
+      return {
+        statSync: () => ({ size: bytes.length }),
+        seekSync() {},
+        readSync(buffer: Uint8Array) {
+          buffer.set(bytes);
+          return bytes.length;
+        },
+        writeSync(buffer: Uint8Array) {
+          written = buffer.slice();
+          return buffer.length;
+        },
+        close() {},
+      } as unknown as Deno.FsFile;
+    });
+    const filename = format === FileFormat.SRA ? "game.sra" : "game.srm";
+    const target = format === FileFormat.SRA ? FileFormat.SRM : FileFormat.SRA;
+    const targetFilename = format === FileFormat.SRA ? "game.srm" : "game.sra";
+    const editor = await renderEditor(40, false, filename);
+    try {
+      await editor.input("2");
+      for (let i = 0; i < 4; i++) await editor.input("\u001b[B");
+      await editor.input("\r");
+      await editor.input(format === FileFormat.SRA ? "\u001b[B" : "\u001b[A");
+      await editor.input("\r");
+      assertStringIncludes(editor.frame(), targetFilename);
+      await editor.input("\u001b[B");
+      await editor.input("\r");
+      assertStringIncludes(editor.frame(), `Saved ${targetFilename}`);
+      assertEquals(outputPath, targetFilename);
+      assertEquals(FileUtil.detectFileFormatByBufferSize(written), target);
+    } finally {
+      await editor.cleanup();
+      open.restore();
+    }
+  });
+}
 
 Deno.test("TUI new files show empty slots and create another new-game slot explicitly", async () => {
   const editor = await renderEditor(40);

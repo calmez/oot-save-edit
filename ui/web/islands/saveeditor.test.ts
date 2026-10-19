@@ -56,7 +56,7 @@ Deno.test("web SRAM order selection controls download bytes across source orders
       await act(() =>
         render(
           h(SaveEditor, {
-            filename: "game.srm",
+            filename: "game.sra",
             initialSaveData: source,
             detectedFormat: FileFormat.SRM,
           }),
@@ -64,6 +64,14 @@ Deno.test("web SRAM order selection controls download bytes across source orders
         )
       );
       assertEquals(await download(), source);
+      assertEquals(
+        container.textContent?.includes("disagrees with the recognized SRM"),
+        true,
+      );
+      assertEquals(
+        container.querySelector("a[download]")?.getAttribute("download"),
+        "game.srm",
+      );
       for (
         const order of [ExportByteOrder.BigEndian, ExportByteOrder.WordSwapped]
       ) {
@@ -85,6 +93,10 @@ Deno.test("web SRAM order selection controls download bytes across source orders
         );
       }
       await act(() => select("File Format", String(FileFormat.SRA)));
+      assertEquals(
+        container.querySelector("a[download]")?.getAttribute("download"),
+        "game.sra",
+      );
       assertEquals(
         (await download()).subarray(
           SraSaveFile.requiredSize,
@@ -184,15 +196,23 @@ Deno.test("web input choices preserve original SRA and SRM bytes and cancellatio
       );
       const before = source.slice();
       const props = {
-        filename: `ambiguous.${FileFormat[format].toLowerCase()}`,
+        filename: format === FileFormat.SRA ? "ambiguous.srm" : "ambiguous.sra",
         initialSaveData: source,
         detectedFormat: format,
       };
       await act(() => render(h(SaveEditor, props), container));
       assertEquals(container.querySelector("a[download]"), null);
+      assertEquals(
+        container.textContent?.includes("disagrees with the recognized"),
+        true,
+      );
       for (const label of ["Big-endian", "Word-swapped (32-bit)"]) {
         await click(label);
         assertEquals(container.textContent?.includes("overridden"), true);
+        assertEquals(
+          container.textContent?.includes("disagrees with the recognized"),
+          true,
+        );
         const anchor = container.querySelector<HTMLAnchorElement>(
           "a[download]",
         );

@@ -10,6 +10,7 @@ import {
 } from "../../../models/saveheader.ts";
 import { SaveSlot } from "../../../models/saveslot.ts";
 import { FileFormat, FileUtil } from "../../../utils/fileutil.ts";
+import type { SourceFileInfo } from "../../../utils/fileutil.ts";
 import { UnresolvedByteOrderError } from "../../../utils/inputdiagnostics.ts";
 import type { InputInterpretation } from "../../../utils/inputdiagnostics.ts";
 import { exportByteOrderOptions } from "../../exportoptions.ts";
@@ -61,42 +62,39 @@ function enumLabel(
   return text ? String(text) : String(value);
 }
 
-function extensionFor(format: FileFormat): "sra" | "srm" {
-  return format === FileFormat.SRA ? "sra" : "srm";
-}
-
 interface LoadedInput {
   save: SraSaveFile | null;
   inspection: InputInterpretation;
+  sourceFile?: SourceFileInfo;
 }
 
-function createSaveFile(bytes: Uint8Array): LoadedInput {
+function createSaveFile(bytes: Uint8Array, filename: string): LoadedInput {
   try {
-    const save = FileUtil.loadFileFromBuffer(bytes);
-    return { save, inspection: save.inputInterpretation! };
+    const save = FileUtil.loadFileFromBuffer(
+      bytes,
+      ExportByteOrder.Automatic,
+      filename,
+    );
+    return {
+      save,
+      inspection: save.inputInterpretation!,
+      sourceFile: save.sourceFile,
+    };
   } catch (error) {
     if (error instanceof UnresolvedByteOrderError) {
-      return { save: null, inspection: error.inspection };
+      return {
+        save: null,
+        inspection: error.inspection,
+        sourceFile: error.sourceFile,
+      };
     }
     throw error;
   }
 }
 
-function ensureFilenameExtension(filename: string, format: FileFormat): string {
-  const ext = extensionFor(format);
-  const parts = filename.split(".");
-
-  if (parts.length < 2) {
-    return `${filename}.${ext}`;
-  }
-
-  parts[parts.length - 1] = ext;
-  return parts.join(".");
-}
-
 export default function SaveEditor(props: SaveEditorProps): JSX.Element {
   const [loaded, setLoaded] = useState(() =>
-    createSaveFile(props.initialSaveData)
+    createSaveFile(props.initialSaveData, props.filename)
   );
   const [choosing, setChoosing] = useState(!loaded.save);
   const [cancelled, setCancelled] = useState(false);
@@ -111,6 +109,9 @@ export default function SaveEditor(props: SaveEditorProps): JSX.Element {
     return (
       <section class="mx-auto max-w-3xl space-y-4 rounded border p-6">
         <h2 class="text-xl font-bold">Choose input byte order</h2>
+        {loaded.sourceFile?.findings.map((finding) => (
+          <p key={finding.id}>{finding.explanation}</p>
+        ))}
         <p>
           {loaded.inspection.findings.map((finding) => finding.explanation)
             .join(" ") || "Review the input interpretation before editing."}
@@ -134,8 +135,13 @@ export default function SaveEditor(props: SaveEditorProps): JSX.Element {
                 const save = FileUtil.loadFileFromBuffer(
                   props.initialSaveData,
                   option.value,
+                  props.filename,
                 );
-                setLoaded({ save, inspection: save.inputInterpretation! });
+                setLoaded({
+                  save,
+                  inspection: save.inputInterpretation!,
+                  sourceFile: save.sourceFile,
+                });
                 setChoosing(false);
               }}
             >
@@ -174,7 +180,7 @@ function ResolvedSaveEditor(props: ResolvedSaveEditorProps): JSX.Element {
     props.detectedFormat,
   );
   const [outputFilename, setOutputFilename] = useState<string>(() =>
-    ensureFilenameExtension(props.filename, outputFormat)
+    FileUtil.suggestExportFilename(props.filename, outputFormat)
   );
   const [byteOrder, setByteOrder] = useState(ExportByteOrder.Automatic);
   const [version, setVersion] = useState(0);
@@ -185,7 +191,9 @@ function ResolvedSaveEditor(props: ResolvedSaveEditorProps): JSX.Element {
 
   function onFormatChange(value: FileFormat) {
     setOutputFormat(value);
-    setOutputFilename((previous) => ensureFilenameExtension(previous, value));
+    setOutputFilename((previous) =>
+      FileUtil.suggestExportFilename(previous, value)
+    );
   }
 
   function notifyChanged() {
@@ -202,7 +210,10 @@ function ResolvedSaveEditor(props: ResolvedSaveEditorProps): JSX.Element {
           </h2>
           <DownloadButton
             saveData={downloadData}
-            filename={outputFilename}
+            filename={FileUtil.suggestExportFilename(
+              outputFilename,
+              outputFormat,
+            )}
             title="Save"
           />
         </div>
@@ -226,6 +237,9 @@ function ResolvedSaveEditor(props: ResolvedSaveEditorProps): JSX.Element {
               ))}
             </Field>
             <Field label="Filename">{props.filename}</Field>
+            {saveFile.sourceFile?.findings.map((finding) => (
+              <p key={finding.id}>{finding.explanation}</p>
+            ))}
             <Field label="Data Size">{saveFile.data.byteLength}</Field>
             <Field label="Header Valid">
               <BooleanCheckbox value={saveFile.header.isValid} disabled />

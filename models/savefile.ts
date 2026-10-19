@@ -1,4 +1,5 @@
 import { FileUtil } from "../utils/fileutil.ts";
+import type { SourceFileInfo } from "../utils/fileutil.ts";
 import {
   inspectInputByteOrder,
   requireInputByteOrder,
@@ -116,6 +117,7 @@ export class SaveFile {
 export class SraSaveFile extends SaveFile {
   sourceSrmData?: Uint8Array;
   inputInterpretation?: InputInterpretation;
+  sourceFile?: SourceFileInfo;
   header = SaveHeader.createBlank();
   slots: [SaveSlot, SaveSlot, SaveSlot] = [
     SaveSlot.createNewGame(0),
