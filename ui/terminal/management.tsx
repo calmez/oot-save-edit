@@ -74,7 +74,6 @@ export default function SaveManagement(
     }),
   );
   const actions = [
-    { label: "Skulltula reconciliation", value: "skull-slot" },
     { label: "Review suggested corrections", value: "review-all" },
     { label: "Repair header", value: "header" },
     { label: "Repair all slots and header", value: "repair-all" },
@@ -83,6 +82,7 @@ export default function SaveManagement(
     { label: "Synchronize all backups from primary slots", value: "sync" },
     { label: "Create or reset a new-game slot", value: "reset" },
     { label: "Return to editor", value: "close" },
+    { label: "Skulltula reconciliation", value: "skull-slot" },
   ];
   return (
     <Box flexDirection="column" borderStyle="round" padding={1}>

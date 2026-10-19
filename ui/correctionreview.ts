@@ -1,5 +1,6 @@
 import { ChecksumPolicy } from "../models/savefile.ts";
 import type { SraSaveFile } from "../models/savefile.ts";
+import { describeSkulltulaIntent } from "../models/skulltulas.ts";
 import type { SkulltulaIntent } from "../models/skulltulas.ts";
 import {
   applyCorrections,
@@ -55,6 +56,12 @@ export class CorrectionReview {
     this.plan = discoverCorrections(save);
   }
 
+  get requestedEdit(): string | undefined {
+    return this.plan.skulltula
+      ? describeSkulltulaIntent(this.plan.skulltula.intent)
+      : undefined;
+  }
+
   get sourceFindings(): DiagnosticFinding[] {
     return structuredClone([
       ...(this.save.sourceFile?.findings ?? []),
@@ -65,22 +72,15 @@ export class CorrectionReview {
   get findings(): DiagnosticFinding[] {
     const sourceIds = new Set(this.sourceFindings.map((finding) => finding.id));
     const intent = this.plan.skulltula?.intent;
+    const belongsToRequest = (finding: DiagnosticFinding): boolean =>
+      !!intent && finding.ruleId.startsWith("skulltula.") &&
+      finding.scope.kind === "slot" && finding.scope.record === intent.record &&
+      finding.scope.index === intent.index;
     return [
       ...diagnoseSave(this.save).findings.filter((finding) =>
-        !sourceIds.has(finding.id) &&
-        !(intent && finding.ruleId.startsWith("skulltula.") &&
-          finding.scope.kind === "slot" &&
-          finding.scope.record === intent.record &&
-          finding.scope.index === intent.index)
+        !sourceIds.has(finding.id) && !belongsToRequest(finding)
       ),
-      ...(intent
-        ? this.plan.unresolved.filter((finding) =>
-          finding.ruleId.startsWith("skulltula.") &&
-          finding.scope.kind === "slot" &&
-          finding.scope.record === intent.record &&
-          finding.scope.index === intent.index
-        )
-        : []),
+      ...this.plan.unresolved.filter(belongsToRequest),
     ];
   }
 

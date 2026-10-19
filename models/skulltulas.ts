@@ -38,7 +38,8 @@ export type SkulltulaIntent =
   );
 
 export const skulltulaEvidence = {
-  source: "docs/skulltula-reconciliation.md",
+  source:
+    "https://github.com/calmez/oot-save-edit/blob/develop/docs/skulltula-reconciliation.md",
   reference:
     "Pinned N64 acquisition code, GS masks and Kokiri Forest location table",
   applicability:
@@ -78,11 +79,14 @@ export function stageSkulltulaIntent(
     if (!intent.locations || Object.keys(intent.locations).length === 0) {
       throw new Error("Choose at least one known Skulltula location.");
     }
-    for (const [id, value] of Object.entries(intent.locations)) {
+    const edits = Object.entries(intent.locations).map(([id, value]) => {
       const location = skulltulaLocations.find((item) => item.id === id);
       if (!location || typeof value !== "boolean") {
         throw new Error(`Unsupported Skulltula location edit: ${id}.`);
       }
+      return { location, value };
+    });
+    for (const { location, value } of edits) {
       const before = slot.data[location.offset];
       slot.data[location.offset] = value
         ? before | location.mask
@@ -131,4 +135,18 @@ export function inspectSkulltulaProgress(
     });
   }
   return findings;
+}
+
+export function describeSkulltulaIntent(intent: SkulltulaIntent): string {
+  if (intent.kind === "total") {
+    return `Requested token total: ${intent.total}. All collection locations stay unchanged.`;
+  }
+  return `Requested locations: ${
+    skulltulaLocations.filter((location) => location.id in intent.locations)
+      .map((location) =>
+        `${location.label} = ${
+          intent.locations[location.id] ? "collected" : "uncollected"
+        }`
+      ).join("; ")
+  }. The stored total stays unchanged.`;
 }

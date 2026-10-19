@@ -3,6 +3,7 @@ import { assertEquals, assertThrows } from "@std/assert";
 import { SraSaveFile, SrmSaveFile } from "../models/savefile.ts";
 import { ChecksumPolicy, ExportByteOrder } from "../models/savefile.ts";
 import { CorrectionReview } from "../ui/correctionreview.ts";
+import { stageSkulltulaIntent } from "../models/skulltulas.ts";
 import { FileFormat, FileUtil } from "./fileutil.ts";
 import {
   applyCorrections,
@@ -100,6 +101,17 @@ Deno.test("zero and removal preserve the indicator; invalid requests and selecti
   );
   const valid = prepareSkulltulaTotal(save, "primary", 0, 5);
   assertThrows(() => applyCorrections(save, valid, ["invented"]));
+  assertThrows(() =>
+    stageSkulltulaIntent(save.slots[0], {
+      kind: "locations",
+      record: "primary",
+      index: 0,
+      locations: {
+        "kokiri-house-of-twins": true,
+        "kokiri-bean-patch": "invalid",
+      } as never,
+    })
+  );
   assertEquals(save.getData(), before);
 });
 
