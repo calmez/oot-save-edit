@@ -81,6 +81,35 @@ overlapping subject matter. Similar labels in different groups are not
 sufficient evidence that they are aliases or that one can be reconstructed from
 another.
 
+## Recovery review
+
+The scope agreed during triage of #93 compares paired primary and backup records
+without ranking their freshness or deciding which progress to retain. The
+initial comparison covers readable player names, age/location, health capacity,
+rupees, inventory, owned equipment and upgrades, quest status, and Skulltula
+totals. Uninterpreted byte differences remain visible as such; malformed fields
+are unavailable rather than blocking the comparison.
+
+Readable occupied records can be restoration sources in either direction,
+including structurally damaged sources whose integrity findings remain visible.
+Restoration starts unselected and structural repairs require separate choices.
+Empty-record replacement requires an explicit warning. Copying a damaged source
+does not establish recovered or verified progress.
+
+Restoration replaces the chosen destination's contents while retaining its
+destination index and preserving the source bytes. Review discloses checksum
+handling and the complete replacement effect. Conflicting repair/restoration
+selections fail before mutation; changes to either record require refreshed
+review and confirmation. These are intended contracts, not implemented recovery
+recommendations.
+
+Restoration initially copies the source's stored checksum. Review actively
+offers checksum recalculation against the final destination contents, selected
+by default but independently declinable. Declining it preserves the copied
+checksum through export. Occupied progress can be restored into an empty
+destination; copying an empty source over occupied progress remains a warned
+manual operation outside recovery recommendations.
+
 ## Legacy names and overlapping representations
 
 | Current code                          | Interpretation for agents                                                                                                                                                                                   |
