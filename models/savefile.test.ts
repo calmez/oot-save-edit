@@ -276,7 +276,7 @@ Deno.test({
       returnsNext([expectedFileSize, null]),
     );
     const instance = new SraSaveFile();
-    instance.read(testFile);
+    instance.read(testFile, ExportByteOrder.BigEndian);
     assertSpyCalls(readSyncStub, 2);
   },
 });
@@ -287,7 +287,7 @@ Deno.test({
     const expectedFileSize = 32768;
     const testBytes = new Uint8Array(expectedFileSize);
     const instance = new SraSaveFile();
-    instance.read(testBytes);
+    instance.read(testBytes, ExportByteOrder.BigEndian);
     assertEquals(instance.data.length, expectedFileSize);
   },
 });
@@ -471,7 +471,7 @@ Deno.test({
       assertEquals(mempack.length, SrmSaveFile.MEMPACK_SIZE);
     });
     assertEquals(srm.sram.length, SrmSaveFile.SRAM_SIZE);
-    assertInstanceOf(srm.saveFile, SraSaveFile);
+    assertThrows(() => srm.saveFile, Error, "byte order");
     assertEquals(srm.flashram.length, SrmSaveFile.FLASHRAM_SIZE);
   },
 });
@@ -487,7 +487,7 @@ Deno.test({
       returnsNext([expectedFileSize]),
     );
     const instance = new SrmSaveFile();
-    instance.read(testFile);
+    instance.read(testFile, ExportByteOrder.BigEndian);
     assertSpyCalls(readSyncStub, 1);
   },
 });
@@ -498,7 +498,7 @@ Deno.test({
     const expectedFileSize = 296960;
     const testBytes = new Uint8Array(expectedFileSize);
     const instance = new SrmSaveFile();
-    instance.read(testBytes);
+    instance.read(testBytes, ExportByteOrder.BigEndian);
     assertEquals(instance.data.length, expectedFileSize);
   },
 });
@@ -535,7 +535,7 @@ Deno.test({
     const sraData = new Uint8Array(SraSaveFile.acceptedSize);
     sraData.fill(0x33);
     const sra = new SraSaveFile();
-    sra.read(sraData);
+    sra.read(sraData, ExportByteOrder.BigEndian);
     const srm = SrmSaveFile.fromSaveFile(sra);
     assertEquals(srm.sram.slice(0, SraSaveFile.acceptedSize), sra.data);
   },
@@ -544,6 +544,7 @@ Deno.test({
 Deno.test("should return correct SraSaveFile from saveFile getter", () => {
   const srm = new SrmSaveFile();
   srm.sram.fill(0x88);
+  srm.read(srm.getData(), ExportByteOrder.BigEndian);
   const sra = srm.saveFile;
   assertInstanceOf(sra, SraSaveFile);
   assertEquals(

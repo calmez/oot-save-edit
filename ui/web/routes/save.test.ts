@@ -1,6 +1,7 @@
 import { assertEquals, assertStringIncludes } from "@std/assert";
 import { App } from "fresh";
 
+import { SraSaveFile, SrmSaveFile } from "../../../models/savefile.ts";
 import { FileUtil } from "../../../utils/fileutil.ts";
 import type { State } from "../utils.ts";
 import { handler } from "./save.tsx";
@@ -31,3 +32,24 @@ Deno.test("web new-file creation shows one new-game pair and four empty slots", 
   assertEquals(save.slots.map((slot) => slot.isEmpty), [false, true, true]);
   assertEquals(save.backups.map((slot) => slot.isEmpty), [false, true, true]);
 });
+
+for (const format of ["sra", "srm"]) {
+  Deno.test(`web ${format} upload renders unresolved input without an editor or download`, async () => {
+    const app = new App<State>().route("/save", { handler });
+    const form = new FormData();
+    form.set("action", "load");
+    const bytes = new Uint8Array(
+      format === "sra" ? SraSaveFile.acceptedSize : SrmSaveFile.acceptedSize,
+    );
+    form.set("save", new File([bytes], `ambiguous.${format}`));
+    const response = await app.handler()(
+      new Request("http://localhost/save", { method: "POST", body: form }),
+    );
+    assertEquals(response.status, 200);
+    const html = await response.text();
+    assertStringIncludes(html, "Choose input byte order");
+    assertStringIncludes(html, "Cancel");
+    assertEquals(html.includes("blob:"), false);
+    assertEquals(html.includes("Player Name"), false);
+  });
+}

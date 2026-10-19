@@ -193,7 +193,9 @@ export function diagnoseSave(save: SraSaveFile): SaveDiagnosis {
     gameVersion: null,
     platformCompatibility: "unverified",
   };
-  const findings: DiagnosticFinding[] = [];
+  const findings: DiagnosticFinding[] = structuredClone(
+    save.inputInterpretation?.findings ?? [],
+  );
   const slots: SlotDiagnosis[] = [];
   const report = (
     ruleId: string,

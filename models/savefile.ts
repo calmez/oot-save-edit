@@ -1,4 +1,10 @@
 import { FileUtil } from "../utils/fileutil.ts";
+import {
+  inspectInputByteOrder,
+  requireInputByteOrder,
+  UnresolvedByteOrderError,
+} from "../utils/inputdiagnostics.ts";
+import type { InputInterpretation } from "../utils/inputdiagnostics.ts";
 import { SaveHeader } from "./saveheader.ts";
 import { SaveSlot } from "./saveslot.ts";
 
@@ -11,13 +17,7 @@ export enum ExportByteOrder {
 }
 
 function isWordSwapped(bytes: Uint8Array): boolean {
-  const swapped = FileUtil.byteSwap(bytes);
-  const score = (data: Uint8Array) =>
-    SaveHeader.validCheckPattern.reduce(
-      (total, value, index) => total + Number(data[index + 3] === value),
-      0,
-    );
-  return score(swapped) > score(bytes);
+  return requireInputByteOrder(bytes) === ExportByteOrder.WordSwapped;
 }
 
 function resolveByteOrder(
@@ -115,6 +115,7 @@ export class SaveFile {
 
 export class SraSaveFile extends SaveFile {
   sourceSrmData?: Uint8Array;
+  inputInterpretation?: InputInterpretation;
   header = SaveHeader.createBlank();
   slots: [SaveSlot, SaveSlot, SaveSlot] = [
     SaveSlot.createNewGame(0),
@@ -214,8 +215,8 @@ export class SraSaveFile extends SaveFile {
   }
 
   override set data(bytes: Uint8Array) {
-    this.sourceSrmData = undefined;
     bytes = this.ensureByteOrder(bytes);
+    this.sourceSrmData = undefined;
     let currentOffset = 0x00;
 
     this.header = new SaveHeader(
@@ -251,12 +252,12 @@ export class SraSaveFile extends SaveFile {
   }
 
   private ensureByteOrder(bytes: Uint8Array): Uint8Array {
-    this.byteSwapped = resolveByteOrder(
-      this.readByteOrder,
-      isWordSwapped(bytes)
-        ? ExportByteOrder.WordSwapped
-        : ExportByteOrder.BigEndian,
-    ) === ExportByteOrder.WordSwapped;
+    const inspection = inspectInputByteOrder(bytes, this.readByteOrder);
+    if (inspection.state === "unresolved") {
+      throw new UnresolvedByteOrderError(inspection, bytes.slice());
+    }
+    this.inputInterpretation = inspection;
+    this.byteSwapped = inspection.selectedOrder === ExportByteOrder.WordSwapped;
     return this.byteSwapped ? FileUtil.byteSwap(bytes) : bytes;
   }
 }
@@ -283,6 +284,20 @@ export class SrmSaveFile extends SaveFile {
   flashram = new Uint8Array(SrmSaveFile.FLASHRAM_SIZE);
   // Header edits must not discard the order known from a read or conversion.
   private sramByteSwapped?: boolean;
+  private readByteOrder = ExportByteOrder.Automatic;
+  inputInterpretation?: InputInterpretation;
+
+  override read(
+    source: Deno.FsFile | Uint8Array,
+    sourceOrder = ExportByteOrder.Automatic,
+  ): this {
+    this.readByteOrder = sourceOrder;
+    try {
+      return super.read(source);
+    } finally {
+      this.readByteOrder = ExportByteOrder.Automatic;
+    }
+  }
 
   static override get requiredSize(): number {
     return (
@@ -303,7 +318,12 @@ export class SrmSaveFile extends SaveFile {
     checksumPolicy = ChecksumPolicy.Preserve,
   ): SrmSaveFile {
     const srm = save.sourceSrmData
-      ? new SrmSaveFile().read(save.sourceSrmData)
+      ? new SrmSaveFile().read(
+        save.sourceSrmData,
+        save.isByteSwapped
+          ? ExportByteOrder.WordSwapped
+          : ExportByteOrder.BigEndian,
+      )
       : new SrmSaveFile();
     const outputOrder = resolveByteOrder(
       order,
@@ -313,6 +333,7 @@ export class SrmSaveFile extends SaveFile {
     );
     srm.sram.set(save.getData(outputOrder, checksumPolicy), 0);
     srm.sramByteSwapped = outputOrder === ExportByteOrder.WordSwapped;
+    srm.inputInterpretation = save.inputInterpretation;
 
     return srm;
   }
@@ -329,13 +350,12 @@ export class SrmSaveFile extends SaveFile {
       currentOffset += SrmSaveFile.MEMPACK_SIZE;
     }
 
-    const sourceSwapped = this.sramByteSwapped ?? isWordSwapped(this.sram);
-    const outputOrder = resolveByteOrder(
-      order,
-      sourceSwapped ? ExportByteOrder.WordSwapped : ExportByteOrder.BigEndian,
-    );
-    const swap = (outputOrder === ExportByteOrder.WordSwapped) !==
-      sourceSwapped;
+    let swap = false;
+    if (order !== ExportByteOrder.Automatic) {
+      const sourceSwapped = this.sramByteSwapped ?? isWordSwapped(this.sram);
+      const outputOrder = resolveByteOrder(order, ExportByteOrder.WordSwapped);
+      swap = (outputOrder === ExportByteOrder.WordSwapped) !== sourceSwapped;
+    }
     bytes.set(swap ? FileUtil.byteSwap(this.sram) : this.sram, currentOffset);
     currentOffset += SrmSaveFile.SRAM_SIZE;
 
@@ -350,6 +370,17 @@ export class SrmSaveFile extends SaveFile {
   }
 
   override set data(bytes: Uint8Array) {
+    const sramOffset = SrmSaveFile.EEPROM_SIZE +
+      SrmSaveFile.MEMPACK_COUNT * SrmSaveFile.MEMPACK_SIZE;
+    const inspection = inspectInputByteOrder(
+      bytes.subarray(sramOffset, sramOffset + SrmSaveFile.SRAM_SIZE),
+      this.readByteOrder,
+      "srm",
+    );
+    if (inspection.state === "unresolved") {
+      throw new UnresolvedByteOrderError(inspection, bytes.slice());
+    }
+    this.inputInterpretation = inspection;
     let currentOffset = 0x00;
 
     this.eeprom = bytes.slice(
@@ -370,7 +401,8 @@ export class SrmSaveFile extends SaveFile {
       currentOffset,
       currentOffset + SrmSaveFile.SRAM_SIZE,
     );
-    this.sramByteSwapped = isWordSwapped(this.sram);
+    this.sramByteSwapped =
+      inspection.selectedOrder === ExportByteOrder.WordSwapped;
     currentOffset += SrmSaveFile.SRAM_SIZE;
 
     this.flashram = bytes.slice(
@@ -381,14 +413,21 @@ export class SrmSaveFile extends SaveFile {
   }
 
   get saveFile(): SraSaveFile {
-    const sra = new SraSaveFile();
-    sra.read(
-      this.sram,
-      (this.sramByteSwapped ?? isWordSwapped(this.sram))
-        ? ExportByteOrder.WordSwapped
-        : ExportByteOrder.BigEndian,
-    );
+    const interpretation = this.inputInterpretation ??
+      (this.sramByteSwapped === undefined
+        ? inspectInputByteOrder(this.sram, ExportByteOrder.Automatic, "srm")
+        : undefined);
+    if (interpretation?.state === "unresolved") {
+      throw new UnresolvedByteOrderError(interpretation, this.data);
+    }
+    const sourceOrder = this.sramByteSwapped === undefined
+      ? interpretation!.selectedOrder!
+      : this.sramByteSwapped
+      ? ExportByteOrder.WordSwapped
+      : ExportByteOrder.BigEndian;
+    const sra = new SraSaveFile().read(this.sram, sourceOrder);
     sra.sourceSrmData = this.data;
+    sra.inputInterpretation = interpretation;
     return sra;
   }
 }

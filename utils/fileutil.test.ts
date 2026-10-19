@@ -426,8 +426,9 @@ Deno.test({
     const file = {
       statSync: () => ({ size: SraSaveFile.acceptedSize }),
       seekSync: () => {},
-      readSync: (_buf: Uint8Array) => {
+      readSync: (buffer: Uint8Array) => {
         readCalled = true;
+        buffer.set(new SraSaveFile().getData());
         return SraSaveFile.acceptedSize;
       },
       close: () => {},
@@ -454,8 +455,9 @@ Deno.test({
     const file = {
       statSync: () => ({ size: SrmSaveFile.acceptedSize }),
       seekSync: () => {},
-      readSync: (_buf: Uint8Array) => {
+      readSync: (buffer: Uint8Array) => {
         readCalled = true;
+        buffer.set(SrmSaveFile.fromSaveFile(new SraSaveFile()).getData());
         return SrmSaveFile.acceptedSize;
       },
       close: () => {},

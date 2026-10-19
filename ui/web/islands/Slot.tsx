@@ -1,5 +1,7 @@
-import { inventoryNames, sceneIdOptions, sceneLabel } from "../../labels.ts";
+import type { JSX } from "preact";
 import { useState } from "preact/hooks";
+
+import type { PermanentSceneFlags } from "../../../models/permanentsceneflags.ts";
 import {
   Age,
   BombBag,
@@ -26,7 +28,6 @@ import {
   Tunic,
   Wallet,
 } from "../../../models/saveslot.ts";
-import type { PermanentSceneFlags } from "../../../models/permanentsceneflags.ts";
 import {
   Entrance,
   Room,
@@ -35,11 +36,12 @@ import {
   Time,
   ValidEntrancesForRoom,
 } from "../../../models/scene.ts";
+import { selectUpgrade, updateNamedFlag } from "../../../utils/saveeditor.ts";
+import { inventoryNames, sceneIdOptions, sceneLabel } from "../../labels.ts";
+import { slotDisplayError } from "../../slotreadability.ts";
+import AdditionalEditor from "../components/AdditionalEditor.tsx";
 import { Field } from "../components/Field.tsx";
 import { Section } from "../components/Section.tsx";
-import { JSX } from "preact/compat/jsx-dev-runtime";
-import { selectUpgrade, updateNamedFlag } from "../../../utils/saveeditor.ts";
-import AdditionalEditor from "../components/AdditionalEditor.tsx";
 
 interface SlotProps {
   slot: SaveSlot;
@@ -470,6 +472,18 @@ export default function Slot(props: SlotProps) {
   );
   const activePermanentSceneFlags =
     slot.permanentSceneFlags[activePermanentScene];
+
+  const displayError = slotDisplayError(slot);
+  if (displayError) {
+    return (
+      <div className="rounded-xl border border-amber-300 bg-amber-50 p-4">
+        <h3 className="text-lg font-semibold">
+          {slotType === "backup" ? "Backup" : "File"} {index + 1}
+        </h3>
+        <p>{displayError}</p>
+      </div>
+    );
+  }
 
   if (slot.isEmpty) {
     return (

@@ -3,7 +3,11 @@ import { Form } from "ink-form";
 import React, { useEffect, useMemo, useState } from "react";
 
 import { ValidEntrancesForRoom } from "../../index.ts";
-import { ExportByteOrder, SraSaveFile } from "../../models/savefile.ts";
+import {
+  ChecksumPolicy,
+  ExportByteOrder,
+  SraSaveFile,
+} from "../../models/savefile.ts";
 import {
   LanguageOption,
   SoundOption,
@@ -19,9 +23,13 @@ import {
 } from "../../models/saveslot.ts";
 import { Entrance, Room, Scene, Time } from "../../models/scene.ts";
 import { FileFormat, FileUtil } from "../../utils/fileutil.ts";
+import { UnresolvedByteOrderError } from "../../utils/inputdiagnostics.ts";
+import type { InputInterpretation } from "../../utils/inputdiagnostics.ts";
 import { getSlot, slotCount, slotLabel } from "../../utils/saveeditor.ts";
 import { exportByteOrderOptions } from "../exportoptions.ts";
+import { inputEvidenceLines } from "../inputoptions.ts";
 import { sceneIdOptions } from "../labels.ts";
+import { slotDisplayError } from "../slotreadability.ts";
 import {
   Point3DFieldRenderer,
   Point3DFormFieldManager,
@@ -143,22 +151,70 @@ function SectionPagination(props: SectionPaginationProps): null {
   return null;
 }
 
+interface LoadedInput {
+  save: SraSaveFile | null;
+  sourceData: Uint8Array | null;
+  inspection: InputInterpretation | null;
+  error: string;
+}
+
 export const Save = (
   { filename, createNew = false }: SaveProps,
 ): React.JSX.Element => {
-  const [loaded] = useState(() => {
+  const [loadedState, setLoaded] = useState<LoadedInput>(() => {
     try {
+      const save = createNew ? new SraSaveFile() : FileUtil.loadFile(filename);
       return {
-        save: createNew ? new SraSaveFile() : FileUtil.loadFile(filename),
+        save,
+        sourceData: createNew ? null : FileUtil.getFileData(
+          save,
+          FileUtil.detectFileFormatByExtension(filename),
+          ExportByteOrder.Automatic,
+          ChecksumPolicy.Preserve,
+        ),
+        inspection: save.inputInterpretation ?? null,
         error: "",
       };
     } catch (error) {
       return {
         save: null,
+        sourceData: error instanceof UnresolvedByteOrderError
+          ? error.sourceData
+          : null,
+        inspection: error instanceof UnresolvedByteOrderError
+          ? error.inspection
+          : null,
         error: error instanceof Error ? error.message : String(error),
       };
     }
   });
+  const loaded: LoadedInput = loadedState;
+  const [choosing, setChoosing] = useState(!loaded.save && !!loaded.inspection);
+  const [cancelled, setCancelled] = useState(false);
+  useInput((input, key) => {
+    if (key.ctrl && input === "o" && loaded.sourceData && !cancelled) {
+      setChoosing(true);
+    }
+  });
+  if (cancelled) return <Text>Load cancelled.</Text>;
+  if (choosing && loaded.sourceData && loaded.inspection) {
+    return (
+      <InputResolution
+        inspection={loaded.inspection}
+        onCancel={() => setCancelled(true)}
+        onChoose={(order) => {
+          const save = FileUtil.loadFileFromBuffer(loaded.sourceData!, order);
+          setLoaded({
+            ...loaded,
+            save,
+            inspection: save.inputInterpretation!,
+            error: "",
+          });
+          setChoosing(false);
+        }}
+      />
+    );
+  }
   if (!loaded.save) {
     return (
       <Box flexDirection="column">
@@ -166,8 +222,56 @@ export const Save = (
       </Box>
     );
   }
-  return <SaveForm filename={filename} originalSaveFile={loaded.save} />;
+  return (
+    <Box flexDirection="column">
+      {!createNew && (
+        <Text>
+          Input: {loaded.inspection?.state}{" "}
+          ({loaded.inspection?.selectedOrder}). Ctrl+O: choose input byte order.
+        </Text>
+      )}
+      {!!loaded.inspection?.findings.length && (
+        <Text color="yellow">
+          {loaded.inspection.findings.map((finding) => finding.explanation)
+            .join("\n")}
+        </Text>
+      )}
+      <SaveForm filename={filename} originalSaveFile={loaded.save} />
+    </Box>
+  );
 };
+
+interface InputResolutionProps {
+  inspection: InputInterpretation;
+  onChoose: (
+    order: ExportByteOrder.BigEndian | ExportByteOrder.WordSwapped,
+  ) => void;
+  onCancel: () => void;
+}
+
+function InputResolution(props: InputResolutionProps): React.JSX.Element {
+  useInput((input, key) => {
+    if (key.escape) props.onCancel();
+    else if (input === "b") props.onChoose(ExportByteOrder.BigEndian);
+    else if (input === "w") props.onChoose(ExportByteOrder.WordSwapped);
+  });
+  return (
+    <Box flexDirection="column" gap={1}>
+      <Text bold>Choose input byte order</Text>
+      <Text>
+        {props.inspection.findings.map((finding) => finding.explanation).join(
+          "\n",
+        )}
+      </Text>
+      <Text>{inputEvidenceLines(props.inspection).join("\n")}</Text>
+      <Text>
+        Choosing reloads the original file and discards any edits. It does not
+        repair the save.
+      </Text>
+      <Text>[b] Big-endian [w] Word-swapped (32-bit) [Esc] Cancel</Text>
+    </Box>
+  );
+}
 
 const SaveForm = (
   { filename, originalSaveFile }: {
@@ -181,14 +285,16 @@ const SaveForm = (
   ): SectionDefinition {
     const slot = getSlot(saveFile, index);
     const slotKeyForIndex = (key: string) => slotKey(index, key);
-    if (slot.isEmpty) {
+    const displayError = slotDisplayError(slot);
+    if (slot.isEmpty || displayError) {
       return {
         title: slotLabel(index),
         fields: [{
           type: "readonly.string",
           name: slotKeyForIndex("slotState"),
           label: "Slot state",
-          initialValue: "Empty slot. Use Ctrl+G to create a new-game slot.",
+          initialValue: displayError ??
+            "Empty slot. Use Ctrl+G to create a new-game slot.",
         }],
       };
     }

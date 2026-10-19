@@ -28,6 +28,19 @@ Use additional reliable evidence when stored byte order is ambiguous. If the
 interpretation remains unresolved, report the uncertainty and require an
 explicit choice before interpreting and editing the save.
 
+For the recognized SRAM layout, automatically select a byte order only when a
+complete header signature or intact occupied-slot marker supports that candidate
+and neither kind of evidence supports the other candidate. Check primary and
+backup records. A damaged checksum does not invalidate an intact marker as
+directional evidence. Checksums corroborate the interpretation; partial header
+matches, checksum-only evidence, and empty records alone do not establish byte
+order. Conflicting directional evidence requires an explicit choice rather than
+ranking the header above slot records or choosing by majority.
+
+This rule was clarified during triage of #88. Reproduction with synthetic SRA
+and SRM data confirmed that an intact header can disagree with intact slot
+markers, and that both byte orders can pass checksums even for nonzero records.
+
 ## Provenance
 
 Interpretation and compatibility policy confirmed during the domain-modeling
@@ -43,6 +56,8 @@ cite CloudModding's entrance table. Several fields remain explicitly tentative.
 does not establish game-version compatibility.
 
 Filesystem loading currently rejects extension mismatches, while buffer loading
-uses size alone. [SRA byte-order detection](../../models/savefile.ts) silently
-chooses the original order when header-marker scores tie, including when neither
-candidate matches. These behaviors remain to be aligned with the input policy.
+uses size alone; extension handling remains to be aligned with the input policy.
+[Input inspection](../../utils/inputdiagnostics.ts) evaluates header and slot
+evidence for both byte orders without changing source bytes. Model and FileUtil
+loading require an explicit choice for unresolved input. Both editors offer that
+choice before editing, and retain conflicting evidence after an override.
