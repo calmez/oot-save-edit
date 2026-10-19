@@ -14,8 +14,8 @@ export const handler = define.handlers({
     const file = form.get("save") as File;
 
     if (action === "create") {
-      const blankSave = new SraSaveFile().data;
-      return ctx.render(<Save filename="new-save.sra" save={blankSave} />);
+      const newSave = new SraSaveFile().data;
+      return ctx.render(<Save filename="new-save.sra" save={newSave} />);
     }
 
     if (!file) {
@@ -78,7 +78,7 @@ export default define.page<typeof handler>(function Save(props) {
           </span>
           <input type="hidden" name="action" value="create" />
           <Button type="submit">
-            Create Blank Save
+            Create New Save
           </Button>
         </form>
       </div>

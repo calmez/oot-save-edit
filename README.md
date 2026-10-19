@@ -6,6 +6,10 @@
 ⚠️ This project is still very much work in progress and not fully usable at this
 moment. ⚠️
 
+![Editing an Ocarina of Time save file in the web UI](demos/gui.gif)
+
+![Editing an Ocarina of Time save file in the terminal UI](demos/tui.gif)
+
 This project was started out of desperation when having accidentally deleting my
 save file on an N64 play-through very late in the game.
 
@@ -25,6 +29,64 @@ My hyperfocus then got me knee deep into the topic. This is a great toy project
 for me where I am experimenting a bit and hoping to grow as a developer.
 Combining multiple things that I like and hopefully creating something useful
 also to less techy people is what I aim for here.
+
+## Using the editors
+
+Run `deno task run:tui path/to/save.sra` to edit an existing SRA or SRM file.
+Run `deno task run:tui --new` (or omit the filename) to start a new save. Use
+the slot tabs for primary and backup saves, `[` and `]` for field pages, and
+Ctrl+G for copy/restore, backup synchronization, reset, and repair actions.
+Changes are written when you submit the save form.
+
+Repair actions open a correction review in both editors. Supported
+recommendations start selected; inspect the complete preview, deselect
+individual corrections or decline all, then confirm explicitly. Cancel leaves
+your save unchanged. Gameplay and uncertainty findings without supported
+corrections remain visible.
+
+In terminal review, use ↑/↓ to inspect suggestions, Space to toggle, `[`/`]` to
+page through evidence, findings, preview, and accepted changes, `d` to decline
+all, `a` to confirm, and Escape to cancel. `k` keeps the inspected field's
+stored value as a desired outcome; `o` explicitly allows its correction instead.
+After an intervening edit, `r` refreshes the review before another confirmation.
+
+Confirmed checksum opt-outs select **Preserve stored checksums** for export,
+including marker-only repairs. You can change this explicitly in output options.
+Without an opt-out, ordinary edited-slot checksum maintenance stays available.
+Original source evidence and accepted correction history remain inspectable.
+
+Run `deno task web:dev` for the web editor or `deno task run:gui` for the
+desktop wrapper after building the web UI. Both expose editable backup slots and
+save-management controls. Download the save to keep your changes.
+
+New files start with one new-game slot and its matching backup; the other four
+records are empty. Create another new-game slot explicitly from an empty slot's
+web control or the TUI's Ctrl+G menu. Creation and reset change only the
+selected record; synchronize backups separately when wanted. Resetting starts a
+new game, rather than making a slot empty. See the
+[slot lifecycle](docs/save-slot-lifecycle.md) for the core API and format
+evidence.
+
+Run `deno task test` for the core, terminal, and web tests. The web tests use
+their own Deno configuration, as they do for type-checking.
+
+Both editors include additional progress and advanced data: saved child/adult
+equipment, minigame records, individual Skulltula flags, world-map discovery,
+Epona's position, and recorded Scarecrow songs. Arrays use comma-separated
+integers; recorded song data uses hexadecimal bytes. Checksums are refreshed on
+export, and SRM exports preserve the original emulator sections.
+
+## Building the demos
+
+Run `deno task build:demo:tui` to generate `demos/tui.gif`,
+`deno task build:demo:gui` to generate `demos/gui.gif`, or
+`deno task build:demos` to generate both.
+
+The TUI recording requires [VHS](https://github.com/charmbracelet/vhs) and its
+`ttyd` and `ffmpeg` dependencies. The GUI recording also requires `ffmpeg`.
+Install Chromium once with `deno run -A npm:playwright@1.64.1 install chromium`
+and keep `deno task web:dev` running in another terminal. To use a different
+server, pass its URL to `deno task build:demo:gui http://localhost:5174`.
 
 ## Other Projects in this space
 

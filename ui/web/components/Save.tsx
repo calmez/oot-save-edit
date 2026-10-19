@@ -7,14 +7,12 @@ export interface SaveProps {
 }
 
 export default function Save(props: SaveProps) {
-  const saveFile = FileUtil.loadFileFromBuffer(props.save);
   const detectedFormat = FileUtil.detectFileFormatByBufferSize(props.save);
 
   return (
     <SaveEditor
       filename={props.filename}
-      initialSaveData={saveFile.getData()}
-      isByteSwapped={saveFile.isByteSwapped}
+      initialSaveData={props.save}
       detectedFormat={detectedFormat}
     />
   );

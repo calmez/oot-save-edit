@@ -1,0 +1,65 @@
+name: Bug report
+description: Report a problem with parsing, editing, or saving an OoT save file.
+labels: ["needs-triage"]
+body:
+  - type: dropdown
+    id: interface
+    attributes:
+      label: Affected interface
+      options:
+        - Web UI
+        - Desktop GUI
+        - Terminal UI
+        - Core library
+        - Other / unsure
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Editor version
+      description: Release version, commit, or deployed URL. Enter unknown if unsure.
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Include your OS and relevant browser, Deno, emulator, or platform versions.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to reproduce
+      description: List the steps, including the save slot and fields involved, so someone else can reproduce the problem.
+      placeholder: |
+        1. Open the editor and load a save file.
+        2. Select a save slot and ...
+        3. Observe ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What did you expect to happen?
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: What happened instead? Include any error message.
+    validations:
+      required: true
+  - type: textarea
+    id: save-details
+    attributes:
+      label: Save file details
+      description: If relevant, include the save format (SRA or SRM), game version and region, emulator or platform, and any ROM modifications. You can attach a sample save file.
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Add logs, screenshots, or other details that help explain the problem.

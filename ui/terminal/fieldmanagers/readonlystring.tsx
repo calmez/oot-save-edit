@@ -16,7 +16,7 @@ export const ReadonlyStringFormFieldManager = {
   ) => (
     <Box borderStyle="round" width="100%">
       <Text>
-        {props.value ?? ""}
+        {props.field.initialValue ?? props.value ?? ""}
       </Text>
     </Box>
   ),
@@ -24,7 +24,7 @@ export const ReadonlyStringFormFieldManager = {
     props: FormFieldValueRendererProps<FormFieldReadonlyString>,
   ) => (
     <Text>
-      {props.value ?? ""}
+      {props.field.initialValue ?? props.value ?? ""}
     </Text>
   ),
 } as FormFieldManager<FormFieldReadonlyString>;

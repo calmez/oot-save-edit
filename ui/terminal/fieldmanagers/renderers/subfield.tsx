@@ -1,6 +1,7 @@
-import React from "react";
 import { Box, Text, useFocus } from "ink";
 import { FormField } from "ink-form";
+import React from "react";
+
 import { SubfieldRendererProps } from "../subfield.tsx";
 
 export type InputRendererProps<F extends FormField, V> = {
@@ -25,7 +26,7 @@ export function SubfieldRendererFactory<F extends FormField, V>(
 
     const readonly = typeof props.readonly === "function"
       ? props.readonly(props.value)
-      : props.readonly ?? false;
+      : props.readonly ?? props.value?.[props.property] === undefined;
 
     const resolvedProps = {
       ...props,
