@@ -44,6 +44,23 @@ Saved child and adult equipment and button assignments are checked against their
 respective ages, independently of Link's current age. Empty or uninitialized
 saved loadouts are accepted.
 
+The initial suggested-correction API in #91 covers header signature and padding,
+occupied-slot markers, and checksums. Backup restoration, synchronization, and
+gameplay corrections are follow-up work. This is an agreed scope boundary, not
+implemented correction discovery or application.
+
+For #91, callers express the requested editing outcome as explicit field-value
+constraints. Corrections that would violate those constraints expose a conflict
+rather than choosing a different outcome. Broader named editing goals are
+deferred.
+
+Marker and checksum corrections remain independently selectable. When both are
+applied, the checksum reflects the corrected marker; selecting only a marker
+correction preserves the stored checksum bytes. The existing checksum-preserving
+export policy supports deliberately retaining that result. Valid retail and
+debug header padding remain unchanged; repairing invalid padding defaults to
+retail padding.
+
 Diagnosis should derive applicable context from reliable evidence in the save
 where possible, without requiring callers to supply a game version. Recognizing
 a layout alone does not verify a particular game version or platform. When exact

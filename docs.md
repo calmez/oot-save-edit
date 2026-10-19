@@ -245,3 +245,95 @@ limitation; shared age rules still run. Version-sensitive progression, location,
 acquisition-history, and ownership checks are outside this initial rule set. No
 correction discovery or application is performed, and all bytes and working
 state, including invalid markers/checksums and container data, are preserved.
+
+## Suggested structural corrections
+
+`discoverCorrections(save, outcome?)` returns a read-only correction plan
+separate from `diagnoseSave(save)`. The initial rules cover header signature,
+invalid header padding, occupied-slot markers, and occupied-slot checksums.
+Empty records are left alone. Valid retail and debug padding survive unrelated
+corrections; invalid padding is proposed as retail padding. Gameplay and
+recovery corrections are outside this API's current scope.
+
+Each suggestion exposes a stable `id`, diagnostic `findingIds`, record/field
+`scope`, proposed byte `changes`, rationale, confidence, evidence,
+recommendation status, alternatives, and a record snapshot precondition.
+`unresolved` retains findings without supported corrections, including uncertain
+interpretations; these do not create speculative recommendations. A checksum
+needed only because of marker repair has no original checksum finding and
+identifies its marker in `dependsOn`.
+
+```typescript
+import {
+  applyCorrections,
+  applyRecommendedCorrections,
+  ChecksumPolicy,
+  discoverCorrections,
+  ExportByteOrder,
+  FileFormat,
+  FileUtil,
+  previewCorrections,
+} from "./index.ts";
+
+const save = FileUtil.loadFileFromBuffer(bytes);
+const plan = discoverCorrections(save);
+const selected = plan.suggestions.filter((item) => item.recommended)
+  .map((item) => item.id);
+const preview = previewCorrections(save, plan, selected);
+console.log(preview.changes, preview.requiredCorrections);
+// After the caller explicitly accepts this selection:
+const result = applyCorrections(save, plan, selected);
+// Alternatively, deliberately apply the compatible evidenced recommendations:
+// const result = applyRecommendedCorrections(save, plan);
+console.log(result.changes);
+const output = FileUtil.getFileData(
+  save,
+  FileFormat.SRA,
+  ExportByteOrder.Automatic,
+  ChecksumPolicy.Preserve,
+);
+```
+
+Discovery and preview never repair the working model or modify source evidence
+or checksum tracking. Change offsets are relative to the named header or slot;
+values are canonical big-endian byte arrays, independent of source byte order.
+Preview and application return actual changes, excluding no-op fields. Selecting
+a marker never silently selects its checksum: `requiredCorrections` identifies
+omitted checksum corrections still needed after preview. Selecting both computes
+the checksum from the final marker bytes regardless of selection order.
+
+Use `ChecksumPolicy.Preserve` to retain deliberately omitted checksum
+corrections, including after marker repair. Ordinary `MaintainEdited` export
+still recalculates checksums for edited records on the output copy. Both
+policies preserve working bytes. SRA tails and surrounding SRM data retain the
+existing export guarantees.
+
+Callers can protect or request structural field values through `outcome`, an
+array of `{ scope, value }` constraints. For example, to retain an invalid
+marker:
+
+```typescript
+const plan = discoverCorrections(save, [{
+  scope: { kind: "slot", record: "primary", index: 0, field: "marker" },
+  value: [...save.slots[0].data.slice(0x1C, 0x22)],
+}]);
+console.log(plan.conflicts);
+const result = applyRecommendedCorrections(save, plan);
+console.log(result.excluded, result.conflicts);
+```
+
+Constraints use complete field byte values: header `signature` (9 bytes), header
+`padding` (5), slot `marker` (6), or slot `checksum` (2). Other fields or
+malformed values produce an unsupported-constraint failure. Explicit selections
+must satisfy all constraints. The recommended operation excludes corrections
+conflicting with constraints and reports unresolved requested values while
+applying compatible corrections. It never chooses a different outcome silently.
+
+`CorrectionError.conflicts` supplies machine-readable `code`, optional
+correction ID and scope, and contextual explanation for stale, unsupported,
+duplicate, or outcome-conflicting selections. All selections are validated
+before writing any bytes; a failed operation leaves the entire working save
+unchanged. Any edit to an affected record makes its old suggestions stale, so
+rediscover after edits. Plans describe the supported operations; modifying a
+proposal does not grant raw editing capability. Header and slot object
+identities remain intact on success.

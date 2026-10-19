@@ -375,7 +375,7 @@ export class SaveSlot {
     return 0x1450;
   }
 
-  private static get validCheckPattern(): Uint8Array {
+  static get validCheckPattern(): Uint8Array {
     const encoder = new TextEncoder();
     return new Uint8Array([...encoder.encode("ZELDAZ")]);
   }

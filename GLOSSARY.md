@@ -41,6 +41,10 @@ not establish gameplay consistency.
 **Gameplay consistency**: Agreement among a save's related inventory, equipment,
 progression, and world-state values according to the game's rules.
 
+**Requested editing outcome**: The save state the caller intends to retain or
+achieve. A correction that conflicts with this outcome requires an explicit
+choice.
+
 ### Inventory, equipment, and progression
 
 **Inventory slot**: A position for an item, such as a bottle position or a
