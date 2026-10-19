@@ -115,14 +115,14 @@ export class SaveHeader {
     this.bytes.set(paddingData, 0x0C);
   }
 
-  private get isPatternValid(): boolean {
+  get isPatternValid(): boolean {
     const validPattern = SaveHeader.validCheckPattern;
     return this.checkPattern.every((value, index) =>
       value === validPattern[index]
     );
   }
 
-  private get isPaddingValid(): boolean {
+  get isPaddingValid(): boolean {
     const defaultPadding = SaveHeader.defaultPadding;
     const debugPadding = SaveHeader.debugPadding;
     return (

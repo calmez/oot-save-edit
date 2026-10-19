@@ -1218,7 +1218,7 @@ export class SaveSlot {
     }
   }
 
-  private get isPatternValid(): boolean {
+  get isPatternValid(): boolean {
     const validPattern = SaveSlot.validCheckPattern;
     return this.checkPattern.every((value, index) =>
       value === validPattern[index]
