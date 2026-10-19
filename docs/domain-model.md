@@ -34,6 +34,24 @@ child/adult equipment, and location compatibility, then suggest supported
 adjustments for the requested outcome. Currently, setting `SaveSlot.age` changes
 only the age field.
 
+The initial gameplay diagnosis checks age compatibility of currently equipped
+swords, shields, tunics, and boots, together with current B/C-button
+assignments. Owned equipment and inventory items are not age mismatches merely
+because the current form cannot use them. Diagnosis reports findings without
+changing age, equipment, or button assignments.
+
+Saved child and adult equipment and button assignments are checked against their
+respective ages, independently of Link's current age. Empty or uninitialized
+saved loadouts are accepted.
+
+Diagnosis should derive applicable context from reliable evidence in the save
+where possible, without requiring callers to supply a game version. Recognizing
+a layout alone does not verify a particular game version or platform. When exact
+version identity cannot be established, diagnosis still applies evidenced age
+rules shared across supported N64 versions. It retains unknown version identity
+and reports uncertainty for checks that require unresolved version-specific
+evidence.
+
 Collection counts and individual location records have no universal precedence.
 For example, marking particular Skulltulas collected can suggest updating the
 total, while requesting a particular total must explain disagreements without
