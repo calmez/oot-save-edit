@@ -8,6 +8,7 @@ import {
   slotLabel,
 } from "../../../utils/saveeditor.ts";
 import { changeBytes, correctionLabel } from "../../correctionreview.ts";
+import SkulltulaEditor from "../islands/skulltulas.tsx";
 import ReviewCorrections from "../islands/correctionreview.tsx";
 import type { CorrectionReview } from "../../correctionreview.ts";
 import { Button } from "./Button.tsx";
@@ -100,6 +101,15 @@ export default function SaveManagement(props: SaveManagementProps) {
             ))}
           </details>
         )}
+      </div>
+      <div class="md:col-span-2">
+        <SkulltulaEditor
+          save={props.save}
+          onChange={(policy) => {
+            if (policy) props.onChecksumPolicy(policy);
+            props.onChange();
+          }}
+        />
       </div>
       <Field label="Copy from">
         <select

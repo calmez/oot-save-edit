@@ -68,6 +68,8 @@ Deno.test("valid and empty records need no structural or gameplay findings", () 
   const result = diagnoseSave(save);
   assertEquals(result.findings.map((finding) => finding.ruleId), [
     "context.game-version",
+    "skulltula.coverage",
+    "skulltula.coverage",
   ]);
   assertEquals(result.slots.slice(1, 3).map((slot) => slot.occupancy), [
     "empty",
@@ -305,7 +307,9 @@ Deno.test("unknown versions, ages, values and tentative fields retain uncertaint
     [],
   );
   const uncertain = result.findings.filter((finding) =>
-    finding.category === "uncertainty" && finding.ruleId !== "field.unsupported"
+    finding.category === "uncertainty" &&
+    finding.ruleId !== "field.unsupported" &&
+    !finding.ruleId.startsWith("skulltula.")
   );
   assertEquals(uncertain.map((finding) => finding.ruleId), [
     "context.game-version",

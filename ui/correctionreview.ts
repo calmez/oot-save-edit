@@ -1,5 +1,7 @@
 import { ChecksumPolicy } from "../models/savefile.ts";
 import type { SraSaveFile } from "../models/savefile.ts";
+import { describeSkulltulaIntent } from "../models/skulltulas.ts";
+import type { SkulltulaIntent } from "../models/skulltulas.ts";
 import {
   applyCorrections,
   discoverCorrections,
@@ -54,6 +56,12 @@ export class CorrectionReview {
     this.plan = discoverCorrections(save);
   }
 
+  get requestedEdit(): string | undefined {
+    return this.plan.skulltula
+      ? describeSkulltulaIntent(this.plan.skulltula.intent)
+      : undefined;
+  }
+
   get sourceFindings(): DiagnosticFinding[] {
     return structuredClone([
       ...(this.save.sourceFile?.findings ?? []),
@@ -63,9 +71,27 @@ export class CorrectionReview {
 
   get findings(): DiagnosticFinding[] {
     const sourceIds = new Set(this.sourceFindings.map((finding) => finding.id));
-    return diagnoseSave(this.save).findings.filter((finding) =>
-      !sourceIds.has(finding.id)
-    );
+    const intent = this.plan.skulltula?.intent;
+    const belongsToRequest = (finding: DiagnosticFinding): boolean =>
+      !!intent && finding.ruleId.startsWith("skulltula.") &&
+      finding.scope.kind === "slot" && finding.scope.record === intent.record &&
+      finding.scope.index === intent.index;
+    return [
+      ...diagnoseSave(this.save).findings.filter((finding) =>
+        !sourceIds.has(finding.id) && !belongsToRequest(finding)
+      ),
+      ...this.plan.unresolved.filter(belongsToRequest),
+    ];
+  }
+
+  stageSkulltula(intent: SkulltulaIntent): void {
+    this.plan = discoverCorrections(this.save, [], intent);
+    this.filter = (item) =>
+      item.scope.kind === "slot" && item.scope.record === intent.record &&
+      item.scope.index === intent.index;
+    this.recoveryFilter = () => false;
+    this.selectRecommended();
+    this.resetReplacementChecksums();
   }
 
   get recoveryPairs(): RecoveryPairDiagnosis[] {
@@ -86,7 +112,11 @@ export class CorrectionReview {
   }
 
   refresh(): void {
-    this.plan = discoverCorrections(this.save, this.plan.outcome);
+    this.plan = discoverCorrections(
+      this.save,
+      this.plan.outcome,
+      this.plan.skulltula?.intent,
+    );
     this.selectRecommended();
     this.resetReplacementChecksums();
   }
@@ -162,6 +192,9 @@ export class CorrectionReview {
 
   cancel(): void {
     this.selected = [];
+    if (this.plan.skulltula) {
+      this.plan = discoverCorrections(this.save, this.outcome);
+    }
   }
 
   declineAll(): void {
@@ -176,7 +209,11 @@ export class CorrectionReview {
       !sameScope(entry.scope, item.scope)
     );
     outcome.push({ scope: item.scope, value: [...item.changes[0].before] });
-    this.plan = discoverCorrections(this.save, outcome);
+    this.plan = discoverCorrections(
+      this.save,
+      outcome,
+      this.plan.skulltula?.intent,
+    );
     this.selected = this.selected.filter((selected) => selected !== id);
   }
 
@@ -187,6 +224,7 @@ export class CorrectionReview {
     this.plan = discoverCorrections(
       this.save,
       this.plan.outcome.filter((entry) => !sameScope(entry.scope, item.scope)),
+      this.plan.skulltula?.intent,
     );
     if (!this.selected.includes(id)) this.selected.push(id);
   }

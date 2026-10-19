@@ -40,6 +40,7 @@ export default function ReviewCorrections(
     : undefined;
   const findings = review.findings;
   const lines: string[] = [
+    ...(review.requestedEdit ? [review.requestedEdit] : []),
     ...suggestions.map((item, position) =>
       `${position === index ? ">" : " "} [${
         review.selected.includes(item.id) ? "x" : " "

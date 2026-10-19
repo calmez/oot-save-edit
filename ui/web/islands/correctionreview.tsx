@@ -47,6 +47,7 @@ export default function ReviewCorrections(
         Nothing is applied until confirmation. Keep a stored field value to make
         it an explicit desired outcome.
       </p>
+      {review.requestedEdit && <p>{review.requestedEdit}</p>}
       {Object.values(DiagnosticCategory).map((category) => (
         <details open key={category}>
           <summary class="font-semibold">{category} findings</summary>

@@ -12,6 +12,7 @@ import {
 } from "../../utils/saveeditor.ts";
 
 import type { CorrectionReview } from "../correctionreview.ts";
+import SkulltulaEditor from "./skulltulas.tsx";
 import ReviewCorrections from "./correctionreview.tsx";
 
 interface SaveManagementProps {
@@ -37,6 +38,16 @@ export default function SaveManagement(
   ) {
     review.open(filter, recoveryFilter);
     setStage("review");
+  }
+  if (stage === "skull-editor") {
+    return (
+      <SkulltulaEditor
+        save={save}
+        target={target}
+        onChange={onChange}
+        onClose={() => setStage("actions")}
+      />
+    );
   }
   if (stage === "review") {
     return (
@@ -71,6 +82,7 @@ export default function SaveManagement(
     { label: "Synchronize all backups from primary slots", value: "sync" },
     { label: "Create or reset a new-game slot", value: "reset" },
     { label: "Return to editor", value: "close" },
+    { label: "Skulltula reconciliation", value: "skull-slot" },
   ];
   return (
     <Box flexDirection="column" borderStyle="round" padding={1}>
@@ -126,6 +138,10 @@ export default function SaveManagement(
                 setStage(value);
                 return;
               }
+            } else if (stage === "skull-slot") {
+              setTarget(Number(value));
+              setStage("skull-editor");
+              return;
             } else if (stage === "source") {
               setSource(Number(value));
               setStage("target");
