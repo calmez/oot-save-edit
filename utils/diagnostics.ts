@@ -1,6 +1,7 @@
 import type { SraSaveFile } from "../models/savefile.ts";
-import { Age, InventoryItems } from "../models/saveslot.ts";
+import { Age, ButtonItemId, InventoryItems } from "../models/saveslot.ts";
 import { toNumber } from "./conversions.ts";
+import { inspectSlotFields } from "./fieldinterpretation.ts";
 
 export enum DiagnosticCategory {
   Structural = "structural",
@@ -98,29 +99,6 @@ const equipmentAgeRequirements: ReadonlyArray<{
   { field: "tunic", shift: 8, ages: [null, null, Age.Adult, Age.Adult] },
   { field: "boots", shift: 12, ages: [null, null, Age.Adult, Age.Adult] },
 ];
-
-// gItemAgeReqs also covers these button item IDs absent from InventoryItems.
-enum ButtonItemId {
-  KokiriSword = 0x3B,
-  MasterSword = 0x3C,
-  BiggoronSword = 0x3D,
-  DekuShield = 0x3E,
-  MirrorShield = 0x40,
-  GoronTunic = 0x42,
-  ZoraTunic = 0x43,
-  IronBoots = 0x45,
-  HoverBoots = 0x46,
-  BulletBag30 = 0x47,
-  BulletBag40 = 0x48,
-  BulletBag50 = 0x49,
-  Quiver30 = 0x4A,
-  Quiver40 = 0x4B,
-  Quiver50 = 0x4C,
-  GoronsBracelet = 0x50,
-  SilverGauntlets = 0x51,
-  GoldenGauntlets = 0x52,
-  GiantsKnife = 0x55,
-}
 
 const childItems = new Set<number>([
   InventoryItems.DekuStick,
@@ -257,6 +235,22 @@ export function diagnoseSave(save: SraSaveFile): SaveDiagnosis {
       const empty = slot.isEmpty;
       slots.push({ record, index, occupancy: empty ? "empty" : "occupied" });
       if (empty) continue;
+      for (const field of inspectSlotFields(slot)) {
+        if (field.status === "available") continue;
+        report(
+          "field.unsupported",
+          { kind: "slot", record, index, field: field.field },
+          field.explanation,
+          DiagnosticCategory.Uncertainty,
+          {
+            source: "SaveSlot / OotText / additionalFields",
+            reference: "Supported editor field interpretations",
+            applicability: "Recognized original N64 SRAM layout",
+            limitations:
+              "Unsupported editor interpretation does not establish game-data corruption or a verified replacement.",
+          },
+        );
+      }
       if (!slot.isPatternValid) {
         report(
           "slot.marker",

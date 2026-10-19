@@ -1,7 +1,7 @@
 import type { JSX } from "preact";
 import { useMemo, useState } from "preact/hooks";
 
-import { ExportByteOrder } from "../../../models/savefile.ts";
+import { ChecksumPolicy, ExportByteOrder } from "../../../models/savefile.ts";
 import type { SraSaveFile } from "../../../models/savefile.ts";
 import {
   LanguageOption,
@@ -183,11 +183,19 @@ function ResolvedSaveEditor(props: ResolvedSaveEditorProps): JSX.Element {
     FileUtil.suggestExportFilename(props.filename, outputFormat)
   );
   const [byteOrder, setByteOrder] = useState(ExportByteOrder.Automatic);
+  const [checksumPolicy, setChecksumPolicy] = useState(
+    ChecksumPolicy.MaintainEdited,
+  );
   const [version, setVersion] = useState(0);
 
   const downloadData = useMemo(() => {
-    return FileUtil.getFileData(saveFile, outputFormat, byteOrder);
-  }, [saveFile, outputFormat, byteOrder, version]);
+    return FileUtil.getFileData(
+      saveFile,
+      outputFormat,
+      byteOrder,
+      checksumPolicy,
+    );
+  }, [saveFile, outputFormat, byteOrder, checksumPolicy, version]);
 
   function onFormatChange(value: FileFormat) {
     setOutputFormat(value);
@@ -253,6 +261,24 @@ function ResolvedSaveEditor(props: ResolvedSaveEditorProps): JSX.Element {
           </Section>
 
           <Section title="Save Options">
+            <Field label="Checksums">
+              <select
+                aria-label="Checksums"
+                value={checksumPolicy}
+                onChange={(event) =>
+                  setChecksumPolicy(
+                    event.currentTarget.value as ChecksumPolicy,
+                  )}
+                className="rounded border px-2 py-1"
+              >
+                <option value={ChecksumPolicy.MaintainEdited}>
+                  Maintain edited slots
+                </option>
+                <option value={ChecksumPolicy.Preserve}>
+                  Preserve stored checksums
+                </option>
+              </select>
+            </Field>
             <Field label="Output Filename">
               <input
                 type="text"

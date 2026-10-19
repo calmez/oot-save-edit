@@ -305,7 +305,7 @@ Deno.test("unknown versions, ages, values and tentative fields retain uncertaint
     [],
   );
   const uncertain = result.findings.filter((finding) =>
-    finding.category === "uncertainty"
+    finding.category === "uncertainty" && finding.ruleId !== "field.unsupported"
   );
   assertEquals(uncertain.map((finding) => finding.ruleId), [
     "context.game-version",

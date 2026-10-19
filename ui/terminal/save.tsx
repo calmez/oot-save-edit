@@ -16,12 +16,16 @@ import {
 import {
   Age,
   Boots,
-  InventoryItems,
+  ButtonItems,
   Shield,
   Sword,
   Tunic,
 } from "../../models/saveslot.ts";
 import { Entrance, Room, Scene, Time } from "../../models/scene.ts";
+import {
+  inspectSlotFields,
+  readableSlot,
+} from "../../utils/fieldinterpretation.ts";
 import { FileFormat, FileUtil } from "../../utils/fileutil.ts";
 import type { SourceFileInfo } from "../../utils/fileutil.ts";
 import { UnresolvedByteOrderError } from "../../utils/inputdiagnostics.ts";
@@ -30,7 +34,6 @@ import { getSlot, slotCount, slotLabel } from "../../utils/saveeditor.ts";
 import { exportByteOrderOptions } from "../exportoptions.ts";
 import { inputEvidenceLines } from "../inputoptions.ts";
 import { sceneIdOptions } from "../labels.ts";
-import { slotDisplayError } from "../slotreadability.ts";
 import {
   Point3DFieldRenderer,
   Point3DFormFieldManager,
@@ -58,6 +61,7 @@ import {
   HealthFormFieldManager,
 } from "./fieldmanagers/health.tsx";
 import type { HealthData } from "./fieldmanagers/health.tsx";
+import { InterpretationsFormFieldManager } from "./fieldmanagers/interpretations.tsx";
 import { InventoryFormFieldManager } from "./fieldmanagers/inventory.tsx";
 import {
   MagicBooleanFieldRenderer,
@@ -106,6 +110,7 @@ type FormFields =
     info_fileFormat: FileFormat;
     saveoptions_filename: string;
     saveoptions_byteOrder: ExportByteOrder;
+    saveoptions_checksumPolicy: ChecksumPolicy;
     saveoptions_fileFormat: FileFormat;
     header_languageOption: LanguageOption;
     header_zTargetOption: ZTargetOption;
@@ -313,24 +318,33 @@ const SaveForm = (
     index: SlotIndex,
     saveFile: SraSaveFile,
   ): SectionDefinition {
-    const slot = getSlot(saveFile, index);
+    const originalSlot = getSlot(saveFile, index);
+    const slot = readableSlot(originalSlot);
+    const interpretations = inspectSlotFields(originalSlot);
     const slotKeyForIndex = (key: string) => slotKey(index, key);
-    const displayError = slotDisplayError(slot);
-    if (slot.isEmpty || displayError) {
+    if (slot.isEmpty) {
       return {
         title: slotLabel(index),
         fields: [{
           type: "readonly.string",
           name: slotKeyForIndex("slotState"),
           label: "Slot state",
-          initialValue: displayError ??
-            "Empty slot. Use Ctrl+G to create a new-game slot.",
+          initialValue: "Empty slot. Use Ctrl+G to create a new-game slot.",
         }],
       };
     }
     return {
       title: slotLabel(index),
       fields: [
+        ...(interpretations.some((field) => field.status !== "available")
+          ? [{
+            type: "interpretations",
+            name: slotKeyForIndex("interpretations"),
+            label: "Field interpretations",
+            saveSlot: originalSlot,
+            initialValue: null,
+          }]
+          : []),
         {
           type: "string",
           name: slotKeyForIndex("playerName"),
@@ -544,19 +558,19 @@ const SaveForm = (
           subfields: {
             bButton: {
               renderer: ButtonEquipsBButtonRenderer,
-              props: { label: "B Button", enum: InventoryItems },
+              props: { label: "B Button", enum: ButtonItems },
             },
             cLeftButton: {
               renderer: ButtonEquipsBButtonRenderer,
-              props: { label: "C-Left", enum: InventoryItems },
+              props: { label: "C-Left", enum: ButtonItems },
             },
             cDownButton: {
               renderer: ButtonEquipsBButtonRenderer,
-              props: { label: "C-Down", enum: InventoryItems },
+              props: { label: "C-Down", enum: ButtonItems },
             },
             cRightButton: {
               renderer: ButtonEquipsBButtonRenderer,
-              props: { label: "C-Right", enum: InventoryItems },
+              props: { label: "C-Right", enum: ButtonItems },
             },
             cLeftOffset: {
               renderer: ButtonEquipsCOffsetRenderer,
@@ -610,6 +624,7 @@ const SaveForm = (
         },
         {
           type: "obtained",
+          saveSlot: originalSlot,
           name: slotKeyForIndex("obtained"),
           label: "Obtained Equipment, Upgrades, Quest Items",
           initialValue: {
@@ -732,17 +747,45 @@ const SaveForm = (
           type: "additionaldata",
           name: slotKeyForIndex("additionalData"),
           label: "Additional progress and advanced data",
-          saveSlot: slot,
+          saveSlot: originalSlot,
           initialValue: slot.additionalData,
         },
         {
           type: "permanentsceneflags",
           name: slotKeyForIndex("permanentSceneFlags"),
           label: "Permanent Scene Flags",
-          saveSlot: slot,
+          saveSlot: originalSlot,
           initialValue: { bytes: Array.from(slot.data.slice(0xD4, 0xE64)) },
         },
-      ],
+      ].map((field) => {
+        const key = field.name?.replace(`slot_${index}_`, "");
+        if (
+          (field.initialValue === undefined ||
+            key === "roomWithEntrance" && slot.room === undefined) &&
+          field.type !== "interpretations"
+        ) {
+          return {
+            ...field,
+            type: "readonly.string",
+            initialValue:
+              "Unavailable; use Field interpretations to review a replacement.",
+          };
+        }
+        const interpretation = interpretations.find((entry) =>
+          entry.field === key && entry.status !== "available"
+        );
+        if (
+          interpretation &&
+          ["enum", "integer", "boolean", "point3d"].includes(field.type)
+        ) {
+          return {
+            ...field,
+            type: "readonly.string",
+            initialValue: interpretation.explanation,
+          };
+        }
+        return field;
+      }),
     };
   }
 
@@ -756,6 +799,7 @@ const SaveForm = (
       info_fileFormat: inputFormat,
       saveoptions_filename: suggestedFilename,
       saveoptions_byteOrder: ExportByteOrder.Automatic,
+      saveoptions_checksumPolicy: ChecksumPolicy.MaintainEdited,
       saveoptions_fileFormat: inputFormat,
       header_languageOption: originalSaveFile.header.languageOption,
       header_zTargetOption: originalSaveFile.header.zTargetOption,
@@ -854,6 +898,19 @@ const SaveForm = (
               "File Format (SRM: Mupen64Plus-Next LE, new containers provisional)",
             enum: FileFormat,
             initialValue: inputFormat,
+          },
+          {
+            type: "selection",
+            name: "saveoptions_checksumPolicy",
+            label: "Checksums",
+            options: [{
+              value: ChecksumPolicy.MaintainEdited,
+              label: "Maintain edited slots",
+            }, {
+              value: ChecksumPolicy.Preserve,
+              label: "Preserve stored checksums",
+            }],
+            initialValue: ChecksumPolicy.MaintainEdited,
           },
         ],
       },
@@ -976,6 +1033,7 @@ const SaveForm = (
             FlagsGroupFormFieldManager,
             PermanentSceneFlagsFormFieldManager,
             AdditionalDataFormFieldManager,
+            InterpretationsFormFieldManager,
           ]}
           form={{
             title: "Edit Save",
@@ -1030,6 +1088,7 @@ const SaveForm = (
                 values.saveoptions_fileFormat,
                 formState.saveFile,
                 values.saveoptions_byteOrder,
+                values.saveoptions_checksumPolicy,
               );
               setSaveMessage(`Saved ${outputFilename}`);
             } catch (error) {

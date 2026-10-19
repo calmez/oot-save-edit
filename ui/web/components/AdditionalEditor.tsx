@@ -1,6 +1,11 @@
 import { useEffect, useState } from "preact/hooks";
+
 import { additionalFields } from "../../../models/additionaldata.ts";
 import type { SaveSlot } from "../../../models/saveslot.ts";
+import {
+  inspectSlotFields,
+  interpretSlotField,
+} from "../../../utils/fieldinterpretation.ts";
 import {
   additionalFieldHelp,
   additionalFieldValue,
@@ -14,10 +19,12 @@ interface AdditionalInputProps {
   fieldKey: AdditionalFieldKey;
   onChange: () => void;
   readOnly: boolean;
+  unavailableMembers: boolean;
 }
 
 function AdditionalInput(
-  { slot, fieldKey, onChange, readOnly }: AdditionalInputProps,
+  { slot, fieldKey, onChange, readOnly, unavailableMembers }:
+    AdditionalInputProps,
 ) {
   const spec = additionalFields[fieldKey];
   const current = additionalFieldValue(slot, fieldKey);
@@ -38,6 +45,17 @@ function AdditionalInput(
     }
   }
 
+  if (
+    interpretSlotField(slot, `additionalData.${fieldKey}`).status !==
+      "available" ||
+    unavailableMembers
+  ) {
+    return (
+      <Field label={spec.label}>
+        <p>Unavailable; review Field interpretations.</p>
+      </Field>
+    );
+  }
   return (
     <Field label={spec.label} help={additionalFieldHelp(fieldKey)}>
       {"boolean" in spec
@@ -77,6 +95,9 @@ function AdditionalInput(
 export default function AdditionalEditor(
   props: { slot: SaveSlot; onChange: () => void; readOnly: boolean },
 ) {
+  const unavailable = inspectSlotFields(props.slot).filter((field) =>
+    field.status !== "available"
+  );
   return (
     <details className="rounded border border-slate-200 p-3">
       <summary className="cursor-pointer font-semibold">
@@ -90,6 +111,9 @@ export default function AdditionalEditor(
             fieldKey={key}
             onChange={props.onChange}
             readOnly={props.readOnly}
+            unavailableMembers={unavailable.some((field) =>
+              field.field.startsWith(`additionalData.${key}.`)
+            )}
           />
         ))}
       </div>

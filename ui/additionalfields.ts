@@ -1,6 +1,7 @@
 import { additionalFields, fieldRange } from "../models/additionaldata.ts";
 import type { AdditionalSaveData } from "../models/additionaldata.ts";
 import type { SaveSlot } from "../models/saveslot.ts";
+import { interpretSlotField } from "../utils/fieldinterpretation.ts";
 
 export type AdditionalFieldKey = keyof AdditionalSaveData;
 
@@ -8,6 +9,12 @@ export function additionalFieldValue(
   slot: SaveSlot,
   key: AdditionalFieldKey,
 ): string {
+  const interpretation = interpretSlotField(slot, `additionalData.${key}`);
+  if (interpretation.status !== "available") {
+    return `Unavailable (${
+      JSON.stringify(interpretation.storedValue)
+    }); use Field interpretations`;
+  }
   const value = slot.additionalData[key];
   const spec = additionalFields[key];
   if (Array.isArray(value)) {

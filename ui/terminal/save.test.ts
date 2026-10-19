@@ -207,6 +207,7 @@ Deno.test("TUI saves the selected SRAM output order", async () => {
     assertStringIncludes(editor.frame(), "Word-swapped (32-bit)");
     await editor.input("\u001b[B");
     await editor.input("\u001b[B");
+    await editor.input("\u001b[B");
     await editor.input("\r");
     assertStringIncludes(editor.frame(), "Saved new-save.sra");
     assertEquals(FileUtil.loadFileFromBuffer(written).isByteSwapped, true);
@@ -248,6 +249,7 @@ for (const format of [FileFormat.SRA, FileFormat.SRM]) {
       await editor.input(format === FileFormat.SRA ? "\u001b[B" : "\u001b[A");
       await editor.input("\r");
       assertStringIncludes(editor.frame(), targetFilename);
+      await editor.input("\u001b[B");
       await editor.input("\u001b[B");
       await editor.input("\r");
       assertStringIncludes(editor.frame(), `Saved ${targetFilename}`);
@@ -397,8 +399,8 @@ for (const format of ["sra", "srm"]) {
       await editor.input(format === "sra" ? "w" : "b");
       assertStringIncludes(editor.frame(), "overridden");
       await editor.input("4");
-      assertStringIncludes(editor.frame(), "Cannot display this record");
-      assertStringIncludes(editor.frame(), "ddOnly");
+      assertStringIncludes(editor.frame(), "Field interpretations");
+      assertStringIncludes(editor.frame(), "Player Name");
       await editor.input("\u000f");
       await editor.input(format === "sra" ? "b" : "w");
       await editor.input("4");
@@ -409,3 +411,49 @@ for (const format of ["sra", "srm"]) {
     }
   });
 }
+
+Deno.test("TUI exposes unaffected controls and an explicit replacement review for an unavailable field", async () => {
+  const save = new SraSaveFile();
+  save.slots[0].data[0x3A] = 2;
+  save.slots[0].faroresWindWarp = { x: 123, y: -456, z: 789, yRotation: -90 };
+  const source = save.getData();
+  const loaded = FileUtil.loadFileFromBuffer(source, undefined, "partial.sra");
+  const load = stub(FileUtil, "loadFile", () => loaded);
+  const editor = await renderEditor(60, false, "partial.sra");
+  try {
+    await editor.input("4");
+    assertStringIncludes(editor.frame(), "Field interpretations");
+    assertStringIncludes(editor.frame(), "Player Name");
+    await editor.input("\u001b[B");
+    await editor.input("\u001b[B");
+    await editor.input("\r");
+    assertStringIncludes(editor.frame(), "magicFlag1");
+    await editor.input("\r");
+    await editor.input("false");
+    await editor.input("\r");
+    assertStringIncludes(editor.frame(), "Replace magicFlag1 with false");
+    await editor.input("\u001b");
+    assertStringIncludes(editor.frame(), "Field interpretations");
+    assertEquals(loaded.slots[0].data[0x3A], 2);
+    assertEquals(source, loaded.getData());
+    await editor.input("\u001b[B");
+    await editor.input("\r");
+    await editor.input("\r");
+    await editor.input("false");
+    await editor.input("\r");
+    assertStringIncludes(editor.frame(), "Replace magicFlag1 with false");
+    await editor.input("\r");
+    assertEquals(loaded.slots[0].magicFlag1, false);
+    assertEquals(loaded.slots[0].checksum, save.slots[0].checksum);
+    let pages = editor.frame();
+    for (let page = 0; page < 4; page++) {
+      await editor.input("]");
+      pages += editor.frame();
+    }
+    assertStringIncludes(pages, "Farore's Wind");
+    assertStringIncludes(pages, "tentative");
+  } finally {
+    await editor.cleanup();
+    load.restore();
+  }
+});

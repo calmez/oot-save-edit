@@ -1,8 +1,9 @@
-import React from "react";
 import { AbstractFormField, SpecificFormFieldRendererProps } from "ink-form";
-import { FormFieldManagerWithSubfieldsFactory } from "./subfield.tsx";
-import { EnumFieldRendererFactory } from "./renderers/enum.tsx";
+import React from "react";
+
 import { Boots, Shield, Sword, Tunic } from "../../../models/saveslot.ts";
+import { EnumFieldRendererFactory } from "./renderers/enum.tsx";
+import { FormFieldManagerWithSubfieldsFactory } from "./subfield.tsx";
 
 export interface CurrentEquipmentData {
   sword: number;
@@ -66,10 +67,14 @@ export const CurrentEquipFormFieldManager =
       props: SpecificFormFieldRendererProps<FormFieldCurrentEquip>,
     ) => (
       <>
-        Sword: {Sword[props.value?.sword ?? 0] || "None"}, Shield:{" "}
-        {Shield[props.value?.shield ?? 0] || "None"}, Tunic:{" "}
-        {Tunic[props.value?.tunic ?? 0] || "None"}, Boots:{" "}
-        {Boots[props.value?.boots ?? 0] || "None"}
+        Sword: {Sword[props.value?.sword ?? 0] ||
+          (props.value?.sword ? `Unknown (${props.value.sword})` : "None")},
+        Shield: {Shield[props.value?.shield ?? 0] ||
+          (props.value?.shield ? `Unknown (${props.value.shield})` : "None")},
+        Tunic: {Tunic[props.value?.tunic ?? 0] ||
+          (props.value?.tunic ? `Unknown (${props.value.tunic})` : "None")},
+        Boots: {Boots[props.value?.boots ?? 0] ||
+          (props.value?.boots ? `Unknown (${props.value.boots})` : "None")}
       </>
     ),
   );
