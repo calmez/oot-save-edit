@@ -12,6 +12,10 @@ interface CorrectionReviewProps {
   onCancel: () => void;
 }
 
+function integrityStatus(value: boolean | null): string {
+  return value === null ? "not applicable" : value ? "valid" : "invalid";
+}
+
 export default function ReviewCorrections(
   { review, onConfirm, onCancel }: CorrectionReviewProps,
 ) {
@@ -28,14 +32,25 @@ export default function ReviewCorrections(
     error = cause instanceof Error ? cause.message : String(cause);
   }
   const suggestions = review.suggestions;
-  const current =
-    suggestions[Math.min(index, Math.max(0, suggestions.length - 1))];
+  const recoverySuggestions = review.recoverySuggestions;
+  const itemCount = suggestions.length + recoverySuggestions.length;
+  const current = index < suggestions.length ? suggestions[index] : undefined;
+  const recoveryCurrent = index >= suggestions.length
+    ? recoverySuggestions[index - suggestions.length]
+    : undefined;
   const findings = review.findings;
   const lines: string[] = [
     ...suggestions.map((item, position) =>
       `${position === index ? ">" : " "} [${
         review.selected.includes(item.id) ? "x" : " "
       }] ${correctionLabel(item.scope)}`
+    ),
+    ...recoverySuggestions.map((item, position) =>
+      `${index === suggestions.length + position ? ">" : " "} [${
+        review.selected.includes(item.id) ? "x" : " "
+      }] ${item.action} ${item.source} ${
+        item.index + 1
+      } → ${item.destination} ${item.index + 1}`
     ),
     ...(current
       ? [
@@ -65,7 +80,36 @@ export default function ReviewCorrections(
           ]
           : []),
       ]
+      : recoveryCurrent
+      ? []
       : ["No supported corrections in this scope."]),
+    ...(recoveryCurrent
+      ? [
+        `Inspecting ${recoveryCurrent.action} ${recoveryCurrent.source} ${
+          recoveryCurrent.index + 1
+        } to ${recoveryCurrent.destination} ${recoveryCurrent.index + 1}.`,
+        "The destination record will be replaced, the destination file index retained, and the replacement action leaves the source unchanged. Selecting this replacement clears the pair's default-selected repairs so marker repair remains independent. Select any repair separately afterward if desired.",
+        `Source marker/checksum: ${
+          integrityStatus(recoveryCurrent.sourceIntegrity.markerValid)
+        }/${
+          integrityStatus(recoveryCurrent.sourceIntegrity.checksumValid)
+        }. Destination marker/checksum: ${
+          integrityStatus(recoveryCurrent.destinationIntegrity.markerValid)
+        }/${
+          integrityStatus(recoveryCurrent.destinationIntegrity.checksumValid)
+        }.`,
+        `Checksum recalculation from final destination contents: ${
+          review.replacementChecksums[recoveryCurrent.id] ?? true
+            ? "selected"
+            : "declined"
+        }. Press c to toggle independently.`,
+        `Copied destination marker repair: ${
+          review.replacementMarkers[recoveryCurrent.id]
+            ? "selected"
+            : "declined"
+        }. Press m to toggle independently; this cannot reconstruct missing progress.`,
+      ]
+      : []),
     ...review.plan.outcome.map((outcome) =>
       `Desired outcome: keep stored ${correctionLabel(outcome.scope)}.`
     ),
@@ -78,7 +122,10 @@ export default function ReviewCorrections(
         changeBytes(change.after)
       }`
     ) ?? []),
-    ...(preview?.changes.length === 0 ? ["No byte changes selected."] : []),
+    ...(preview && preview.changes.length === 0 &&
+        preview.replacements.length === 0
+      ? ["No byte changes selected."]
+      : []),
     ...(preview?.requiredCorrections.length
       ? [
         "Checksum corrections omitted: preserve stored checksums after marker changes.",
@@ -97,6 +144,92 @@ export default function ReviewCorrections(
         }`
       ),
     ]),
+    "Paired primary and backup records:",
+    "Record position and passing checks do not establish freshness or preferred progress.",
+    "Marker and checksum repair changes structural fields only; it cannot reconstruct missing progress. Unavailable readings and remaining byte differences have no assigned gameplay meaning.",
+    ...review.recoveryPairs.flatMap((pair) => [
+      `Slot ${pair.index + 1} / Backup ${pair.index + 1}: primary ${
+        pair.primaryIntegrity.occupied ? "occupied" : "empty"
+      }, marker ${
+        integrityStatus(pair.primaryIntegrity.markerValid)
+      }, checksum ${
+        integrityStatus(pair.primaryIntegrity.checksumValid)
+      }, file index ${pair.primaryIntegrity.fileIndex}; backup ${
+        pair.backupIntegrity.occupied ? "occupied" : "empty"
+      }, marker ${
+        integrityStatus(pair.backupIntegrity.markerValid)
+      }, checksum ${
+        integrityStatus(pair.backupIntegrity.checksumValid)
+      }, file index ${pair.backupIntegrity.fileIndex}.`,
+      ...(pair.primaryIntegrity.occupied || pair.backupIntegrity.occupied
+        ? pair.comparisons.map((comparison) =>
+          `${comparison.label} (${
+            comparison.equal === null
+              ? "comparison unavailable"
+              : comparison.equal
+              ? "same"
+              : "different"
+          }): primary ${
+            comparison.primary.available
+              ? comparison.primary.value
+              : `unavailable (${comparison.primary.explanation})`
+          }; backup ${
+            comparison.backup.available
+              ? comparison.backup.value
+              : `unavailable (${comparison.backup.explanation})`
+          }.`
+        )
+        : ["No initialized progress in either record."]),
+      `${pair.byteDifferences} differing bytes; ${pair.uninterpretedByteDifferences} differ outside the displayed interpretations.`,
+    ]),
+    "Explicit recovery and synchronization choices:",
+    ...(review.recoverySuggestions.length
+      ? review.recoverySuggestions.map((item) =>
+        `${
+          review.selected.includes(item.id) ? "[x]" : "[ ]"
+        } ${item.action} ${item.source} ${
+          item.index + 1
+        } to ${item.destination} ${item.index + 1}; source marker/checksum ${
+          integrityStatus(item.sourceIntegrity.markerValid)
+        }/${
+          integrityStatus(item.sourceIntegrity.checksumValid)
+        }; destination marker/checksum ${
+          integrityStatus(item.destinationIntegrity.markerValid)
+        }/${
+          integrityStatus(item.destinationIntegrity.checksumValid)
+        }; replacing destination state, preserving its file index and leaving source unchanged. Press Space with this choice selected to toggle it. Checksum recalculation: ${
+          review.replacementChecksums[item.id] ?? true ? "selected" : "declined"
+        } (toggle with c while focused).`
+      )
+      : [
+        "No supported recovery replacement is available for the paired records.",
+      ]),
+    ...preview?.replacements.map((replacement) => {
+      const proposal = review.plan.recovery.find((item) =>
+        item.id === replacement.id
+      )!;
+      return `Preview: replace ${replacement.destination} ${
+        replacement.index + 1
+      } with ${replacement.source} ${replacement.index + 1}; ${
+        replacement.before.filter((value, index) =>
+          value !== replacement.after[index]
+        ).length
+      } bytes change; destination file index ${
+        changeBytes(replacement.before.slice(0x1354, 0x1358))
+      } → ${changeBytes(replacement.after.slice(0x1354, 0x1358))}; marker ${
+        changeBytes(replacement.before.slice(0x1c, 0x22))
+      } → ${
+        changeBytes(replacement.after.slice(0x1c, 0x22))
+      }; source checksum ${
+        changeBytes(proposal.sourceBytes.slice(0x1352, 0x1354))
+      }; final checksum ${
+        changeBytes(replacement.after.slice(0x1352, 0x1354))
+      }, ${
+        replacement.checksumRecalculated
+          ? "recalculated from final contents"
+          : "copied from source and retained"
+      }; replacement leaves source unchanged.`;
+    }) ?? [],
     "Original source evidence (historical):",
     ...review.sourceFindings.map((finding) =>
       `${finding.category}: ${finding.explanation}`
@@ -106,11 +239,24 @@ export default function ReviewCorrections(
       result,
       position,
     ) => [
-      `Review ${position + 1}: ${result.changes.length} changes`,
+      `Review ${
+        position + 1
+      }: ${result.changes.length} correction changes, ${result.replacements.length} replacement actions`,
       ...result.changes.map((change) =>
         `${correctionLabel(change.scope)}: ${changeBytes(change.before)} → ${
           changeBytes(change.after)
         }`
+      ),
+      ...result.replacements.map((replacement) =>
+        `${replacement.destination} ${
+          replacement.index + 1
+        } replaced from ${replacement.source} ${
+          replacement.index + 1
+        }; destination index retained; checksum ${
+          replacement.checksumRecalculated
+            ? "recalculated"
+            : "copied from source"
+        }.`
       ),
     ]),
   ];
@@ -139,10 +285,29 @@ export default function ReviewCorrections(
       setIndex(Math.max(0, index - 1));
       setPage(0);
     } else if (key.downArrow) {
-      setIndex(Math.min(suggestions.length - 1, index + 1));
+      setIndex(Math.max(0, Math.min(itemCount - 1, index + 1)));
       setPage(0);
     } else if (input === " " && current) {
       perform(() => review.toggle(current.id));
+    } else if (input === " " && recoveryCurrent) {
+      perform(() => review.toggle(recoveryCurrent.id));
+    } else if (input === "c" && recoveryCurrent) {
+      perform(() =>
+        review.setReplacementChecksum(
+          recoveryCurrent.id,
+          !(review.replacementChecksums[recoveryCurrent.id] ?? true),
+        )
+      );
+    } else if (
+      input === "m" && recoveryCurrent &&
+      recoveryCurrent.sourceIntegrity.markerValid === false
+    ) {
+      perform(() =>
+        review.setReplacementMarker(
+          recoveryCurrent.id,
+          !review.replacementMarkers[recoveryCurrent.id],
+        )
+      );
     } else if (input === "k" && current) {
       perform(() => review.retain(current.id));
     } else if (input === "o" && current) {
@@ -176,7 +341,10 @@ export default function ReviewCorrections(
           {error || message} Refresh and review again before confirming.
         </Text>
       )}
-      <Text>↑/↓ inspect · Space toggle · [/] page · d decline all</Text>
+      <Text>
+        ↑/↓ inspect · Space toggle · c checksum · m marker · [/] page · d
+        decline all
+      </Text>
       <Text>k keep stored value · o explicitly allow correction instead</Text>
       <Text>a confirm selection · r refresh review · Escape cancel</Text>
     </Box>

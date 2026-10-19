@@ -529,6 +529,83 @@ for (const format of [FileFormat.SRA, FileFormat.SRM]) {
   }
 }
 
+Deno.test("web recovery review compares records and requires a selected, previewed replacement", async () => {
+  const window = parseHTML("<html><body></body></html>");
+  const descriptor = Object.getOwnPropertyDescriptor(globalThis, "document");
+  const document = window.document as unknown as Document;
+  Object.defineProperty(globalThis, "document", {
+    configurable: true,
+    value: document,
+  });
+  const container = document.body;
+  const save = new SraSaveFile();
+  save.slots[0].maxHealth = 160;
+  save.backups[0].maxHealth = 48;
+  save.backups[0].updateChecksum();
+  save.backups[0].fileIndex = 2;
+  const source = save.backups[0].data.slice();
+  const original = save.getData();
+  async function click(label: string) {
+    const button = Array.from(container.querySelectorAll("button")).find((
+      item,
+    ) => item.textContent === label);
+    assertExists(button, label);
+    await act(() => button.click());
+  }
+  async function download(): Promise<Uint8Array> {
+    const anchor = container.querySelector<HTMLAnchorElement>("a[download]");
+    assertExists(anchor);
+    return new Uint8Array(await (await fetch(anchor.href)).arrayBuffer());
+  }
+  try {
+    await act(() =>
+      render(
+        h(SaveEditor, {
+          filename: "recovery.sra",
+          initialSaveData: original,
+          detectedFormat: FileFormat.SRA,
+        }),
+        container,
+      )
+    );
+    await click("Review suggested corrections");
+    assertEquals(container.textContent?.includes("10 hearts"), true);
+    assertEquals(container.textContent?.includes("3 hearts"), true);
+    assertEquals(container.textContent?.includes("freshness"), true);
+    const replacement = container.querySelector<HTMLInputElement>(
+      'input[aria-label="Restore backup 1 to primary 1"]',
+    );
+    assertExists(replacement);
+    assertEquals(await download(), original);
+    await act(() => {
+      replacement.checked = true;
+      replacement.dispatchEvent(new window.Event("change", { bubbles: true }));
+    });
+    const checksum = container.querySelector<HTMLInputElement>(
+      'input[aria-label="Recalculate checksum for primary 1"]',
+    );
+    assertExists(checksum);
+    await act(() => {
+      checksum.checked = false;
+      checksum.dispatchEvent(new window.Event("change", { bubbles: true }));
+    });
+    assertEquals(
+      container.textContent?.includes("copied from source and retained"),
+      true,
+    );
+    assertEquals(await download(), original);
+    await click("Confirm selected corrections");
+    const exported = new SraSaveFile().read(await download());
+    assertEquals(exported.slots[0].maxHealth, 48);
+    assertEquals(exported.slots[0].fileIndex, 0);
+    assertEquals(exported.backups[0].data, source);
+  } finally {
+    await act(() => render(null, container));
+    if (descriptor) Object.defineProperty(globalThis, "document", descriptor);
+    else Reflect.deleteProperty(globalThis, "document");
+  }
+});
+
 Deno.test("web review resolves an explicit outcome conflict and refreshes a stale plan without applying it", async () => {
   const window = parseHTML("<html><body></body></html>");
   const descriptor = Object.getOwnPropertyDescriptor(globalThis, "document");

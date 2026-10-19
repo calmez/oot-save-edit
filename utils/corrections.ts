@@ -47,10 +47,40 @@ export interface CorrectionConflict {
 
 export interface CorrectionPlan {
   suggestions: CorrectionSuggestion[];
+  recovery: RecoverySuggestion[];
   outcome: OutcomeConstraint[];
   conflicts: CorrectionConflict[];
   /** Findings without a supported correction, including uncertain interpretations. */
   unresolved: DiagnosticFinding[];
+}
+
+export interface RecoverySuggestion {
+  id: string;
+  index: number;
+  source: "primary" | "backup";
+  destination: "primary" | "backup";
+  action: "restore" | "synchronize";
+  sourceBytes: number[];
+  destinationBytes: number[];
+  sourceIntegrity: {
+    markerValid: boolean | null;
+    checksumValid: boolean | null;
+  };
+  destinationIntegrity: {
+    markerValid: boolean | null;
+    checksumValid: boolean | null;
+  };
+}
+
+export interface RecoveryReplacement {
+  id: string;
+  index: number;
+  source: "primary" | "backup";
+  destination: "primary" | "backup";
+  before: number[];
+  after: number[];
+  checksumRecalculated: boolean;
+  markerRepaired: boolean;
 }
 
 function validSlotScope(scope: DiagnosticScope): boolean {
@@ -173,6 +203,7 @@ function collectCorrections(
   }
   const plan: CorrectionPlan = {
     suggestions,
+    recovery: collectRecovery(save),
     outcome: structuredClone(outcome),
     conflicts: [],
     unresolved: diagnosis.findings.filter((finding) =>
@@ -189,6 +220,79 @@ export interface CorrectionResult {
   requiredCorrections: string[];
   conflicts: CorrectionConflict[];
   excluded: string[];
+  replacements: RecoveryReplacement[];
+}
+
+function recoveryIntegrity(
+  slot: SaveSlot,
+): RecoverySuggestion["sourceIntegrity"] {
+  const occupied = !slot.isEmpty;
+  return {
+    markerValid: occupied ? slot.isPatternValid : null,
+    checksumValid: occupied ? slot.isChecksumValid() : null,
+  };
+}
+
+function collectRecovery(save: SraSaveFile): RecoverySuggestion[] {
+  const recovery: RecoverySuggestion[] = [];
+  for (let index = 0; index < 3; index++) {
+    const primary = save.slots[index];
+    const backup = save.backups[index];
+    if (primary.data.every((value, offset) => value === backup.data[offset])) {
+      continue;
+    }
+    if (!primary.isEmpty) {
+      recovery.push({
+        id: `recovery.synchronize:primary.${index}.to.backup`,
+        index,
+        source: "primary",
+        destination: "backup",
+        action: "synchronize",
+        sourceBytes: [...primary.data],
+        destinationBytes: [...backup.data],
+        sourceIntegrity: recoveryIntegrity(primary),
+        destinationIntegrity: recoveryIntegrity(backup),
+      });
+    }
+    if (!primary.isEmpty && !backup.isEmpty) {
+      recovery.push({
+        id: `recovery.restore:backup.${index}.to.primary`,
+        index,
+        source: "backup",
+        destination: "primary",
+        action: "restore",
+        sourceBytes: [...backup.data],
+        destinationBytes: [...primary.data],
+        sourceIntegrity: recoveryIntegrity(backup),
+        destinationIntegrity: recoveryIntegrity(primary),
+      });
+    } else if (!backup.isEmpty) {
+      recovery.push({
+        id: `recovery.restore:backup.${index}.to.primary`,
+        index,
+        source: "backup",
+        destination: "primary",
+        action: "restore",
+        sourceBytes: [...backup.data],
+        destinationBytes: [...primary.data],
+        sourceIntegrity: recoveryIntegrity(backup),
+        destinationIntegrity: recoveryIntegrity(primary),
+      });
+    }
+  }
+  return recovery;
+}
+
+function sameRecovery(a: RecoverySuggestion, b: RecoverySuggestion): boolean {
+  return a.id === b.id && a.index === b.index && a.source === b.source &&
+    a.destination === b.destination && a.action === b.action &&
+    equal(a.sourceBytes, b.sourceBytes) &&
+    equal(a.destinationBytes, b.destinationBytes) &&
+    a.sourceIntegrity.markerValid === b.sourceIntegrity.markerValid &&
+    a.sourceIntegrity.checksumValid === b.sourceIntegrity.checksumValid &&
+    a.destinationIntegrity.markerValid === b.destinationIntegrity.markerValid &&
+    a.destinationIntegrity.checksumValid ===
+      b.destinationIntegrity.checksumValid;
 }
 
 export class CorrectionError extends Error {
@@ -206,9 +310,11 @@ function validateSelection(
   save: SraSaveFile,
   plan: CorrectionPlan,
   selected: string[],
-): CorrectionSuggestion[] {
+): { chosen: CorrectionSuggestion[]; recoveries: RecoverySuggestion[] } {
   const current = collectCorrections(save);
   const chosen: CorrectionSuggestion[] = [];
+  const recoveries: RecoverySuggestion[] = [];
+  const currentRecovery = collectRecovery(save);
   const seen = new Set<string>();
   for (const id of selected) {
     if (seen.has(id)) {
@@ -219,6 +325,22 @@ function validateSelection(
       });
     }
     seen.add(id);
+    const recovery = plan.recovery.find((item) => item.id === id);
+    if (recovery) {
+      const supported = currentRecovery.find((item) => item.id === id);
+      if (
+        !supported || !sameRecovery(recovery, supported)
+      ) {
+        fail({
+          code: "stale",
+          correctionId: id,
+          explanation:
+            `Recovery choice ${id} is stale; refresh the review before confirming.`,
+        });
+      }
+      recoveries.push(supported);
+      continue;
+    }
     const proposal = plan.suggestions.find((item) => item.id === id);
     const supported = current.suggestions.find((item) => item.id === id);
     if (!proposal) {
@@ -260,7 +382,20 @@ function validateSelection(
     }
     chosen.push(supported);
   }
-  return chosen;
+  const replacedPairs = new Set<number>();
+  for (const recovery of recoveries) {
+    if (replacedPairs.has(recovery.index)) {
+      fail({
+        code: "selection",
+        correctionId: recovery.id,
+        explanation: `Choose only one recovery replacement for pair ${
+          recovery.index + 1
+        }.`,
+      });
+    }
+    replacedPairs.add(recovery.index);
+  }
+  return { chosen, recoveries };
 }
 
 function sameProposal(
@@ -286,8 +421,10 @@ export function previewCorrections(
   save: SraSaveFile,
   plan: CorrectionPlan,
   selected: string[],
+  replacementChecksums: Record<string, boolean> = {},
+  replacementMarkers: Record<string, boolean> = {},
 ): CorrectionResult {
-  const chosen = validateSelection(save, plan, selected);
+  const { chosen, recoveries } = validateSelection(save, plan, selected);
   const copies = new Map<string, Uint8Array>();
   const recordKey = (scope: DiagnosticScope): string =>
     scope.kind === "slot" ? `${scope.record}.${scope.index}` : scope.kind;
@@ -296,6 +433,38 @@ export function previewCorrections(
     if (!copies.has(key)) copies.set(key, recordData(save, scope).slice());
     return copies.get(key)!;
   };
+  const replacements = recoveries.map((recovery): RecoveryReplacement => {
+    const source = (recovery.source === "primary" ? save.slots : save.backups)[
+      recovery.index
+    ];
+    const destination =
+      (recovery.destination === "primary" ? save.slots : save.backups)[
+        recovery.index
+      ];
+    const before = destination.data.slice();
+    const after = source.data.slice();
+    after.set(before.subarray(0x1354, 0x1358), 0x1354);
+    const markerRepaired = replacementMarkers[recovery.id] ?? false;
+    if (markerRepaired) after.set(SaveSlot.validCheckPattern, 0x1C);
+    const checksumRecalculated = replacementChecksums[recovery.id] ?? true;
+    const scope: DiagnosticScope = {
+      kind: "slot",
+      record: recovery.destination,
+      index: recovery.index,
+      field: "replacement",
+    };
+    copyFor(scope).set(after);
+    return {
+      id: recovery.id,
+      index: recovery.index,
+      source: recovery.source,
+      destination: recovery.destination,
+      before: [...before],
+      after: [...copyFor(scope)],
+      checksumRecalculated,
+      markerRepaired,
+    };
+  });
   for (const item of chosen) {
     if (item.scope.field === "checksum") continue;
     for (const change of item.changes) {
@@ -305,6 +474,16 @@ export function previewCorrections(
   for (const item of chosen) {
     if (item.scope.field === "checksum") {
       new SaveSlot(copyFor(item.scope)).updateChecksum();
+    }
+  }
+  for (const replacement of replacements) {
+    if (replacement.checksumRecalculated) {
+      new SaveSlot(copyFor({
+        kind: "slot",
+        record: replacement.destination,
+        index: replacement.index,
+        field: "checksum",
+      })).updateChecksum();
     }
   }
   validateOutcome(plan.outcome, copyFor);
@@ -325,12 +504,22 @@ export function previewCorrections(
   ).map((item) =>
     `slot.checksum:${scopeKey({ ...item.scope, field: "checksum" })}`
   );
+  for (const replacement of replacements) {
+    const destinationScope: DiagnosticScope = {
+      kind: "slot",
+      record: replacement.destination,
+      index: replacement.index,
+      field: "replacement",
+    };
+    replacement.after = [...copyFor(destinationScope)];
+  }
   return {
     selected: [...selected],
     changes,
     requiredCorrections,
     conflicts: [],
     excluded: [],
+    replacements,
   };
 }
 
@@ -379,8 +568,23 @@ export function applyCorrections(
   save: SraSaveFile,
   plan: CorrectionPlan,
   selected: string[],
+  replacementChecksums: Record<string, boolean> = {},
+  replacementMarkers: Record<string, boolean> = {},
 ): CorrectionResult {
-  const result = previewCorrections(save, plan, selected);
+  const result = previewCorrections(
+    save,
+    plan,
+    selected,
+    replacementChecksums,
+    replacementMarkers,
+  );
+  for (const replacement of result.replacements) {
+    const destination =
+      (replacement.destination === "primary" ? save.slots : save.backups)[
+        replacement.index
+      ];
+    destination.data.set(replacement.after);
+  }
   for (const change of result.changes) {
     recordData(save, change.scope).set(change.after, change.offset);
   }

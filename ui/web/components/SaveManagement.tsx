@@ -2,6 +2,7 @@ import { useState } from "preact/hooks";
 import type { ChecksumPolicy, SraSaveFile } from "../../../models/savefile.ts";
 import {
   copySlot,
+  getSlot,
   resetSlotToNewGame,
   slotCount,
   slotLabel,
@@ -22,13 +23,26 @@ interface SaveManagementProps {
 
 export default function SaveManagement(props: SaveManagementProps) {
   const [reviewOpen, setReviewOpen] = useState(false);
-  function openReview(filter?: Parameters<CorrectionReview["open"]>[0]) {
-    props.review.open(filter);
+  function openReview(
+    filter?: Parameters<CorrectionReview["open"]>[0],
+    recoveryFilter?: Parameters<CorrectionReview["open"]>[1],
+  ) {
+    props.review.open(filter, recoveryFilter);
+    setReviewOpen(true);
+  }
+  function openSynchronizationReview() {
+    props.review.open(
+      () => false,
+      (item) => item.action === "synchronize",
+    );
+    props.review.recoverySuggestions
+      .forEach((item) => props.review.toggle(item.id));
     setReviewOpen(true);
   }
   const [source, setSource] = useState(0);
   const [target, setTarget] = useState(3);
   const [message, setMessage] = useState("");
+  const [confirmEmptyCopy, setConfirmEmptyCopy] = useState(false);
   const options = Array.from(
     { length: slotCount },
     (_, index) => <option key={index} value={index}>{slotLabel(index)}</option>,
@@ -63,7 +77,8 @@ export default function SaveManagement(props: SaveManagementProps) {
             <summary>Accepted correction history</summary>
             {props.review.history.map((result, index) => (
               <div key={index}>
-                Review {index + 1}: {result.changes.length === 0
+                Review {index + 1}: {result.changes.length === 0 &&
+                    result.replacements.length === 0
                   ? "No byte changes."
                   : result.changes.map((change) => (
                     <p key={correctionLabel(change.scope)}>
@@ -71,6 +86,16 @@ export default function SaveManagement(props: SaveManagementProps) {
                       {changeBytes(change.before)} → {changeBytes(change.after)}
                     </p>
                   ))}
+                {result.replacements.map((replacement) => (
+                  <p key={replacement.id}>
+                    {replacement.destination} {replacement.index + 1}{" "}
+                    replaced from {replacement.source}{" "}
+                    {replacement.index + 1}; destination index retained;
+                    checksum {replacement.checksumRecalculated
+                      ? "recalculated"
+                      : "copied from source"}.
+                  </p>
+                ))}
               </div>
             ))}
           </details>
@@ -98,35 +123,46 @@ export default function SaveManagement(props: SaveManagementProps) {
         <Button
           type="button"
           disabled={source === target}
-          onClick={() =>
+          onClick={() => {
+            if (
+              getSlot(props.save, source).isEmpty &&
+              !getSlot(props.save, target).isEmpty
+            ) {
+              setConfirmEmptyCopy(true);
+              return;
+            }
             perform(
               () => copySlot(props.save, source, target),
               `Copied ${slotLabel(source)} to ${slotLabel(target)}.`,
-            )}
+            );
+          }}
         >
           Copy / restore slot
         </Button>
         <Button
           type="button"
-          onClick={() =>
-            perform(() => {
-              for (let i = 0; i < 3; i++) copySlot(props.save, i, i + 3);
-            }, "Backups synchronized.")}
+          onClick={openSynchronizationReview}
         >
-          Synchronize backups
+          Review and synchronize backups
         </Button>
         <Button
           type="button"
-          onClick={() => openReview((item) => item.scope.kind === "header")}
+          onClick={() =>
+            openReview((item) => item.scope.kind === "header", () => false)}
         >
           Repair header
         </Button>
         <Button
           type="button"
           onClick={() =>
-            openReview((item) =>
-              item.scope.kind === "slot" && item.scope.index === target % 3 &&
-              item.scope.record === (target < 3 ? "primary" : "backup")
+            openReview(
+              (item) =>
+                item.scope.kind === "slot" && item.scope.index === target % 3 &&
+                item.scope.record === (target < 3 ? "primary" : "backup"),
+              (item) =>
+                item.index === target % 3 &&
+                (item.source === (target < 3 ? "primary" : "backup") ||
+                  item.destination === (target < 3 ? "primary" : "backup")),
             )}
         >
           Repair selected slot
@@ -154,6 +190,33 @@ export default function SaveManagement(props: SaveManagementProps) {
       </p>
       {message && (
         <p role="status">{message} Download the save to keep your changes.</p>
+      )}
+      {confirmEmptyCopy && (
+        <div
+          role="alert"
+          class="space-y-2 rounded border border-amber-500 p-3 md:col-span-2"
+        >
+          <p>
+            {slotLabel(source)}{" "}
+            is empty. Copying it will replace initialized progress in{" "}
+            {slotLabel(target)} with an empty record.
+          </p>
+          <Button
+            type="button"
+            onClick={() => {
+              perform(
+                () => copySlot(props.save, source, target),
+                `Copied ${slotLabel(source)} to ${slotLabel(target)}.`,
+              );
+              setConfirmEmptyCopy(false);
+            }}
+          >
+            Confirm empty record copy
+          </Button>
+          <Button type="button" onClick={() => setConfirmEmptyCopy(false)}>
+            Cancel empty record copy
+          </Button>
+        </div>
       )}
     </Section>
   );

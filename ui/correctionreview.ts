@@ -11,6 +11,8 @@ import type {
   CorrectionSuggestion,
   OutcomeConstraint,
 } from "../utils/corrections.ts";
+import { compareRecoveryPair } from "../utils/recovery.ts";
+import type { RecoveryPairDiagnosis } from "../utils/recovery.ts";
 import { diagnoseSave } from "../utils/diagnostics.ts";
 import type {
   DiagnosticFinding,
@@ -40,8 +42,13 @@ export class CorrectionReview {
   selected: string[] = [];
   history: CorrectionResult[] = [];
   checksumPolicy?: ChecksumPolicy;
+  replacementChecksums: Record<string, boolean> = {};
+  replacementMarkers: Record<string, boolean> = {};
   private outcome: OutcomeConstraint[] = [];
   private filter: (suggestion: CorrectionSuggestion) => boolean = () => true;
+  private recoveryFilter: (
+    suggestion: CorrectionPlan["recovery"][number],
+  ) => boolean = () => true;
 
   constructor(private readonly save: SraSaveFile) {
     this.plan = discoverCorrections(save);
@@ -61,17 +68,31 @@ export class CorrectionReview {
     );
   }
 
+  get recoveryPairs(): RecoveryPairDiagnosis[] {
+    return [0, 1, 2].map((index) => compareRecoveryPair(this.save, index));
+  }
+
   open(
     filter: (suggestion: CorrectionSuggestion) => boolean = () => true,
+    recoveryFilter: (
+      suggestion: CorrectionPlan["recovery"][number],
+    ) => boolean = () => true,
   ): void {
     this.filter = filter;
+    this.recoveryFilter = recoveryFilter;
     this.plan = discoverCorrections(this.save, this.outcome);
     this.selectRecommended();
+    this.resetReplacementChecksums();
   }
 
   refresh(): void {
     this.plan = discoverCorrections(this.save, this.plan.outcome);
     this.selectRecommended();
+    this.resetReplacementChecksums();
+  }
+
+  get recoverySuggestions(): CorrectionPlan["recovery"] {
+    return this.plan.recovery.filter(this.recoveryFilter);
   }
 
   get suggestions(): CorrectionSuggestion[] {
@@ -84,14 +105,59 @@ export class CorrectionReview {
     ).map((item) => item.id);
   }
 
+  private resetReplacementChecksums(): void {
+    this.replacementChecksums = Object.fromEntries(
+      this.plan.recovery.map((item) => [item.id, true]),
+    );
+    this.replacementMarkers = {};
+  }
+
   preview(): CorrectionResult {
-    return previewCorrections(this.save, this.plan, this.selected);
+    return previewCorrections(
+      this.save,
+      this.plan,
+      this.selected,
+      this.replacementChecksums,
+      this.replacementMarkers,
+    );
   }
 
   toggle(id: string): void {
-    this.selected = this.selected.includes(id)
-      ? this.selected.filter((item) => item !== id)
-      : [...this.selected, id];
+    if (this.selected.includes(id)) {
+      this.selected = this.selected.filter((item) => item !== id);
+      return;
+    }
+    const recovery = this.plan.recovery.find((item) => item.id === id);
+    if (recovery) {
+      this.selected = this.selected.filter((selected) => {
+        const suggestion = this.plan.suggestions.find((item) =>
+          item.id === selected
+        );
+        if (!suggestion || suggestion.scope.kind !== "slot") return true;
+        const inReplacedPair = suggestion.scope.index === recovery.index &&
+          (suggestion.scope.record === recovery.source ||
+            suggestion.scope.record === recovery.destination);
+        return !inReplacedPair;
+      });
+    }
+    this.selected = [...this.selected, id];
+  }
+
+  setReplacementChecksum(id: string, recalculate: boolean): void {
+    if (!this.plan.recovery.some((item) => item.id === id)) {
+      throw new Error(`Unknown recovery replacement ${id}.`);
+    }
+    this.replacementChecksums = {
+      ...this.replacementChecksums,
+      [id]: recalculate,
+    };
+  }
+
+  setReplacementMarker(id: string, repair: boolean): void {
+    if (!this.plan.recovery.some((item) => item.id === id)) {
+      throw new Error(`Unknown recovery replacement ${id}.`);
+    }
+    this.replacementMarkers = { ...this.replacementMarkers, [id]: repair };
   }
 
   cancel(): void {
@@ -134,17 +200,30 @@ export class CorrectionReview {
   }
 
   confirm(): CorrectionResult {
-    const result = applyCorrections(this.save, this.plan, this.selected);
+    const result = applyCorrections(
+      this.save,
+      this.plan,
+      this.selected,
+      this.replacementChecksums,
+      this.replacementMarkers,
+    );
     this.history.push(result);
     this.outcome = structuredClone(this.plan.outcome);
     this.checksumPolicy =
-      this.plan.suggestions.some((item) =>
+      result.replacements.some((item) => !item.checksumRecalculated) ||
+        this.plan.suggestions.some((item) =>
           this.filter(item) && item.scope.field === "checksum" &&
-          !this.selected.includes(item.id)
+          !this.selected.includes(item.id) &&
+          !result.replacements.some((replacement) =>
+            replacement.checksumRecalculated &&
+            item.scope.kind === "slot" &&
+            item.scope.record === replacement.destination &&
+            item.scope.index === replacement.index
+          )
         )
         ? ChecksumPolicy.Preserve
         : undefined;
-    this.open(this.filter);
+    this.open(this.filter, this.recoveryFilter);
     return result;
   }
 }
