@@ -55,8 +55,11 @@ cite CloudModding's entrance table. Several fields remain explicitly tentative.
 [FileUtil](../../utils/fileutil.ts) recognizes containers by their sizes; this
 does not establish game-version compatibility.
 
-Filesystem loading currently rejects extension mismatches, while buffer loading
-uses size alone; extension handling remains to be aligned with the input policy.
+Filesystem and buffer loading select the parser from the recognized container
+size. When a source filename is available, `sourceFile` metadata reports a
+conflicting extension as a nonfatal diagnostic and suggests an export filename.
+Both editors display these findings and use the selected export format for the
+output extension; loading never renames the source.
 [Input inspection](../../utils/inputdiagnostics.ts) evaluates header and slot
 evidence for both byte orders without changing source bytes. Model and FileUtil
 loading require an explicit choice for unresolved input. Both editors offer that

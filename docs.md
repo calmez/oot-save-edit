@@ -4,6 +4,28 @@ To get started parsing a save file you will want to use
 [`FileUtil`](./classes/FileUtil.html#loadfile) with a filepath to read a SRA or
 SRM file from.
 
+### Filenames and recognized layouts
+
+Filesystem and buffer loading select SRA or SRM from the recognized container
+size. Conflicting, missing, and unfamiliar filename extensions do not reject an
+otherwise readable save. Unsupported sizes still fail, regardless of extension.
+
+`FileUtil.loadFile(path)` returns naming metadata in `save.sourceFile`. For a
+buffer, pass the optional filename as the third argument:
+`FileUtil.loadFileFromBuffer(bytes, ExportByteOrder.Automatic, "game.srm")`. The
+metadata contains `format`, the original `filename`, `suggestedFilename`, and
+shared diagnostic `findings`. A conflicting supported extension produces a
+`file.extension-mismatch` finding, also included in `diagnoseSave(save)`.
+Missing or unfamiliar extensions receive a suggestion without being treated as a
+different supported format. Without a filename, metadata contains only the
+recognized format and an empty findings list.
+
+`FileUtil.suggestExportFilename(filename, format)` suggests the extension for an
+explicit export format. Both editors use it for exports; it never renames or
+writes the source. The lower-level `FileUtil.saveFile` writes to the exact path
+supplied by its caller. Naming metadata does not establish byte order, game
+version, or platform compatibility.
+
 ### Input byte order
 
 `inspectInputByteOrder(sramBytes)` inspects both big-endian and 32-bit
@@ -23,7 +45,8 @@ unresolved, regardless of how many records support each side.
 methods accept an optional input order. Without one, unresolved input throws
 `UnresolvedByteOrderError`, carrying the inspection result and a copy of the
 original SRA or SRM bytes in `sourceData`. No editable model is returned. An
-explicit choice permits loading while keeping conflicting evidence visible in
+error from FileUtil also carries filename metadata in `sourceFile`. An explicit
+choice permits loading while keeping conflicting evidence visible in
 `save.inputInterpretation` and `diagnoseSave(save)`. Selection never repairs the
 save and does not verify its game version or platform.
 
@@ -49,6 +72,7 @@ try {
   const save = FileUtil.loadFileFromBuffer(
     error.sourceData,
     ExportByteOrder.WordSwapped,
+    error.sourceFile?.filename,
   );
   console.log(save.inputInterpretation);
 }

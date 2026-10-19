@@ -23,6 +23,7 @@ import {
 } from "../../models/saveslot.ts";
 import { Entrance, Room, Scene, Time } from "../../models/scene.ts";
 import { FileFormat, FileUtil } from "../../utils/fileutil.ts";
+import type { SourceFileInfo } from "../../utils/fileutil.ts";
 import { UnresolvedByteOrderError } from "../../utils/inputdiagnostics.ts";
 import type { InputInterpretation } from "../../utils/inputdiagnostics.ts";
 import { getSlot, slotCount, slotLabel } from "../../utils/saveeditor.ts";
@@ -156,6 +157,7 @@ interface LoadedInput {
   sourceData: Uint8Array | null;
   inspection: InputInterpretation | null;
   error: string;
+  sourceFile?: SourceFileInfo;
 }
 
 export const Save = (
@@ -168,11 +170,12 @@ export const Save = (
         save,
         sourceData: createNew ? null : FileUtil.getFileData(
           save,
-          FileUtil.detectFileFormatByExtension(filename),
+          save.sourceFile!.format,
           ExportByteOrder.Automatic,
           ChecksumPolicy.Preserve,
         ),
         inspection: save.inputInterpretation ?? null,
+        sourceFile: save.sourceFile,
         error: "",
       };
     } catch (error) {
@@ -185,6 +188,9 @@ export const Save = (
           ? error.inspection
           : null,
         error: error instanceof Error ? error.message : String(error),
+        sourceFile: error instanceof UnresolvedByteOrderError
+          ? error.sourceFile
+          : undefined,
       };
     }
   });
@@ -201,9 +207,14 @@ export const Save = (
     return (
       <InputResolution
         inspection={loaded.inspection}
+        sourceFile={loaded.sourceFile}
         onCancel={() => setCancelled(true)}
         onChoose={(order) => {
-          const save = FileUtil.loadFileFromBuffer(loaded.sourceData!, order);
+          const save = FileUtil.loadFileFromBuffer(
+            loaded.sourceData!,
+            order,
+            filename,
+          );
           setLoaded({
             ...loaded,
             save,
@@ -236,6 +247,12 @@ export const Save = (
             .join("\n")}
         </Text>
       )}
+      {!!loaded.sourceFile?.findings.length && (
+        <Text color="yellow">
+          {loaded.sourceFile.findings.map((finding) => finding.explanation)
+            .join("\n")}
+        </Text>
+      )}
       <SaveForm filename={filename} originalSaveFile={loaded.save} />
     </Box>
   );
@@ -243,6 +260,7 @@ export const Save = (
 
 interface InputResolutionProps {
   inspection: InputInterpretation;
+  sourceFile?: SourceFileInfo;
   onChoose: (
     order: ExportByteOrder.BigEndian | ExportByteOrder.WordSwapped,
   ) => void;
@@ -258,6 +276,13 @@ function InputResolution(props: InputResolutionProps): React.JSX.Element {
   return (
     <Box flexDirection="column" gap={1}>
       <Text bold>Choose input byte order</Text>
+      {!!props.sourceFile?.findings.length && (
+        <Text color="yellow">
+          {props.sourceFile.findings.map((finding) => finding.explanation).join(
+            "\n",
+          )}
+        </Text>
+      )}
       <Text>
         {props.inspection.findings.map((finding) => finding.explanation).join(
           "\n",
@@ -279,6 +304,11 @@ const SaveForm = (
     originalSaveFile: SraSaveFile;
   },
 ): React.JSX.Element => {
+  const inputFormat = originalSaveFile.sourceFile?.format ?? FileFormat.SRA;
+  const suggestedFilename = FileUtil.suggestExportFilename(
+    filename,
+    inputFormat,
+  );
   function makeSlotSections(
     index: SlotIndex,
     saveFile: SraSaveFile,
@@ -723,10 +753,10 @@ const SaveForm = (
       info_dataSize: `${originalSaveFile.data.byteLength}`,
       info_headerValid: originalSaveFile.header.isValid,
       info_wordSwapped: originalSaveFile.isByteSwapped,
-      info_fileFormat: FileUtil.detectFileFormatByExtension(filename),
-      saveoptions_filename: filename,
+      info_fileFormat: inputFormat,
+      saveoptions_filename: suggestedFilename,
       saveoptions_byteOrder: ExportByteOrder.Automatic,
-      saveoptions_fileFormat: FileUtil.detectFileFormatByExtension(filename),
+      saveoptions_fileFormat: inputFormat,
       header_languageOption: originalSaveFile.header.languageOption,
       header_zTargetOption: originalSaveFile.header.zTargetOption,
       header_soundOption: originalSaveFile.header.soundOption,
@@ -797,7 +827,7 @@ const SaveForm = (
             name: "info_fileFormat",
             label: "File Format",
             enum: FileFormat,
-            initialValue: FileUtil.detectFileFormatByExtension(filename),
+            initialValue: inputFormat,
           },
         ],
       },
@@ -808,7 +838,7 @@ const SaveForm = (
             type: "string",
             name: "saveoptions_filename",
             label: "Output Filename",
-            initialValue: filename,
+            initialValue: suggestedFilename,
           },
           {
             type: "selection",
@@ -823,7 +853,7 @@ const SaveForm = (
             label:
               "File Format (SRM: Mupen64Plus-Next LE, new containers provisional)",
             enum: FileFormat,
-            initialValue: FileUtil.detectFileFormatByExtension(filename),
+            initialValue: inputFormat,
           },
         ],
       },
@@ -968,6 +998,13 @@ const SaveForm = (
             }
             const newData = {
               ...values,
+              saveoptions_filename: values.saveoptions_fileFormat !==
+                  formState.currentFormData.saveoptions_fileFormat
+                ? FileUtil.suggestExportFilename(
+                  values.saveoptions_filename,
+                  values.saveoptions_fileFormat,
+                )
+                : values.saveoptions_filename,
               ...Object.assign(
                 {},
                 ...Array.from(
@@ -984,13 +1021,17 @@ const SaveForm = (
           value={formState.currentFormData}
           onSubmit={(values: FormFields) => {
             try {
-              FileUtil.saveFile(
+              const outputFilename = FileUtil.suggestExportFilename(
                 values.saveoptions_filename,
+                values.saveoptions_fileFormat,
+              );
+              FileUtil.saveFile(
+                outputFilename,
                 values.saveoptions_fileFormat,
                 formState.saveFile,
                 values.saveoptions_byteOrder,
               );
-              setSaveMessage(`Saved ${values.saveoptions_filename}`);
+              setSaveMessage(`Saved ${outputFilename}`);
             } catch (error) {
               setSaveMessage(
                 error instanceof Error ? error.message : String(error),
