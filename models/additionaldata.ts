@@ -226,6 +226,7 @@ export function writeAdditionalData(
 ): void {
   const next = bytes.slice();
   const view = new DataView(next.buffer);
+  const current = readAdditionalData(bytes);
   for (
     const [key, field] of Object.entries(additionalFields) as [
       keyof AdditionalSaveData,
@@ -233,6 +234,7 @@ export function writeAdditionalData(
     ][]
   ) {
     const value = data[key];
+    if (JSON.stringify(value) === JSON.stringify(current[key])) continue;
     if (field.boolean && typeof value !== "boolean") {
       throw new Error(`${field.label} must be a boolean.`);
     }

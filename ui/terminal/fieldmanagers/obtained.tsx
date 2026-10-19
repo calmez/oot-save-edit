@@ -1,11 +1,12 @@
-import { selectUpgrade } from "../../../utils/saveeditor.ts";
-import React, { useState } from "react";
+import { Box, Text, useInput } from "ink";
 import {
   AbstractFormField,
   FormFieldManager,
   SpecificFormFieldRendererProps,
 } from "ink-form";
-import { Box, Text, useInput } from "ink";
+import React, { useState } from "react";
+
+import type { SaveSlot } from "../../../models/saveslot.ts";
 import {
   BombBag,
   Boots,
@@ -25,8 +26,11 @@ import {
   Sword,
   Tokens,
   Tunic,
+  upgradeGroups,
   Wallet,
 } from "../../../models/saveslot.ts";
+import { inspectSlotFields } from "../../../utils/fieldinterpretation.ts";
+import { selectUpgrade } from "../../../utils/saveeditor.ts";
 
 export interface ObtainedData {
   equipment: EquippableItems[];
@@ -34,7 +38,9 @@ export interface ObtainedData {
   questItems: QuestItems[];
 }
 
-type FormFieldObtained = AbstractFormField<"obtained", ObtainedData>;
+type FormFieldObtained = AbstractFormField<"obtained", ObtainedData> & {
+  saveSlot: SaveSlot;
+};
 
 const equipmentOptions: number[] = Object.values({
   ...Sword,
@@ -86,6 +92,12 @@ const ObtainedField: React.FC<
   const equipment = props.value?.equipment ?? [];
   const upgrades = props.value?.upgrades ?? [];
   const questItems = props.value?.questItems ?? [];
+  const unavailableUpgrades = new Set(
+    inspectSlotFields(props.field.saveSlot).filter((field) =>
+      field.status !== "available" &&
+      field.field.startsWith("obtainedUpgrades.")
+    ).map((field) => Number(field.field.split(".")[1])),
+  );
 
   const eqCount = equipmentOptions.length;
   const upCount = upgradeOptions.length;
@@ -107,6 +119,13 @@ const ObtainedField: React.FC<
         props.onChange({ equipment: newEq, upgrades, questItems });
       } else if (cursor < eqCount + upCount) {
         const opt = upgradeOptions[cursor - eqCount] as ObtainableUpgrades;
+        if (
+          unavailableUpgrades.has(
+            upgradeGroups.findIndex((group) =>
+              Object.values(group.values).includes(opt)
+            ),
+          )
+        ) return;
         const newUp = selectUpgrade(upgrades, opt, !upgrades.includes(opt));
         props.onChange({ equipment, upgrades: newUp, questItems });
       } else {
@@ -134,8 +153,16 @@ const ObtainedField: React.FC<
           return (
             <Box key={`opt-${idx}`}>
               <Text inverse={cursor === idx}>
-                {cursor === idx ? "▶" : " "} {checked ? "[X]" : "[ ]"}{" "}
-                {optionLabel(opt, label)}
+                {cursor === idx ? "▶" : " "} {label === "Upgrades" &&
+                    unavailableUpgrades.has(
+                      upgradeGroups.findIndex((group) =>
+                        Object.values(group.values).includes(opt)
+                      ),
+                    )
+                  ? "[Unknown; review replacement]"
+                  : checked
+                  ? "[X]"
+                  : "[ ]"} {optionLabel(opt, label)}
               </Text>
             </Box>
           );

@@ -254,7 +254,9 @@ Deno.test("web input choices preserve original SRA and SRM bytes and cancellatio
         format === FileFormat.SRA ? "Word-swapped (32-bit)" : "Big-endian",
       );
       assertEquals(
-        container.textContent?.includes("Cannot display this record"),
+        container.textContent?.includes(
+          "Unavailable or uncertain field interpretations",
+        ),
         true,
       );
       assertEquals(container.textContent?.includes("ddOnly"), true);
@@ -279,6 +281,146 @@ Deno.test("web input choices preserve original SRA and SRM bytes and cancellatio
       assertEquals(container.textContent?.includes("Player Name"), true);
       await act(() => render(null, container));
     }
+  } finally {
+    await act(() => render(null, container));
+    if (descriptor) Object.defineProperty(globalThis, "document", descriptor);
+    else Reflect.deleteProperty(globalThis, "document");
+  }
+});
+
+Deno.test("web keeps readable fields editable and previews, declines and accepts a field replacement", async () => {
+  const window = parseHTML("<html><body></body></html>");
+  const document = window.document as unknown as Document;
+  const descriptor = Object.getOwnPropertyDescriptor(globalThis, "document");
+  Object.defineProperty(globalThis, "document", {
+    configurable: true,
+    value: document,
+  });
+  const save = new SraSaveFile();
+  save.slots[0].data[0x3A] = 2;
+  save.slots[0].data[0x24] = 255;
+  save.slots[0].entranceIndex = 0xFFFFFFFF;
+  save.slots[0].additionalData = {
+    ...save.slots[0].additionalData,
+    childEquipment: 5,
+  };
+  const original = save.getData();
+  const container = document.body;
+  async function click(text: string) {
+    const button = Array.from(container.querySelectorAll("button")).find((
+      button,
+    ) => button.textContent === text);
+    assertExists(button, text);
+    await act(() => button.click());
+  }
+  async function download() {
+    const anchor = container.querySelector<HTMLAnchorElement>("a[download]");
+    assertExists(anchor);
+    const response = await fetch(anchor.href);
+    return new Uint8Array(await response.arrayBuffer());
+  }
+  try {
+    await act(() =>
+      render(
+        h(SaveEditor, {
+          filename: "partial.sra",
+          initialSaveData: original,
+          detectedFormat: FileFormat.SRA,
+        }),
+        container,
+      )
+    );
+    assertEquals(
+      container.textContent?.includes("Cannot display this record"),
+      false,
+    );
+    assertEquals(container.textContent?.includes("magicFlag1"), true);
+    const replacement = container.querySelector<HTMLInputElement>(
+      'input[aria-label="Replacement for magicFlag1"]',
+    );
+    assertExists(replacement);
+    await act(() => {
+      replacement.value = "false";
+      replacement.dispatchEvent(new window.Event("input", { bubbles: true }));
+    });
+    await click("Preview magicFlag1 replacement");
+    assertEquals(await download(), original);
+    await click("Decline magicFlag1 replacement");
+    assertEquals(await download(), original);
+    const checksums = container.querySelector<HTMLSelectElement>(
+      'select[aria-label="Checksums"]',
+    );
+    assertExists(checksums);
+    const choosePolicy = async (value: string) => {
+      const option = Array.from(checksums!.querySelectorAll("option")).find((
+        option,
+      ) => option.value === value);
+      assertExists(option);
+      await act(() => {
+        option.selected = true;
+        checksums!.dispatchEvent(new window.Event("change", { bubbles: true }));
+      });
+    };
+    await choosePolicy("preserve");
+    await click("Preview magicFlag1 replacement");
+    await click("Accept magicFlag1 replacement");
+    const preserved = FileUtil.loadFileFromBuffer(await download());
+    assertEquals(preserved.slots[0].checksum, save.slots[0].checksum);
+    await choosePolicy("maintain-edited");
+    const exported = FileUtil.loadFileFromBuffer(await download());
+    assertEquals(exported.slots[0].magicFlag1, false);
+    assertEquals(exported.slots[0].data[0x24], 255);
+    assertEquals(exported.slots[0].entranceIndex, 0xFFFFFFFF);
+    assertEquals(exported.slots[0].isChecksumValid(), true);
+    const expand = Array.from(container.querySelectorAll("button")).find((
+      button,
+    ) => button.textContent?.includes("Show details"));
+    assertExists(expand);
+    await act(() => expand.click());
+    assertEquals(container.textContent?.includes("Rupees"), true);
+    const label = Array.from(container.querySelectorAll("span")).find((span) =>
+      span.textContent === "Rupees"
+    );
+    const rupees = label?.parentElement?.querySelector<HTMLInputElement>(
+      'input[type="number"]',
+    );
+    assertExists(rupees);
+    Object.defineProperty(rupees, "validity", { value: { valid: true } });
+    await choosePolicy("preserve");
+    await act(() => {
+      rupees.value = "42";
+      rupees.dispatchEvent(new window.Event("input", { bubbles: true }));
+    });
+    const edited = FileUtil.loadFileFromBuffer(await download());
+    assertEquals(edited.slots[0].rupees, 42);
+    assertEquals(edited.slots[0].checksum, save.slots[0].checksum);
+    assertEquals(edited.slots[0].data[0x24], 255);
+    assertEquals(edited.slots[0].entranceIndex, 0xFFFFFFFF);
+    assertEquals(
+      container.querySelector(
+        'textarea[aria-label="Saved child equipment word"]',
+      ) === null,
+      true,
+    );
+    const shield = container.querySelector<HTMLInputElement>(
+      'input[aria-label="Replacement for additionalData.childEquipment.shield"]',
+    );
+    assertExists(shield);
+    await act(() => {
+      shield.value = "2";
+      shield.dispatchEvent(new window.Event("input", { bubbles: true }));
+    });
+    await click("Preview additionalData.childEquipment.shield replacement");
+    assertEquals(
+      FileUtil.loadFileFromBuffer(await download()).slots[0].additionalData
+        .childEquipment,
+      5,
+    );
+    await click("Accept additionalData.childEquipment.shield replacement");
+    const equipment =
+      FileUtil.loadFileFromBuffer(await download()).slots[0].additionalData
+        .childEquipment;
+    assertEquals(equipment, 0x25);
   } finally {
     await act(() => render(null, container));
     if (descriptor) Object.defineProperty(globalThis, "document", descriptor);

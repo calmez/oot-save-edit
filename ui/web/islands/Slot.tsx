@@ -7,6 +7,7 @@ import {
   BombBag,
   Boots,
   BulletBag,
+  ButtonItems,
   DekuNutUpgrades,
   DekuStickUpgrades,
   DiveMeter,
@@ -26,6 +27,7 @@ import {
   Sword,
   Tokens,
   Tunic,
+  upgradeGroups,
   Wallet,
 } from "../../../models/saveslot.ts";
 import {
@@ -36,12 +38,16 @@ import {
   Time,
   ValidEntrancesForRoom,
 } from "../../../models/scene.ts";
+import {
+  inspectSlotFields,
+  readableSlot,
+} from "../../../utils/fieldinterpretation.ts";
 import { selectUpgrade, updateNamedFlag } from "../../../utils/saveeditor.ts";
 import { inventoryNames, sceneIdOptions, sceneLabel } from "../../labels.ts";
-import { slotDisplayError } from "../../slotreadability.ts";
 import AdditionalEditor from "../components/AdditionalEditor.tsx";
 import { Field } from "../components/Field.tsx";
 import { Section } from "../components/Section.tsx";
+import FieldInterpretations from "./fieldinterpretations.tsx";
 
 interface SlotProps {
   slot: SaveSlot;
@@ -60,6 +66,9 @@ function Text(
     help?: string;
   },
 ) {
+  if (props.value === undefined) {
+    return <p>Unavailable; review Field interpretations.</p>;
+  }
   return (
     <div>
       <input
@@ -93,6 +102,9 @@ function BooleanCheckbox(
     help?: string;
   },
 ) {
+  if (props.value === undefined) {
+    return <p>Unavailable; review Field interpretations.</p>;
+  }
   return (
     <div>
       <input
@@ -120,6 +132,9 @@ function NumberInput(props: {
   disabled?: boolean;
   help?: string;
 }) {
+  if (props.value === undefined) {
+    return <p>Unavailable; review Field interpretations.</p>;
+  }
   return (
     <div>
       <input
@@ -165,6 +180,14 @@ function EnumSelect<T extends number>(props: {
   help?: string;
 }) {
   const values = props.options ?? enumValues<T>(props.enumObject);
+  if (!values.includes(props.value)) {
+    return (
+      <p>
+        Unknown or unavailable ({String(props.value)}); review Field
+        interpretations.
+      </p>
+    );
+  }
 
   return (
     <div>
@@ -381,7 +404,20 @@ const permanentSceneFlagGroups: Array<{
 const permanentSceneFlagBits = Array.from({ length: 32 }, (_, index) => index);
 
 export default function Slot(props: SlotProps) {
-  const { slot, index, onChange, readOnly = false } = props;
+  const { index, onChange, readOnly = false } = props;
+  const slot = readableSlot(props.slot);
+  const fieldInterpretations = inspectSlotFields(props.slot);
+  const unavailableFields = new Set(
+    fieldInterpretations.filter((field) => field.status !== "available").map((
+      field,
+    ) => field.field),
+  );
+  const unavailableUpgrades = new Set(
+    fieldInterpretations.filter((field) =>
+      field.status !== "available" &&
+      field.field.startsWith("obtainedUpgrades.")
+    ).map((field) => Number(field.field.split(".")[1])),
+  );
   const slotType = props.slotType ?? "regular";
   const eventFlags = getBooleanFlags(slot.eventFlags);
   const itemFlags = getBooleanFlags(slot.itemFlags);
@@ -395,7 +431,6 @@ export default function Slot(props: SlotProps) {
 
   function changed() {
     if (!readOnly) {
-      slot.updateChecksum();
       onChange?.();
     }
   }
@@ -424,6 +459,7 @@ export default function Slot(props: SlotProps) {
   }
 
   function updateMagicMax() {
+    if (slot.magicFlag1 === undefined || slot.magicFlag2 === undefined) return;
     if (slot.magicFlag1 && slot.magicFlag2) {
       slot.maxMagic = 2;
       return;
@@ -472,18 +508,6 @@ export default function Slot(props: SlotProps) {
   );
   const activePermanentSceneFlags =
     slot.permanentSceneFlags[activePermanentScene];
-
-  const displayError = slotDisplayError(slot);
-  if (displayError) {
-    return (
-      <div className="rounded-xl border border-amber-300 bg-amber-50 p-4">
-        <h3 className="text-lg font-semibold">
-          {slotType === "backup" ? "Backup" : "File"} {index + 1}
-        </h3>
-        <p>{displayError}</p>
-      </div>
-    );
-  }
 
   if (slot.isEmpty) {
     return (
@@ -536,6 +560,11 @@ export default function Slot(props: SlotProps) {
         </button>
       </div>
 
+      <FieldInterpretations
+        slot={props.slot}
+        readOnly={readOnly}
+        onChange={changed}
+      />
       <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-3">
         <Field
           label="Player Name"
@@ -595,7 +624,7 @@ export default function Slot(props: SlotProps) {
             >
               <NumberInput
                 value={slot.entranceIndex}
-                disabled={readOnly}
+                disabled={readOnly || unavailableFields.has("entranceIndex")}
                 min={0}
                 max={0xFFFFFFFF}
                 onChange={(value) => {
@@ -752,7 +781,9 @@ export default function Slot(props: SlotProps) {
                     onChange={(value) => {
                       slot.magicFlag1 = value;
                       if (!value) {
-                        slot.magicFlag2 = false;
+                        if (slot.magicFlag2 !== undefined) {
+                          slot.magicFlag2 = false;
+                        }
                         slot.currentMagic = MagicAmount.Empty;
                       }
                       updateMagicMax();
@@ -834,7 +865,9 @@ export default function Slot(props: SlotProps) {
                   enumObject={Entrance}
                   value={slot.entrance}
                   disabled={readOnly}
-                  options={ValidEntrancesForRoom(slot.room)}
+                  options={slot.room === undefined
+                    ? []
+                    : ValidEntrancesForRoom(slot.room)}
                   onChange={(value) => setEntrance(value)}
                   help="Where you respawn after death or when using warp points."
                 />
@@ -879,7 +912,7 @@ export default function Slot(props: SlotProps) {
               <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
                 <EnumSelect
                   keyPrefix={`slot-${slotType}-${index}-b-button-equip`}
-                  enumObject={InventoryItems}
+                  enumObject={ButtonItems}
                   value={slot.bButtonEquip}
                   disabled={readOnly}
                   onChange={(value) => {
@@ -890,7 +923,7 @@ export default function Slot(props: SlotProps) {
                 />
                 <EnumSelect
                   keyPrefix={`slot-${slotType}-${index}-c-left-button-equip`}
-                  enumObject={InventoryItems}
+                  enumObject={ButtonItems}
                   value={slot.cLeftButtonEquip}
                   disabled={readOnly}
                   onChange={(value) => {
@@ -901,7 +934,7 @@ export default function Slot(props: SlotProps) {
                 />
                 <EnumSelect
                   keyPrefix={`slot-${slotType}-${index}-c-down-button-equip`}
-                  enumObject={InventoryItems}
+                  enumObject={ButtonItems}
                   value={slot.cDownButtonEquip}
                   disabled={readOnly}
                   onChange={(value) => {
@@ -912,7 +945,7 @@ export default function Slot(props: SlotProps) {
                 />
                 <EnumSelect
                   keyPrefix={`slot-${slotType}-${index}-c-right-button-equip`}
-                  enumObject={InventoryItems}
+                  enumObject={ButtonItems}
                   value={slot.cRightButtonEquip}
                   disabled={readOnly}
                   onChange={(value) => {
@@ -1114,7 +1147,12 @@ export default function Slot(props: SlotProps) {
                   >
                     <BooleanCheckbox
                       value={slot.obtainedUpgrades.includes(item)}
-                      disabled={readOnly}
+                      disabled={readOnly ||
+                        unavailableUpgrades.has(
+                          upgradeGroups.findIndex((group) =>
+                            Object.values(group.values).includes(item)
+                          ),
+                        )}
                       onChange={(checked) => {
                         slot.obtainedUpgrades = selectUpgrade(
                           slot.obtainedUpgrades,
@@ -1241,7 +1279,8 @@ export default function Slot(props: SlotProps) {
               <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
                 <NumberInput
                   value={slot.faroresWindWarp.x}
-                  disabled={readOnly}
+                  disabled={readOnly ||
+                    unavailableFields.has("faroresWindWarp")}
                   min={-0x80000000}
                   max={0x7FFFFFFF}
                   onChange={(value) => {
@@ -1255,7 +1294,8 @@ export default function Slot(props: SlotProps) {
                 />
                 <NumberInput
                   value={slot.faroresWindWarp.y}
-                  disabled={readOnly}
+                  disabled={readOnly ||
+                    unavailableFields.has("faroresWindWarp")}
                   min={-0x80000000}
                   max={0x7FFFFFFF}
                   onChange={(value) => {
@@ -1269,7 +1309,8 @@ export default function Slot(props: SlotProps) {
                 />
                 <NumberInput
                   value={slot.faroresWindWarp.z}
-                  disabled={readOnly}
+                  disabled={readOnly ||
+                    unavailableFields.has("faroresWindWarp")}
                   min={-0x80000000}
                   max={0x7FFFFFFF}
                   onChange={(value) => {
@@ -1283,7 +1324,8 @@ export default function Slot(props: SlotProps) {
                 />
                 <NumberInput
                   value={slot.faroresWindWarp.yRotation}
-                  disabled={readOnly}
+                  disabled={readOnly ||
+                    unavailableFields.has("faroresWindWarp")}
                   min={-0x80000000}
                   max={0x7FFFFFFF}
                   onChange={(value) => {
@@ -1301,7 +1343,8 @@ export default function Slot(props: SlotProps) {
               <EnumSelect
                 enumObject={Scene}
                 value={slot.entranceIndexTransport}
-                disabled={readOnly}
+                disabled={readOnly ||
+                  unavailableFields.has("entranceIndexTransport")}
                 keyPrefix={`slot-${slotType}-${index}-transport-scene`}
                 onChange={(value) => {
                   slot.entranceIndexTransport = value;
@@ -1312,7 +1355,7 @@ export default function Slot(props: SlotProps) {
             <Field label="Map #">
               <NumberInput
                 value={slot.mapNumber}
-                disabled={readOnly}
+                disabled={readOnly || unavailableFields.has("mapNumber")}
                 min={0}
                 max={0xFF}
                 onChange={(value) => {
@@ -1353,7 +1396,7 @@ export default function Slot(props: SlotProps) {
           </Section>
 
           <AdditionalEditor
-            slot={slot}
+            slot={props.slot}
             readOnly={readOnly}
             onChange={changed}
           />

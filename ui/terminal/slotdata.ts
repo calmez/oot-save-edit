@@ -1,5 +1,4 @@
 import type { SraSaveFile } from "../../models/savefile.ts";
-import { MagicAmount } from "../../models/saveslot.ts";
 import type {
   ButtonEquips,
   CurrentEquipment,
@@ -11,13 +10,18 @@ import {
   ValidEntrancesForRoom,
 } from "../../models/scene.ts";
 import type { Entrance, Room } from "../../models/scene.ts";
+import {
+  applyFieldReplacement,
+  interpretSlotField,
+  prepareFieldReplacement,
+  readableSlot,
+} from "../../utils/fieldinterpretation.ts";
 import { getSlot, updateNamedFlag } from "../../utils/saveeditor.ts";
-import { slotDisplayError } from "../slotreadability.ts";
-import type { HealthData } from "./fieldmanagers/health.tsx";
-import type { MagicData } from "./fieldmanagers/magic.tsx";
-import type { InventoryData } from "./fieldmanagers/inventory.tsx";
-import type { ObtainedData } from "./fieldmanagers/obtained.tsx";
 import type { DungeonStatusData } from "./fieldmanagers/dungeonstatus.tsx";
+import type { HealthData } from "./fieldmanagers/health.tsx";
+import type { InventoryData } from "./fieldmanagers/inventory.tsx";
+import type { MagicData } from "./fieldmanagers/magic.tsx";
+import type { ObtainedData } from "./fieldmanagers/obtained.tsx";
 
 const scalarFields = [
   "playerName",
@@ -63,13 +67,12 @@ export function makeSlotFields(
   index: number,
   save: SraSaveFile,
 ): Record<string, unknown> {
-  const slot = getSlot(save, index);
-  const displayError = slotDisplayError(slot);
-  if (slot.isEmpty || displayError) {
+  const slot = readableSlot(getSlot(save, index));
+  if (slot.isEmpty) {
     return {
       [`slot_${index}_fileValid`]: slot.isValid,
       [`slot_${index}_checksum`]: slot.checksum,
-      [`slot_${index}_slotState`]: displayError ??
+      [`slot_${index}_slotState`]:
         "Empty slot. Use Ctrl+G to create a new-game slot.",
     };
   }
@@ -78,6 +81,7 @@ export function makeSlotFields(
   );
   const put = (key: string, value: unknown) =>
     fields[`slot_${index}_${key}`] = value;
+  put("interpretations", null);
   put("fileValid", slot.isValid);
   put(
     "slotState",
@@ -136,8 +140,28 @@ export function applySlotFields(
     get(key) !== undefined &&
     JSON.stringify(get(key)) !==
       JSON.stringify(previous[`slot_${index}_${key}`]);
+  if (changed("interpretations")) {
+    const accepted = get("interpretations") as
+      | { field: string; value: unknown }
+      | null;
+    if (accepted) {
+      applyFieldReplacement(
+        slot,
+        prepareFieldReplacement(slot, accepted.field, accepted.value),
+      );
+    }
+  }
   if (changed("additionalData")) {
-    slot.additionalData = get("additionalData") as typeof slot.additionalData;
+    const next = get("additionalData") as typeof slot.additionalData;
+    const old =
+      previous[`slot_${index}_additionalData`] as typeof slot.additionalData;
+    const patch = Object.fromEntries(
+      Object.entries(next).filter(([key, value]) =>
+        value !== undefined &&
+        JSON.stringify(value) !== JSON.stringify(old?.[key as keyof typeof old])
+      ),
+    );
+    slot.additionalData = { ...slot.additionalData, ...patch };
   }
   if (changed("permanentSceneFlags")) {
     const { bytes } = get("permanentSceneFlags") as { bytes: number[] };
@@ -150,7 +174,7 @@ export function applySlotFields(
     slot.data.set(bytes, 0xD4);
   }
   for (const key of scalarFields) {
-    if (changed(key)) {
+    if (changed(key) && interpretSlotField(slot, key).status === "available") {
       (slot as unknown as Record<string, unknown>)[key] = get(key);
     }
   }
@@ -165,10 +189,16 @@ export function applySlotFields(
   }
   if (changed("magic")) {
     const magic = get("magic") as MagicData;
-    slot.magicFlag1 = magic.flag1;
-    slot.magicFlag2 = magic.flag1 && magic.flag2;
-    slot.currentMagic = magic.flag1 ? magic.current : MagicAmount.Empty;
-    slot.maxMagic = slot.magicFlag1 ? (slot.magicFlag2 ? 2 : 1) : 0;
+    const old = previous[`slot_${index}_magic`] as MagicData;
+    if (magic.flag1 !== undefined && magic.flag1 !== old?.flag1) {
+      slot.magicFlag1 = magic.flag1;
+    }
+    if (magic.flag2 !== undefined && magic.flag2 !== old?.flag2) {
+      slot.magicFlag2 = magic.flag2;
+    }
+    if (magic.current !== undefined && magic.current !== old?.current) {
+      slot.currentMagic = magic.current;
+    }
   }
   if (changed("roomWithEntrance")) {
     const location = get("roomWithEntrance") as {
@@ -222,5 +252,4 @@ export function applySlotFields(
       }
     }
   }
-  slot.updateChecksum();
 }

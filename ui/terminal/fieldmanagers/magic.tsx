@@ -1,10 +1,11 @@
-import React from "react";
 import { AbstractFormField, SpecificFormFieldRendererProps } from "ink-form";
+import React from "react";
+
 import { MagicAmount } from "../../../models/saveslot.ts";
-import { EnumFieldRendererFactory } from "./renderers/enum.tsx";
-import { FormFieldManagerWithSubfieldsFactory } from "./subfield.tsx";
 import { BooleanFieldRendererFactory } from "./renderers/boolean.tsx";
+import { EnumFieldRendererFactory } from "./renderers/enum.tsx";
 import { NumberFieldRendererFactory } from "./renderers/number.tsx";
+import { FormFieldManagerWithSubfieldsFactory } from "./subfield.tsx";
 
 export interface MagicData {
   current: MagicAmount;
@@ -46,8 +47,14 @@ export const MagicFormFieldManager = FormFieldManagerWithSubfieldsFactory<
   MagicData
 >("magic", (props: SpecificFormFieldRendererProps<FormFieldMagic>) => (
   <>
-    Magic: {props.value?.current ?? 0}, Flag1:{" "}
-    {props.value?.flag1 ?? false ? "[True]" : "[False]"}, Flag2:{" "}
-    {props.value?.flag2 ?? false ? "[True]" : "[False]"}
+    Magic: {props.value?.current ?? 0}, Flag1: {props.value?.flag1 === undefined
+      ? "[Unavailable]"
+      : props.value.flag1
+      ? "[True]"
+      : "[False]"}, Flag2: {props.value?.flag2 === undefined
+      ? "[Unavailable]"
+      : props.value.flag2
+      ? "[True]"
+      : "[False]"}
   </>
 ));

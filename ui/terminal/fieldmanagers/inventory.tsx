@@ -1,14 +1,15 @@
-import { inventoryNames } from "../../labels.ts";
-import React, { useState } from "react";
+import { Box, Text, useInput } from "ink";
 import {
   AbstractFormField,
   FormFieldManager,
   SpecificFormFieldRendererProps,
 } from "ink-form";
-import { Box, Text, useInput } from "ink";
 import SelectInput from "ink-select-input";
 import TextInput from "ink-text-input";
+import React, { useState } from "react";
+
 import { InventoryItems } from "../../../models/saveslot.ts";
+import { inventoryNames } from "../../labels.ts";
 
 export interface InventoryData {
   items: InventoryItems[];
@@ -49,7 +50,10 @@ function InventoryField(
     }
     if (key.upArrow) setCursor(Math.max(0, cursor - 1));
     if (key.downArrow) setCursor(Math.min(38, cursor + 1));
-    if (key.return && !key.ctrl) {
+    if (
+      key.return && !key.ctrl &&
+      (isAmount || invEnumName(items[cursor]) !== undefined)
+    ) {
       setText(String(amounts[cursor - 24] ?? 0));
       setEditing(true);
     }
@@ -111,9 +115,9 @@ function InventoryField(
                   <Text inverse={cursor === index}>
                     {index < 24
                       ? inventoryNames[index]
-                      : `${inventoryNames[index - 24]} ammunition`}:{" "}
-                    {index < 24
-                      ? invEnumName(items[index])
+                      : `${inventoryNames[index - 24]} ammunition`}: {index < 24
+                      ? invEnumName(items[index]) ??
+                        `Unknown (${items[index]}); use Field interpretations`
                       : amounts[index - 24]}
                   </Text>
                 </Box>

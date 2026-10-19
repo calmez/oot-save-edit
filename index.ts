@@ -10,5 +10,6 @@ export * from "./models/otherflags.ts";
 export * from "./utils/conversions.ts";
 export * from "./utils/diagnostics.ts";
 export * from "./utils/fileutil.ts";
+export * from "./utils/fieldinterpretation.ts";
 export * from "./utils/inputdiagnostics.ts";
 export * from "./utils/text.ts";

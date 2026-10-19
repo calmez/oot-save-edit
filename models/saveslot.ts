@@ -5,11 +5,11 @@ import {
   toUint8Array,
 } from "../utils/conversions.ts";
 import { OotText } from "../utils/text.ts";
+import { readAdditionalData, writeAdditionalData } from "./additionaldata.ts";
+import type { AdditionalSaveData } from "./additionaldata.ts";
 import { EventFlags } from "./eventflags.ts";
 import { ItemFlags } from "./itemflags.ts";
 import { OtherFlags } from "./otherflags.ts";
-import { readAdditionalData, writeAdditionalData } from "./additionaldata.ts";
-import type { AdditionalSaveData } from "./additionaldata.ts";
 import {
   ChestFlags,
   CollectibleFlags,
@@ -107,6 +107,31 @@ export enum InventoryItems {
   LightArrowPoweredUp = 0x3A,
   Empty = 0xFF,
 }
+
+// gItemAgeReqs also covers these button item IDs absent from InventoryItems.
+export enum ButtonItemId {
+  KokiriSword = 0x3B,
+  MasterSword = 0x3C,
+  BiggoronSword = 0x3D,
+  DekuShield = 0x3E,
+  MirrorShield = 0x40,
+  GoronTunic = 0x42,
+  ZoraTunic = 0x43,
+  IronBoots = 0x45,
+  HoverBoots = 0x46,
+  BulletBag30 = 0x47,
+  BulletBag40 = 0x48,
+  BulletBag50 = 0x49,
+  Quiver30 = 0x4A,
+  Quiver40 = 0x4B,
+  Quiver50 = 0x4C,
+  GoronsBracelet = 0x50,
+  SilverGauntlets = 0x51,
+  GoldenGauntlets = 0x52,
+  GiantsKnife = 0x55,
+}
+
+export const ButtonItems = { ...InventoryItems, ...ButtonItemId };
 
 export enum Sword {
   KokiriSword = 0x0001,
@@ -792,7 +817,16 @@ export class SaveSlot {
   }
 
   set currentlyEquippedEquipment(value: CurrentEquipment) {
+    const current = this.currentlyEquippedEquipment;
+    const original = toNumber(this.bytes.slice(0x70, 0x72));
     const tier = (item: number, shift: number): number => {
+      const key = [
+        "sword",
+        "shield",
+        "tunic",
+        "boots",
+      ][shift / 4] as keyof CurrentEquipment;
+      if (item === current[key]) return original & (0xF << shift);
       if (item === 0) return 0;
       const index = Math.log2(item >>> shift) + 1;
       if (!Number.isInteger(index) || index < 1 || index > 3) {
@@ -889,8 +923,16 @@ export class SaveSlot {
       }
     }
     const mask = upgradeGroups.reduce((mask, group) => mask | group.mask, 0);
-    const data = value.reduce((l, r) => l | r, 0) |
-      (toNumber(this.bytes.slice(0xA0, 0xA4)) & ~mask);
+    const original = toNumber(this.bytes.slice(0xA0, 0xA4));
+    const unknown = upgradeGroups.reduce((bits, group) => {
+      const stored = original & group.mask;
+      return stored !== 0 && !Object.values(group.values).includes(stored) &&
+          !value.some((item) => Object.values(group.values).includes(item))
+        ? bits | stored
+        : bits;
+    }, 0);
+    const data = value.reduce((l, r) => l | r, 0) | unknown |
+      (original & ~mask);
     this.bytes.set(toUint8Array(data >>> 0, 4), 0x00A0);
   }
 
@@ -952,7 +994,10 @@ export class SaveSlot {
       );
     }
     this.bytes.set(
-      value.map((itemSet) => itemSet.reduce((l, r) => l | r, 0)),
+      value.map((itemSet, index) =>
+        itemSet.reduce((l, r) => l | r, 0) |
+        (this.bytes[0xA8 + index] & 0xF8)
+      ),
       0x00A8,
     );
   }

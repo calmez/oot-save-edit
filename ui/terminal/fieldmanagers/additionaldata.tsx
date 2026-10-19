@@ -1,14 +1,19 @@
-import React, { useState } from "react";
 import { Box, Text, useInput } from "ink";
-import TextInput from "ink-text-input";
 import type {
   AbstractFormField,
   FormFieldManager,
   SpecificFormFieldRendererProps,
 } from "ink-form";
+import TextInput from "ink-text-input";
+import React, { useState } from "react";
+
 import { additionalFields } from "../../../models/additionaldata.ts";
 import type { AdditionalSaveData } from "../../../models/additionaldata.ts";
 import { SaveSlot } from "../../../models/saveslot.ts";
+import {
+  inspectSlotFields,
+  interpretSlotField,
+} from "../../../utils/fieldinterpretation.ts";
 import {
   additionalFieldHelp,
   additionalFieldValue,
@@ -45,6 +50,17 @@ function AdditionalData(
     if (key.upArrow) setCursor(Math.max(0, cursor - 1));
     if (key.downArrow) setCursor(Math.min(keys.length - 1, cursor + 1));
     if (key.return && !key.ctrl) {
+      if (
+        interpretSlotField(draft, `additionalData.${keys[cursor]}`).status !==
+          "available" ||
+        inspectSlotFields(draft).some((field) =>
+          field.status !== "available" &&
+          field.field.startsWith(`additionalData.${keys[cursor]}.`)
+        )
+      ) {
+        setError("Use Field interpretations to review a replacement.");
+        return;
+      }
       setText(additionalFieldValue(draft, keys[cursor]));
       setEditing(true);
     }
