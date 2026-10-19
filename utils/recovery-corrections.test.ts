@@ -8,6 +8,7 @@ import {
 import { SaveSlot } from "../models/saveslot.ts";
 import {
   applyCorrections,
+  CorrectionError,
   discoverCorrections,
   previewCorrections,
 } from "./corrections.ts";
@@ -88,14 +89,11 @@ Deno.test("replacement selection is explicit, stale-safe, and exclusive per dest
   const sync = plan.recovery.find((item) =>
     item.action === "synchronize" && item.index === 0
   )!;
-  const restoreToBackup = plan.recovery.find((item) =>
-    item.action === "restore" && item.destination === "backup" &&
-    item.index === 0
-  )!;
 
   assertThrows(
-    () => previewCorrections(save, plan, [restore.id, restoreToBackup.id]),
-    Error,
+    () => previewCorrections(save, plan, [restore.id, sync.id]),
+    CorrectionError,
+    "Choose only one recovery replacement",
   );
   save.backups[0].rupees = 10;
   assertThrows(
@@ -199,6 +197,22 @@ Deno.test("damaged-source marker repair is independent and checksum uses the fin
   assertEquals(save.slots[0].isPatternValid, true);
   assertEquals(save.slots[0].isChecksumValid(), true);
   assertEquals(save.backups[0].data, source);
+});
+
+Deno.test("recovery conflicts with a retained destination marker before any record is changed", () => {
+  const save = damagedPrimaryWithSmallerBackup();
+  const before = save.getData();
+  const plan = discoverCorrections(save, [{
+    scope: { kind: "slot", record: "primary", index: 0, field: "marker" },
+    value: [...save.slots[0].data.slice(0x1C, 0x22)],
+  }]);
+  const restore = plan.recovery.find((item) => item.action === "restore")!;
+  assertThrows(
+    () => applyCorrections(save, plan, [restore.id]),
+    CorrectionError,
+    "requested value",
+  );
+  assertEquals(save.getData(), before);
 });
 
 Deno.test("recovery replacement round-trips through SRA and SRM in both byte orders", () => {

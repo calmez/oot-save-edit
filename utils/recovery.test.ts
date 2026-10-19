@@ -72,3 +72,32 @@ Deno.test("recovery comparison marks malformed inventory and upgrade values unav
 Deno.test("recovery comparison validates the paired slot index", () => {
   assertThrows(() => compareRecoveryPair(new SraSaveFile(), 3), Error);
 });
+
+Deno.test("recovery comparison exposes unnamed upgrade bits as unavailable differences", () => {
+  const save = new SraSaveFile();
+  save.backups[0].data[0xA0] = 0x80;
+  const pair = compareRecoveryPair(save, 0);
+  assertEquals(pair.uninterpretedByteDifferences, 1);
+  assertEquals(
+    pair.comparisons.find((item) => item.field === "upgrades")?.backup
+      .available,
+    false,
+  );
+});
+
+Deno.test("recovery location comparison distinguishes scene identifiers and complete entrance entries", () => {
+  const save = new SraSaveFile();
+  save.slots[0].savedSceneIndex = 52;
+  save.backups[0].savedSceneIndex = 52;
+  save.slots[0].entranceIndex = 0;
+  save.backups[0].entranceIndex = 1;
+  const pair = compareRecoveryPair(save, 0);
+  assertEquals(
+    pair.comparisons.find((item) => item.field === "location")?.primary.value,
+    "Scene 52",
+  );
+  assertEquals(
+    pair.comparisons.find((item) => item.field === "entrance")?.equal,
+    false,
+  );
+});

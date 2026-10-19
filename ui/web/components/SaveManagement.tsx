@@ -105,7 +105,10 @@ export default function SaveManagement(props: SaveManagementProps) {
         <select
           aria-label="Copy from"
           value={source}
-          onChange={(event) => setSource(Number(event.currentTarget.value))}
+          onChange={(event) => {
+            setSource(Number(event.currentTarget.value));
+            setConfirmEmptyCopy(false);
+          }}
         >
           {options}
         </select>
@@ -114,7 +117,10 @@ export default function SaveManagement(props: SaveManagementProps) {
         <select
           aria-label="Destination slot"
           value={target}
-          onChange={(event) => setTarget(Number(event.currentTarget.value))}
+          onChange={(event) => {
+            setTarget(Number(event.currentTarget.value));
+            setConfirmEmptyCopy(false);
+          }}
         >
           {options}
         </select>

@@ -7,7 +7,7 @@ import {
   QuestItems,
   SaveSlot,
 } from "../models/saveslot.ts";
-import { Entrance, Scene } from "../models/scene.ts";
+import { Scene } from "../models/scene.ts";
 import { inspectSlotFields } from "./fieldinterpretation.ts";
 
 export interface RecoveryValue {
@@ -77,8 +77,9 @@ const interpretedFields: InterpretedField[] = [
   {
     key: "entrance",
     label: "Entrance-table entry",
-    read: (slot) => slot.entrance,
-    format: (value) => enumName(Entrance, value as number),
+    read: (slot) => slot.entranceIndex,
+    format: (value) => Scene[value as Scene] ?? `Unknown (${value})`,
+    interpretationKeys: ["entranceIndex"],
     start: 0,
     end: 4,
   },
@@ -100,9 +101,9 @@ const interpretedFields: InterpretedField[] = [
   },
   {
     key: "location",
-    label: "Location",
+    label: "Saved scene identifier",
     read: (slot) => slot.savedSceneIndex,
-    format: (value) => Scene[value as Scene] ?? `Unknown (${value})`,
+    format: (value) => `Scene ${value}`,
     start: 0x66,
     end: 0x68,
     interpretationKeys: ["savedSceneIndex"],
@@ -153,6 +154,10 @@ const interpretedFields: InterpretedField[] = [
       slot.obtainedUpgrades.map((value) => enumName(ObtainableUpgrades, value)),
     start: 0xa0,
     end: 0xa4,
+    unavailable: (slot) =>
+      unknownBits(readInteger(slot, 0xa0, 4), numericMask(ObtainableUpgrades))
+        ? "Upgrades contain unnamed bits and cannot be compared completely."
+        : undefined,
     interpretationKeys: Array.from(
       { length: 8 },
       (_, index) => `obtainedUpgrades.${index}`,
