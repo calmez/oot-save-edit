@@ -5,6 +5,7 @@ import { renderToString } from "preact-render-to-string";
 import { act } from "preact/test-utils";
 
 import {
+  ChecksumPolicy,
   ExportByteOrder,
   SraSaveFile,
   SrmSaveFile,
@@ -421,6 +422,246 @@ Deno.test("web keeps readable fields editable and previews, declines and accepts
       FileUtil.loadFileFromBuffer(await download()).slots[0].additionalData
         .childEquipment;
     assertEquals(equipment, 0x25);
+  } finally {
+    await act(() => render(null, container));
+    if (descriptor) Object.defineProperty(globalThis, "document", descriptor);
+    else Reflect.deleteProperty(globalThis, "document");
+  }
+});
+
+for (const format of [FileFormat.SRA, FileFormat.SRM]) {
+  for (
+    const order of [ExportByteOrder.BigEndian, ExportByteOrder.WordSwapped]
+  ) {
+    Deno.test(`web correction review previews, cancels, declines and confirms marker-only repair before ${FileFormat[format]} ${order} export`, async () => {
+      const window = parseHTML("<html><body></body></html>");
+      const descriptor = Object.getOwnPropertyDescriptor(
+        globalThis,
+        "document",
+      );
+      const document = window.document as unknown as Document;
+      Object.defineProperty(globalThis, "document", {
+        configurable: true,
+        value: document,
+      });
+      const container = document.body;
+      const save = new SraSaveFile();
+      save.slots[0].data[0x1C] = 0;
+      save.slots[0].checksum = 0x1234;
+      const original = FileUtil.getFileData(
+        save,
+        format,
+        order,
+        ChecksumPolicy.Preserve,
+      );
+      original[original.length - 1] = 0xCD;
+      if (format === FileFormat.SRM) original[0] = 0xAB;
+      async function click(label: string) {
+        const button = Array.from(container.querySelectorAll("button")).find((
+          button,
+        ) => button.textContent === label);
+        assertExists(button, label);
+        await act(() => button.click());
+      }
+      async function download() {
+        const anchor = container.querySelector<HTMLAnchorElement>(
+          "a[download]",
+        );
+        assertExists(anchor);
+        return new Uint8Array(await (await fetch(anchor.href)).arrayBuffer());
+      }
+      try {
+        await act(() =>
+          render(
+            h(SaveEditor, {
+              filename: "review.sra",
+              initialSaveData: original,
+              detectedFormat: format,
+            }),
+            container,
+          )
+        );
+        await click("Repair all");
+        assertEquals(
+          container.textContent?.includes("Review suggested corrections"),
+          true,
+        );
+        assertEquals(await download(), original);
+        await click("Cancel review");
+        assertEquals(await download(), original);
+        await click("Review suggested corrections");
+        await click("Decline all corrections");
+        await click("Confirm selected corrections");
+        assertEquals(await download(), original);
+        await click("Review suggested corrections");
+        const checksum = container.querySelector<HTMLInputElement>(
+          'input[aria-label="Apply Slot 1: checksum"]',
+        );
+        assertExists(checksum);
+        await act(() => {
+          checksum.checked = false;
+          checksum.dispatchEvent(new window.Event("change", { bubbles: true }));
+        });
+        assertEquals(
+          container.textContent?.includes("Checksum corrections omitted"),
+          true,
+        );
+        assertEquals(await download(), original);
+        await click("Confirm selected corrections");
+        const expected = original.slice();
+        expected[
+          (format === FileFormat.SRM ? 0x20800 : 0) +
+          (order === ExportByteOrder.WordSwapped ? 0x3F : 0x3C)
+        ] = 0x5A;
+        assertEquals(await download(), expected);
+        assertEquals(
+          container.textContent?.includes("Accepted correction history"),
+          true,
+        );
+        assertEquals(container.textContent?.includes("preserve"), true);
+      } finally {
+        await act(() => render(null, container));
+        if (descriptor) {
+          Object.defineProperty(globalThis, "document", descriptor);
+        } else Reflect.deleteProperty(globalThis, "document");
+      }
+    });
+  }
+}
+
+Deno.test("web review resolves an explicit outcome conflict and refreshes a stale plan without applying it", async () => {
+  const window = parseHTML("<html><body></body></html>");
+  const descriptor = Object.getOwnPropertyDescriptor(globalThis, "document");
+  const document = window.document as unknown as Document;
+  Object.defineProperty(globalThis, "document", {
+    configurable: true,
+    value: document,
+  });
+  const container = document.body;
+  const save = new SraSaveFile();
+  save.header.data[12] = 0xFF;
+  save.slots[0].data[0x3A] = 2;
+  save.slots[0].checksum = 0x1234;
+  async function click(label: string) {
+    const button = Array.from(container.querySelectorAll("button")).find((
+      button,
+    ) => button.textContent === label);
+    assertExists(button, label);
+    await act(() => button.click());
+  }
+  async function download() {
+    const anchor = container.querySelector<HTMLAnchorElement>("a[download]");
+    assertExists(anchor);
+    return new Uint8Array(await (await fetch(anchor.href)).arrayBuffer());
+  }
+  try {
+    await act(() =>
+      render(
+        h(SaveEditor, {
+          filename: "review.sra",
+          initialSaveData: save.getData(),
+          detectedFormat: FileFormat.SRA,
+        }),
+        container,
+      )
+    );
+    await click("Repair header");
+    assertEquals(
+      container.textContent?.includes(
+        "Alternative: Retain the original padding",
+      ),
+      true,
+    );
+    await click("Keep stored header: padding");
+    const padding = container.querySelector<HTMLInputElement>(
+      'input[aria-label="Apply header: padding"]',
+    );
+    assertExists(padding);
+    await act(() => {
+      padding.dispatchEvent(new window.Event("change", { bubbles: true }));
+    });
+    assertEquals(container.textContent?.includes("requested value"), true);
+    const confirm = Array.from(container.querySelectorAll("button")).find((
+      button,
+    ) => button.textContent === "Confirm selected corrections");
+    assertExists(confirm);
+    assertEquals(confirm.disabled, true);
+    await click("Allow correction instead for header: padding");
+    assertEquals(confirm.disabled, false);
+    const language = Array.from(container.querySelectorAll("span")).find((
+      label,
+    ) => label.textContent === "Language")?.parentElement?.querySelector(
+      "select",
+    );
+    assertExists(language);
+    const option = language.querySelectorAll("option")[1];
+    await act(() => {
+      option.selected = true;
+      language.dispatchEvent(new window.Event("change", { bubbles: true }));
+    });
+    assertEquals(container.textContent?.includes("stale"), true);
+    const edited = await download();
+    await click("Refresh review");
+    assertEquals(await download(), edited);
+    await click("Confirm selected corrections");
+    const exported = FileUtil.loadFileFromBuffer(await download());
+    assertEquals(exported.header.isPaddingValid, true);
+    assertEquals(exported.slots[0].checksum, 0x1234);
+    assertEquals(exported.slots[0].data[0x3A], 2);
+    await click("Review suggested corrections");
+    assertEquals(
+      container.textContent?.includes("header padding matches neither"),
+      false,
+    );
+    assertEquals(container.textContent?.includes("uncertainty findings"), true);
+    await click("Confirm selected corrections");
+    assertEquals(
+      FileUtil.loadFileFromBuffer(await download()).slots[0].isChecksumValid(),
+      true,
+    );
+  } finally {
+    await act(() => render(null, container));
+    if (descriptor) Object.defineProperty(globalThis, "document", descriptor);
+    else Reflect.deleteProperty(globalThis, "document");
+  }
+});
+
+Deno.test("web review displays findings and permits export when no corrections are supported", async () => {
+  const window = parseHTML("<html><body></body></html>");
+  const descriptor = Object.getOwnPropertyDescriptor(globalThis, "document");
+  const document = window.document as unknown as Document;
+  Object.defineProperty(globalThis, "document", {
+    configurable: true,
+    value: document,
+  });
+  const container = document.body;
+  try {
+    await act(() =>
+      render(
+        h(SaveEditor, {
+          filename: "valid.sra",
+          initialSaveData: new SraSaveFile().getData(),
+          detectedFormat: FileFormat.SRA,
+        }),
+        container,
+      )
+    );
+    const review = Array.from(container.querySelectorAll("button")).find((
+      button,
+    ) => button.textContent === "Review suggested corrections");
+    assertExists(review);
+    await act(() => review.click());
+    assertEquals(
+      container.textContent?.includes(
+        "No supported corrections in this scope.",
+      ),
+      true,
+    );
+    assertEquals(
+      container.textContent?.includes("No supported correction."),
+      true,
+    );
+    assertExists(container.querySelector("a[download]"));
   } finally {
     await act(() => render(null, container));
     if (descriptor) Object.defineProperty(globalThis, "document", descriptor);

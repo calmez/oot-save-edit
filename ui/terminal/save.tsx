@@ -31,6 +31,7 @@ import type { SourceFileInfo } from "../../utils/fileutil.ts";
 import { UnresolvedByteOrderError } from "../../utils/inputdiagnostics.ts";
 import type { InputInterpretation } from "../../utils/inputdiagnostics.ts";
 import { getSlot, slotCount, slotLabel } from "../../utils/saveeditor.ts";
+import { CorrectionReview } from "../correctionreview.ts";
 import { exportByteOrderOptions } from "../exportoptions.ts";
 import { inputEvidenceLines } from "../inputoptions.ts";
 import { sceneIdOptions } from "../labels.ts";
@@ -814,6 +815,7 @@ const SaveForm = (
     } as FormFields,
   });
 
+  const [review] = useState(() => new CorrectionReview(originalSaveFile));
   const { stdout } = useStdout();
   const [termRows, setTermRows] = useState(stdout.rows);
   useEffect(() => {
@@ -986,8 +988,9 @@ const SaveForm = (
     return (
       <SaveManagement
         save={formState.saveFile}
+        review={review}
         onClose={() => setManagementOpen(false)}
-        onChange={() => {
+        onChange={(policy) => {
           const fields = Object.assign(
             {},
             ...Array.from(
@@ -999,6 +1002,8 @@ const SaveForm = (
             ...formState,
             currentFormData: {
               ...formState.currentFormData,
+              saveoptions_checksumPolicy: policy ??
+                formState.currentFormData.saveoptions_checksumPolicy,
               ...fields,
               header_languageOption: formState.saveFile.header.languageOption,
               header_soundOption: formState.saveFile.header.soundOption,

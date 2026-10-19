@@ -7,7 +7,12 @@ import type { ReadStream, WriteStream } from "node:tty";
 import { stripVTControlCharacters } from "node:util";
 import { act, createElement } from "react";
 
-import { SraSaveFile, SrmSaveFile } from "../../models/savefile.ts";
+import {
+  ChecksumPolicy,
+  ExportByteOrder,
+  SraSaveFile,
+  SrmSaveFile,
+} from "../../models/savefile.ts";
 import { FileFormat, FileUtil } from "../../utils/fileutil.ts";
 import { Save } from "./save.tsx";
 
@@ -269,7 +274,7 @@ Deno.test("TUI new files show empty slots and create another new-game slot expli
     assertStringIncludes(editor.frame(), "Empty slot");
     await editor.input("\u0007");
     assertStringIncludes(editor.frame(), "Create or reset a new-game slot");
-    for (let i = 0; i < 5; i++) await editor.input("\u001b[B");
+    for (let i = 0; i < 6; i++) await editor.input("\u001b[B");
     await editor.input("\r");
     assertStringIncludes(editor.frame(), "Choose slot:");
     await editor.input("\u001b[B");
@@ -452,6 +457,164 @@ Deno.test("TUI exposes unaffected controls and an explicit replacement review fo
     }
     assertStringIncludes(pages, "Farore's Wind");
     assertStringIncludes(pages, "tentative");
+  } finally {
+    await editor.cleanup();
+    load.restore();
+  }
+});
+
+for (const format of [FileFormat.SRA, FileFormat.SRM]) {
+  for (
+    const order of [ExportByteOrder.BigEndian, ExportByteOrder.WordSwapped]
+  ) {
+    Deno.test(`TUI correction review is keyboard accessible and preserves ${FileFormat[format]} ${order} export checksums`, async () => {
+      const save = new SraSaveFile();
+      save.slots[0].data[0x1C] = 0;
+      save.slots[0].checksum = 0x1234;
+      const original = FileUtil.getFileData(
+        save,
+        format,
+        order,
+        ChecksumPolicy.Preserve,
+      );
+      original[original.length - 1] = 0xCD;
+      if (format === FileFormat.SRM) original[0] = 0xAB;
+      const filename = `review.${FileFormat[format].toLowerCase()}`;
+      const loaded = FileUtil.loadFileFromBuffer(original, undefined, filename);
+      const load = stub(FileUtil, "loadFile", () => loaded);
+      let written = new Uint8Array();
+      const open = stub(Deno, "openSync", () =>
+        ({
+          writeSync(data: Uint8Array) {
+            written = data.slice();
+            return data.length;
+          },
+          close() {},
+        }) as Deno.FsFile);
+      const editor = await renderEditor(60, false, filename);
+      try {
+        await editor.input("\u0007");
+        await editor.input("\r");
+        assertStringIncludes(editor.frame(), "Review suggested corrections");
+        assertEquals(
+          FileUtil.getFileData(loaded, format, order, ChecksumPolicy.Preserve),
+          original,
+        );
+        await editor.input("\u001b");
+        assertEquals(
+          FileUtil.getFileData(loaded, format, order, ChecksumPolicy.Preserve),
+          original,
+        );
+        await editor.input("\r");
+        await editor.input("d");
+        await editor.input("a");
+        await editor.input("\u001b");
+        await editor.input("2");
+        for (let i = 0; i < 6; i++) await editor.input("\u001b[B");
+        await editor.input("\r");
+        assertStringIncludes(editor.frame(), `Saved ${filename}`);
+        assertEquals(written, original);
+        await editor.input("\u0007");
+        await editor.input("\r");
+        await editor.input("\u001b[B");
+        await editor.input(" ");
+        assertStringIncludes(editor.frame(), "Checksum corrections omitted");
+        assertEquals(
+          FileUtil.getFileData(loaded, format, order, ChecksumPolicy.Preserve),
+          original,
+        );
+        await editor.input("a");
+        assertEquals(loaded.slots[0].data[0x1C], 0x5A);
+        assertEquals(loaded.slots[0].checksum, 0x1234);
+        const expected = original.slice();
+        expected[
+          (format === FileFormat.SRM ? 0x20800 : 0) +
+          (order === ExportByteOrder.WordSwapped ? 0x3F : 0x3C)
+        ] = 0x5A;
+        assertEquals(
+          FileUtil.getFileData(loaded, format, order, ChecksumPolicy.Preserve),
+          expected,
+        );
+        await editor.input("\u001b");
+        await editor.input("2");
+        assertStringIncludes(editor.frame(), "Preserve stored checksums");
+        for (let i = 0; i < 6; i++) await editor.input("\u001b[B");
+        await editor.input("\r");
+        assertStringIncludes(editor.frame(), `Saved ${filename}`);
+        assertEquals(written, expected);
+      } finally {
+        await editor.cleanup();
+        load.restore();
+        open.restore();
+      }
+    });
+  }
+}
+
+Deno.test("TUI review requires an explicit outcome change and refreshed confirmation for stale data", async () => {
+  const save = new SraSaveFile();
+  save.header.data[12] = 0xFF;
+  save.slots[0].data[0x3A] = 2;
+  const loaded = FileUtil.loadFileFromBuffer(save.getData());
+  const load = stub(FileUtil, "loadFile", () => loaded);
+  const editor = await renderEditor(60, false, "review.sra");
+  try {
+    await editor.input("\u0007");
+    await editor.input("\u001b[B");
+    await editor.input("\r");
+    assertStringIncludes(editor.frame(), "Alternative:");
+    await editor.input("k");
+    assertStringIncludes(
+      editor.frame(),
+      "Desired outcome: keep stored header: padding",
+    );
+    await editor.input(" ");
+    assertStringIncludes(editor.frame(), "requested value");
+    await editor.input("a");
+    assertEquals(loaded.header.isPaddingValid, false);
+    await editor.input("o");
+    loaded.header.languageOption = 1;
+    const edited = loaded.getData();
+    await editor.input("a");
+    assertStringIncludes(editor.frame(), "stale");
+    assertEquals(loaded.getData(), edited);
+    await editor.input("r");
+    assertEquals(loaded.getData(), edited);
+    await editor.input("a");
+    assertEquals(loaded.header.isPaddingValid, true);
+    assertEquals(loaded.slots[0].data[0x3A], 2);
+    await editor.input("\r");
+    assertStringIncludes(editor.frame(), "Review suggested corrections");
+    assertEquals(editor.frame().includes("Inspecting header: padding"), false);
+    await editor.input("]");
+    assertStringIncludes(editor.frame(), "uncertainty");
+  } finally {
+    await editor.cleanup();
+    load.restore();
+  }
+});
+
+Deno.test("TUI review accepts recommendations and displays unresolved findings without inventing fixes", async () => {
+  const save = new SraSaveFile();
+  save.slots[0].checksum = 0x1234;
+  const loaded = FileUtil.loadFileFromBuffer(save.getData());
+  const load = stub(FileUtil, "loadFile", () => loaded);
+  const editor = await renderEditor(24, false, "review.sra");
+  try {
+    await editor.input("\u0007");
+    await editor.input("\r");
+    assertEquals(loaded.slots[0].checksum, 0x1234);
+    await editor.input("a");
+    assertEquals(loaded.slots[0].isChecksumValid(), true);
+    await editor.input("\r");
+    let pages = editor.frame();
+    for (let page = 0; page < 6; page++) {
+      await editor.input("]");
+      pages += editor.frame();
+    }
+    assertStringIncludes(pages, "No supported corrections in this scope.");
+    assertStringIncludes(pages, "uncertainty findings:");
+    assertStringIncludes(pages, "Accepted correction history:");
   } finally {
     await editor.cleanup();
     load.restore();

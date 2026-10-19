@@ -38,6 +38,23 @@ the slot tabs for primary and backup saves, `[` and `]` for field pages, and
 Ctrl+G for copy/restore, backup synchronization, reset, and repair actions.
 Changes are written when you submit the save form.
 
+Repair actions open a correction review in both editors. Supported
+recommendations start selected; inspect the complete preview, deselect
+individual corrections or decline all, then confirm explicitly. Cancel leaves
+your save unchanged. Gameplay and uncertainty findings without supported
+corrections remain visible.
+
+In terminal review, use ↑/↓ to inspect suggestions, Space to toggle, `[`/`]` to
+page through evidence, findings, preview, and accepted changes, `d` to decline
+all, `a` to confirm, and Escape to cancel. `k` keeps the inspected field's
+stored value as a desired outcome; `o` explicitly allows its correction instead.
+After an intervening edit, `r` refreshes the review before another confirmation.
+
+Confirmed checksum opt-outs select **Preserve stored checksums** for export,
+including marker-only repairs. You can change this explicitly in output options.
+Without an opt-out, ordinary edited-slot checksum maintenance stays available.
+Original source evidence and accepted correction history remain inspectable.
+
 Run `deno task web:dev` for the web editor or `deno task run:gui` for the
 desktop wrapper after building the web UI. Both expose editable backup slots and
 save-management controls. Download the save to keep your changes.

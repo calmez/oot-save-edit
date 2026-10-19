@@ -13,6 +13,7 @@ import { FileFormat, FileUtil } from "../../../utils/fileutil.ts";
 import type { SourceFileInfo } from "../../../utils/fileutil.ts";
 import { UnresolvedByteOrderError } from "../../../utils/inputdiagnostics.ts";
 import type { InputInterpretation } from "../../../utils/inputdiagnostics.ts";
+import { CorrectionReview } from "../../correctionreview.ts";
 import { exportByteOrderOptions } from "../../exportoptions.ts";
 import {
   inputByteOrderOptions,
@@ -186,6 +187,7 @@ function ResolvedSaveEditor(props: ResolvedSaveEditorProps): JSX.Element {
   const [checksumPolicy, setChecksumPolicy] = useState(
     ChecksumPolicy.MaintainEdited,
   );
+  const [review] = useState(() => new CorrectionReview(saveFile));
   const [version, setVersion] = useState(0);
 
   const downloadData = useMemo(() => {
@@ -395,7 +397,12 @@ function ResolvedSaveEditor(props: ResolvedSaveEditorProps): JSX.Element {
           </Section>
         </div>
 
-        <SaveManagement save={saveFile} onChange={notifyChanged} />
+        <SaveManagement
+          save={saveFile}
+          review={review}
+          onChange={notifyChanged}
+          onChecksumPolicy={setChecksumPolicy}
+        />
         <div className="my-6 border-t border-slate-200" />
 
         <div className="space-y-4">

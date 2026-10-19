@@ -1,31 +1,54 @@
-import React, { useState } from "react";
 import { Box, Text, useInput } from "ink";
 import SelectInput from "ink-select-input";
-import type { SraSaveFile } from "../../models/savefile.ts";
+import React, { useState } from "react";
+
+import type { ChecksumPolicy, SraSaveFile } from "../../models/savefile.ts";
 import {
   copySlot,
   getSlot,
-  repairSave,
   resetSlotToNewGame,
   slotCount,
   slotLabel,
 } from "../../utils/saveeditor.ts";
 
+import type { CorrectionReview } from "../correctionreview.ts";
+import ReviewCorrections from "./correctionreview.tsx";
+
 interface SaveManagementProps {
+  review: CorrectionReview;
   save: SraSaveFile;
-  onChange: () => void;
+  onChange: (policy?: ChecksumPolicy) => void;
   onClose: () => void;
 }
 
 export default function SaveManagement(
-  { save, onChange, onClose }: SaveManagementProps,
+  { save, review, onChange, onClose }: SaveManagementProps,
 ) {
   const [stage, setStage] = useState("actions");
   const [source, setSource] = useState(0);
   const [message, setMessage] = useState("");
   useInput((_input, key) => {
-    if (key.escape) onClose();
+    if (key.escape && stage !== "review") onClose();
   });
+  function openReview(filter?: Parameters<CorrectionReview["open"]>[0]) {
+    review.open(filter);
+    setStage("review");
+  }
+  if (stage === "review") {
+    return (
+      <ReviewCorrections
+        review={review}
+        onCancel={() => setStage("actions")}
+        onConfirm={() => {
+          onChange(review.checksumPolicy);
+          setStage("actions");
+          setMessage(
+            "Reviewed corrections confirmed. Accepted correction history is available in review.",
+          );
+        }}
+      />
+    );
+  }
   const slots = Array.from(
     { length: slotCount },
     (_, value) => ({
@@ -36,6 +59,7 @@ export default function SaveManagement(
     }),
   );
   const actions = [
+    { label: "Review suggested corrections", value: "review-all" },
     { label: "Repair header", value: "header" },
     { label: "Repair all slots and header", value: "repair-all" },
     { label: "Repair one slot", value: "repair" },
@@ -62,9 +86,15 @@ export default function SaveManagement(
           onSelect={({ value }) => {
             if (stage === "actions") {
               if (value === "close") return onClose();
-              if (value === "header") save.header.makeValid();
-              else if (value === "repair-all") repairSave(save);
-              else if (value === "sync") {
+              if (value === "review-all" || value === "repair-all") {
+                openReview();
+                return;
+              }
+              if (value === "header") {
+                openReview((item) => item.scope.kind === "header");
+                return;
+              }
+              if (value === "sync") {
                 for (let i = 0; i < 3; i++) {
                   copySlot(save, i, i + 3);
                 }
@@ -83,8 +113,12 @@ export default function SaveManagement(
                 Number(value),
               );
             } else if (stage === "repair") {
-              getSlot(save, Number(value))
-                .makeValid();
+              const target = Number(value);
+              openReview((item) =>
+                item.scope.kind === "slot" && item.scope.index === target % 3 &&
+                item.scope.record === (target < 3 ? "primary" : "backup")
+              );
+              return;
             } else if (stage === "reset") {
               resetSlotToNewGame(save, Number(value));
             }
