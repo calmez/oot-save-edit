@@ -20,5 +20,5 @@
     },
     "baseUrl": "."
   },
-  "exclude": ["**/*.test.ts", "ui/**", "main.ts"]
+  "exclude": ["**/*.test.ts", "scripts/**", "ui/**", "main.ts"]
 }

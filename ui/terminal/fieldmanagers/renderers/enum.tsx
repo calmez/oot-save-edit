@@ -1,9 +1,10 @@
-import React from "react";
-import { SubfieldRendererProps } from "../subfield.tsx";
+import { Text } from "ink";
 import { FormField, ValueOfField } from "ink-form";
 import SelectInput from "ink-select-input";
+import React from "react";
+
+import { SubfieldRendererProps } from "../subfield.tsx";
 import { InputRendererProps, SubfieldRendererFactory } from "./subfield.tsx";
-import { Text } from "ink";
 
 export type EnumRendererProps<F extends FormField, V> =
   & SubfieldRendererProps<
@@ -38,12 +39,14 @@ export function EnumFieldRendererFactory<F extends FormField, V>(
         return { label: rendererProps.enum[key], value: key };
       });
 
-    if (props.readonly) {
+    if (
+      props.readonly || !options.some((option) => option.value === props.value)
+    ) {
       return (
         <Text>
           {options.find((option) => option.value === props.value)?.label ??
             props.value ??
-            "No value"}
+            "Unavailable; use Field interpretations"}
         </Text>
       );
     }
@@ -51,7 +54,7 @@ export function EnumFieldRendererFactory<F extends FormField, V>(
     return (
       <SelectInput
         items={options}
-        onHighlight={(option) =>
+        onSelect={(option) =>
           ChangeHandler(
             props.rendererProps as EnumRendererProps<F, V>,
             option.value,

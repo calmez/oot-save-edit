@@ -8,6 +8,7 @@ import {
   CurrentEquipment,
   DekuNutUpgrades,
   DekuStickUpgrades,
+  DiveMeter,
   DungeonItems,
   EquippableItems,
   FaroresWindWarp,
@@ -21,9 +22,11 @@ import {
   Shield,
   Songs,
   SpiritualStones,
+  StrengthUpgrades,
   Sword,
   Tokens,
   Tunic,
+  Wallet,
 } from "./saveslot.ts";
 import { assertEquals, assertNotEquals, assertThrows } from "@std/assert";
 import { ItemFlags } from "./itemflags.ts";
@@ -322,14 +325,12 @@ Deno.test({
 });
 
 Deno.test({
-  name: "should throw an error when current magic is invalid",
+  name: "should read partially filled magic meters",
   fn() {
     const testData = new Uint8Array(SaveSlot.requiredSize);
     const expectedMagic = 3;
     testData.set(toUint8Array(expectedMagic, 1), 0x0033);
-    assertThrows(() => {
-      new SaveSlot(testData).currentMagic;
-    });
+    assertEquals(new SaveSlot(testData).currentMagic, expectedMagic);
   },
 });
 
@@ -503,8 +504,8 @@ Deno.test({
   fn() {
     const testData = new Uint8Array(SaveSlot.requiredSize);
     testData.set(
-      toUint8Array(Scene.KokiriForest_FromDekuTree_Adult_Day, 2),
-      0x0066,
+      toUint8Array(Scene.KokiriForest_FromDekuTree_Adult_Day, 4),
+      0x0000,
     );
     const expectedRoom = Room.KokiriForest;
     const instance = new SaveSlot(testData);
@@ -517,8 +518,8 @@ Deno.test({
   fn() {
     const testData = new Uint8Array(SaveSlot.requiredSize);
     testData.set(
-      toUint8Array(Scene.ActionTestingRoom_Default_Adult_Day, 2),
-      0x0066,
+      toUint8Array(Scene.ActionTestingRoom_Default_Adult_Day, 4),
+      0x0000,
     );
     const expectedRoom = Room.Beshitu;
     const instance = new SaveSlot(testData);
@@ -532,8 +533,8 @@ Deno.test({
   fn() {
     const testData = new Uint8Array(SaveSlot.requiredSize);
     testData.set(
-      toUint8Array(Scene.KokiriForest_FromDekuTree_Adult_Day, 2),
-      0x0066,
+      toUint8Array(Scene.KokiriForest_FromDekuTree_Adult_Day, 4),
+      0x0000,
     );
     const expectedEntrance = Entrance.FromDekuTree;
     const instance = new SaveSlot(testData);
@@ -546,8 +547,8 @@ Deno.test({
   fn() {
     const testData = new Uint8Array(SaveSlot.requiredSize);
     testData.set(
-      toUint8Array(Scene.BackAlley_FromBombchuShop_Adult_Day, 2),
-      0x0066,
+      toUint8Array(Scene.BackAlley_FromBombchuShop_Adult_Day, 4),
+      0x0000,
     );
     const expectedEntrance = Entrance.FromPuppyWomansHouse;
     const instance = new SaveSlot(testData);
@@ -561,8 +562,8 @@ Deno.test({
   fn() {
     const testData = new Uint8Array(SaveSlot.requiredSize);
     testData.set(
-      toUint8Array(Scene.ActionTestingRoom_Default_Adult_Day, 2),
-      0x0066,
+      toUint8Array(Scene.ActionTestingRoom_Default_Adult_Day, 4),
+      0x0000,
     );
     const expectedRoom = Room.BackAlley;
     const expectedEntrance = Entrance.FromPuppyWomansHouse;
@@ -863,7 +864,6 @@ Deno.test({
     const testData = new Uint8Array(SaveSlot.requiredSize);
     const expectedUpgrades: Array<ObtainableUpgrades> = [
       DekuNutUpgrades.DekuNutUpgradeHolds30Nuts,
-      DekuStickUpgrades.DekuStickUpgradeHolds20Sticks,
       DekuStickUpgrades.DekuStickUpgradeHolds30Sticks,
       BulletBag.BulletBagHolds30,
       BombBag.BombBagHolds20,
@@ -886,7 +886,6 @@ Deno.test({
       DekuNutUpgrades.DekuNutUpgradeHolds30Nuts,
       BulletBag.BulletBagHolds40,
       BombBag.BombBagHolds30,
-      Quiver.QuiverHolds30,
       Quiver.QuiverHolds50,
     ];
     const instance = new SaveSlot(testData);
@@ -972,7 +971,7 @@ Deno.test({
   name: "should provide small key amount",
   fn() {
     const testData = new Uint8Array(SaveSlot.requiredSize);
-    const expectedKeys = new Array<number>(0x14).fill(0x23);
+    const expectedKeys = new Array<number>(19).fill(0x23);
     testData.set(expectedKeys, 0x00BC);
     const instance = new SaveSlot(testData);
     assertEquals(instance.smallKeyAmount, expectedKeys);
@@ -983,7 +982,7 @@ Deno.test({
   name: "should set small key amount",
   fn() {
     const testData = new Uint8Array(SaveSlot.requiredSize);
-    const expectedKeys = new Array<number>(0x14).fill(0x23);
+    const expectedKeys = new Array<number>(19).fill(0x23);
     const instance = new SaveSlot(testData);
     instance.smallKeyAmount = expectedKeys;
     assertEquals(instance.smallKeyAmount, expectedKeys);
@@ -1038,7 +1037,7 @@ Deno.test({
   name: "should provide permanent scene flags",
   fn() {
     const buildSceneFlags = (): PermanentSceneFlags[] =>
-      Array.from({ length: 101 }, () => ({
+      Array.from({ length: 124 }, () => ({
         chestFlags: new ChestFlags(),
         switches: new SwitchFlags(),
         roomClearFlags: new RoomClearFlags(),
@@ -1063,7 +1062,7 @@ Deno.test({
     const instance = new SaveSlot(new Uint8Array(writer.data));
     const actualFlags = instance.permanentSceneFlags;
 
-    assertEquals(actualFlags.length, 101);
+    assertEquals(actualFlags.length, 124);
     assertEquals(actualFlags[0].chestFlags.getFlag(1), true);
     assertEquals(actualFlags[17].switches.getFlag(31), true);
     assertEquals(actualFlags[33].roomClearFlags.getFlag(5), true);
@@ -1078,7 +1077,7 @@ Deno.test({
   name: "should set permanent scene flags",
   fn() {
     const sceneFlags: PermanentSceneFlags[] = Array.from(
-      { length: 101 },
+      { length: 124 },
       () => ({
         chestFlags: new ChestFlags(),
         switches: new SwitchFlags(),
@@ -1377,10 +1376,10 @@ Deno.test({
   name: "should calculate the checksum",
   fn() {
     const testData = new Uint8Array(SaveSlot.requiredSize);
-    const expectedSum = 42;
+    const expectedSum = 41;
     testData.set(toUint8Array(0x00FF, 2), 0x0004);
     testData.set(toUint8Array(0xFF00, 2), 0x0006);
-    testData.set(toUint8Array(expectedSum, 2), 0x001A);
+    testData.set(toUint8Array(42, 2), 0x001A);
     const instance = new SaveSlot(testData);
     assertEquals(instance.calculateChecksum(), expectedSum);
   },
@@ -1436,4 +1435,140 @@ Deno.test({
     const instance = new SaveSlot(testData);
     assertEquals(instance.isValid, false);
   },
+});
+
+Deno.test("new-game slots use the retail starting state and destination file index", () => {
+  const slot = SaveSlot.createNewGame(2);
+  assertEquals(Age.Adult, 0);
+  assertEquals(Age.Child, 1);
+  assertEquals(slot.data[7], 1);
+  assertEquals(slot.maxHealth, 48);
+  assertEquals(slot.currentHealth, 48);
+  assertEquals(slot.currentMagic, 48);
+  assertEquals(slot.magicFlag1, false);
+  assertEquals(slot.magicFlag2, false);
+  assertEquals(slot.fileIndex, 2);
+  assertEquals(slot.entranceIndex, 0xBB);
+  assertEquals(slot.worldTime, 0x6AAA);
+  assertEquals(slot.cutSceneNumber, 0xFFF1);
+  assertEquals(slot.savedSceneIndex, 0x34);
+  assertEquals(slot.data[0xF32], 0);
+  assertEquals(slot.data[0xF33], 1);
+  assertEquals(slot.permanentSceneFlags[5].switches.getFlag(30), true);
+  assertEquals(slot.inventory, new Array(24).fill(InventoryItems.Empty));
+  assertEquals(slot.isValid, true);
+});
+
+Deno.test("small keys must not overwrite double-defense hearts", () => {
+  const slot = SaveSlot.createNewGame();
+  slot.doubleDefenseHearts = 20;
+  slot.smallKeyAmount = new Array(19).fill(7);
+  assertEquals(slot.doubleDefenseHearts, 20);
+  assertThrows(() => {
+    slot.smallKeyAmount = new Array(20).fill(7);
+  });
+});
+
+Deno.test("empty slots have the game's unused defaults without an occupied marker", () => {
+  const slot = SaveSlot.createEmpty(1);
+  assertEquals(slot.isEmpty, true);
+  assertEquals(slot.data.slice(0x1C, 0x22), new Uint8Array(6));
+  assertEquals(slot.data.slice(0, 0x1C), new Uint8Array(0x1C));
+  assertEquals(slot.fileIndex, 1);
+  assertEquals(slot.playerName, "");
+  assertEquals(slot.inventory, new Array(24).fill(InventoryItems.Empty));
+  assertEquals(slot.isChecksumValid(), true);
+  assertEquals(SaveSlot.createNewGame().isEmpty, false);
+  assertEquals(new SaveSlot().isEmpty, true);
+});
+
+Deno.test("slot factories reject file indexes outside the three primary/backup pairs", () => {
+  for (const index of [-1, 3, 1.5, NaN, Infinity]) {
+    assertThrows(() => SaveSlot.createNewGame(index), Error, "File index");
+    assertThrows(() => SaveSlot.createEmpty(index), Error, "File index");
+  }
+});
+
+Deno.test("slot diagnosis and repair preserve empty records and distinguish damaged progress", () => {
+  const empty = SaveSlot.createEmpty();
+  empty.checksum = 0;
+  const before = empty.data.slice();
+  assertEquals(empty.isEmpty, true);
+  assertEquals(empty.isValid, false);
+  assertEquals(empty.isChecksumValid(), false);
+  assertEquals(empty.data, before);
+  empty.makeValid();
+  assertEquals(empty.isEmpty, true);
+  assertEquals(empty.isChecksumValid(), true);
+  assertEquals(empty.data.slice(0x1C, 0x22), new Uint8Array(6));
+
+  const damaged = SaveSlot.createNewGame();
+  damaged.playerName = "Link";
+  damaged.rupees = 123;
+  damaged.data.fill(0, 0x1C, 0x22);
+  assertEquals(damaged.isEmpty, false);
+  assertEquals(damaged.isValid, false);
+  damaged.makeValid();
+  assertEquals(damaged.isValid, true);
+  assertEquals(damaged.playerName, "Link");
+  assertEquals(damaged.rupees, 123);
+
+  const partialMarker = SaveSlot.createNewGame();
+  partialMarker.data[0x1C] = 0;
+  assertEquals(partialMarker.isEmpty, false);
+});
+
+Deno.test("all 124 scene records can be edited without touching Farore's Wind", () => {
+  const slot = SaveSlot.createNewGame();
+  slot.faroresWindWarp = { x: -10, y: 20, z: -30, yRotation: -40 };
+  const flags = slot.permanentSceneFlags;
+  flags[123].visitedFloors.setFlag(31, true);
+  slot.permanentSceneFlags = flags;
+  assertEquals(new DataView(slot.data.buffer).getUint32(0xE60), 0x80000000);
+  assertEquals(slot.faroresWindWarp.x, -10);
+});
+
+Deno.test("checksum carries wrap at 65536", () => {
+  const slot = new SaveSlot();
+  slot.data.set([0xFF, 0xFF, 0, 1]);
+  assertEquals(slot.calculateChecksum(), 0);
+});
+
+Deno.test("third equipped items use tier three rather than ownership bit four", () => {
+  const slot = new SaveSlot();
+  slot.currentlyEquippedEquipment = {
+    sword: Sword.GiantKnife,
+    shield: Shield.MirrorShield,
+    tunic: Tunic.ZoraTunic,
+    boots: Boots.HoverBoots,
+  };
+  assertEquals(Array.from(slot.data.slice(0x70, 0x72)), [0x33, 0x33]);
+  assertEquals(slot.currentlyEquippedEquipment.boots, Boots.HoverBoots);
+  slot.currentlyEquippedEquipment = {
+    sword: 0 as Sword,
+    shield: 0 as Shield,
+    tunic: 0 as Tunic,
+    boots: 0 as Boots,
+  };
+  assertEquals(Array.from(slot.data.slice(0x70, 0x72)), [0, 0]);
+});
+
+Deno.test("capacity upgrades decode packed levels and reject conflicting levels", () => {
+  const slot = new SaveSlot();
+  slot.data.set([0, 0x36, 0xE4, 0xDB], 0xA0);
+  assertEquals(slot.obtainedUpgrades, [
+    DekuNutUpgrades.DekuNutUpgradeHolds40Nuts,
+    DekuStickUpgrades.DekuStickUpgradeHolds30Sticks,
+    BulletBag.BulletBagHolds50,
+    Wallet.WalletHolds500,
+    DiveMeter.GoldenScale,
+    StrengthUpgrades.GoldenGauntlets,
+    BombBag.BombBagHolds40,
+    Quiver.QuiverHolds50,
+  ]);
+  assertThrows(() => {
+    slot.obtainedUpgrades = [Quiver.QuiverHolds30, Quiver.QuiverHolds50];
+  });
+  slot.obtainedUpgrades = [Quiver.QuiverHolds50];
+  assertEquals(Array.from(slot.data.slice(0xA0, 0xA4)), [0, 0, 0, 3]);
 });

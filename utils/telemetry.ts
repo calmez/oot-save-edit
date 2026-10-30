@@ -1,26 +1,32 @@
 import { metrics, trace, ValueType } from "@opentelemetry/api";
 
+import type { ExportByteOrder } from "../models/savefile.ts";
+
 const appName = "oot-save-edit";
 
 const tracer = trace.getTracer(appName, "dev");
 const meter = metrics.getMeter(appName, "dev");
 
 export const Span = {
-  loadFile: (path: string) => {
-    return tracer.startSpan("load_file", {
+  loadFile: (path: string, cwd?: string) =>
+    tracer.startSpan("load_file", {
       attributes: {
-        "file.cwd": Deno.cwd(),
         "file.path": path,
+        ...(cwd === undefined ? {} : { "file.cwd": cwd }),
       },
-    });
-  },
-  saveFile: (path: string, format: number, forceSwap: boolean) =>
+    }),
+  saveFile: (
+    path: string,
+    format: number,
+    byteOrder: ExportByteOrder,
+    cwd?: string,
+  ) =>
     tracer.startSpan("save_file", {
       attributes: {
-        "file.cwd": Deno.cwd(),
         "file.path": path,
         "file.format": format,
-        "file.forceSwap": forceSwap,
+        "file.sramByteOrder": byteOrder,
+        ...(cwd === undefined ? {} : { "file.cwd": cwd }),
       },
     }),
 };

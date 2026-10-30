@@ -10,7 +10,8 @@ desktop, and terminal targets.
 - Terminal UI: `ui/terminal/` (Ink-based).
 - Web UI (Fresh + Vite + Preact): `ui/web/`.
 - Desktop GUI wrapper: `ui/main.ts` (webview + bundled web UI).
-- Docs: `docs.md`, `tsconfig.doc.json`, `deno task build:docs`.
+- Docs: `docs.md`, `tsconfig.doc.json`, `deno task build:docs` (output:
+  `build/docs/`).
 
 ## Build, lint, test
 
@@ -38,7 +39,7 @@ Web UI tasks (see `ui/web/deno.json`):
 
 Tests:
 
-- Run all tests: `deno test`.
+- Run all tests: `deno task test` (core/TUI and web use separate configs).
 - Run a single test file: `deno test models/saveslot.test.ts`.
 - Run a single test by name:
   `deno test --filter "should set an entrance index"`.
@@ -131,3 +132,20 @@ Copilot instructions from `.github/copilot-instructions.md`:
 Cursor rules:
 
 - No `.cursor/rules/` or `.cursorrules` found in this repository.
+
+## Agent skills
+
+### Issue tracker
+
+Track issues and specs in GitHub Issues for `calmez/oot-save-edit`. Before
+tracker operations, read `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Use the five default triage labels. Before triage, read
+`docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Use a single-context layout: root `GLOSSARY.md` and `docs/adr/`. Before
+exploring the codebase, read `docs/agents/domain.md`.

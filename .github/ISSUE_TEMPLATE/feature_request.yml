@@ -1,0 +1,48 @@
+name: Feature request
+description: Suggest an improvement to the OoT save editor.
+labels: ["needs-triage"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or use case
+      description: What are you trying to do, and what limitation are you encountering?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: Describe the behavior you would like, including an example of how you would use it.
+    validations:
+      required: true
+  - type: dropdown
+    id: interface
+    attributes:
+      label: Relevant interface
+      options:
+        - Web UI
+        - Desktop GUI
+        - Terminal UI
+        - Core library
+        - Multiple interfaces
+        - Other / unsure
+    validations:
+      required: true
+  - type: textarea
+    id: success
+    attributes:
+      label: Success criteria
+      description: What observable result would make this feature meet your needs?
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Describe any workarounds or other approaches you have considered.
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Add examples, screenshots, save format references, or other supporting details.
